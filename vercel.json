@@ -1,5 +1,4 @@
 {
-  "buildCommand": "flutter build web --release",
   "outputDirectory": "build/web",
   "headers": [
     {
@@ -14,6 +13,12 @@
           "value": "same-origin"
         }
       ]
+    }
+  ],
+  "rewrites": [
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
     }
   ]
 }
