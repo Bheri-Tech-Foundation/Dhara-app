@@ -1,0 +1,13 @@
+{
+  "name": "dhara-flutter-web",
+  "version": "1.0.0",
+  "description": "Dhara Flutter Web App - Pre-built Static Site",
+  "scripts": {
+    "build": "echo 'Using pre-built Flutter web app from build/web directory' && exit 0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Bheri-Tech-Foundation/Dhara-app.git"
+  }
+}
+
