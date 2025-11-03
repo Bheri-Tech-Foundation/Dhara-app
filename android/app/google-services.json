@@ -1,0 +1,94 @@
+{
+  "project_info": {
+    "project_number": "316847997090",
+    "project_id": "bheri-446306",
+    "storage_bucket": "bheri-446306.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:316847997090:android:5c482d90835a57038d57fb",
+        "android_client_info": {
+          "package_name": "in.bheri.dhara"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "316847997090-8ode8ioqmlcjju1se300b6vlg217calc.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "in.bheri.dhara",
+            "certificate_hash": "dc2864d453c20d172179b486f83273aad1c099e4"
+          }
+        },
+        {
+          "client_id": "316847997090-8rgi3ta0l01krikukau1jf40lmfod23q.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "in.bheri.dhara",
+            "certificate_hash": "9fa3c3299e5686b567ed287170f6f9d09434c4b1"
+          }
+        },
+        {
+          "client_id": "316847997090-a2ovl8e55tqru4cops2a5aah7h8rhfl1.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "in.bheri.dhara",
+            "certificate_hash": "9d656c472faa559bfd9b2634cedef4c8ca90896d"
+          }
+        },
+        {
+          "client_id": "316847997090-h9ad79gabp2fsafbm8bdgd2k147atng2.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "in.bheri.dhara",
+            "certificate_hash": "cd14676b6645a2f1712dc6d86d57e3f440a4d71e"
+          }
+        },
+        {
+          "client_id": "316847997090-o92v7j3hgrk6r35gj4vdg7v04559p2r1.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "in.bheri.dhara",
+            "certificate_hash": "74ac4725b419be08802351bec788bcfaf64a787b"
+          }
+        },
+        {
+          "client_id": "316847997090-rq6reduc42g6qu8lta3l0r8kcj2mfvdt.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "in.bheri.dhara",
+            "certificate_hash": "7b22e8e42e2e9ea4a1e91618d1ebb5aaabbab9ea"
+          }
+        },
+        {
+          "client_id": "316847997090-e7saa52r71mei35npko2vlgtu9alhtlb.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAhSZz0YObP6cXY5ti3bXApG8TAgUAnZKY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "316847997090-e7saa52r71mei35npko2vlgtu9alhtlb.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "316847997090-7480sqbnn4qdnnuqecdfesk3ulmg6pou.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "in.bheri.dhara"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
