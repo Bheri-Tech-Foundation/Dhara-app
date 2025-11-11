@@ -100,8 +100,12 @@ class GoogleAuthService {
     try {
       mLogger.d('Starting Google sign-in with account picker...');
       
-      // Sign out first to force account picker
-      await _googleSignIn!.signOut();
+      // On web, just call signIn directly - the SDK will show account picker
+      // Don't call signOut() as it aborts the popup on web
+      if (!kIsWeb) {
+        // Only sign out on mobile to force account picker
+        await _googleSignIn!.signOut();
+      }
       
       // Sign in with account picker
       final GoogleSignInAccount? googleUser = await _googleSignIn!.signIn();
