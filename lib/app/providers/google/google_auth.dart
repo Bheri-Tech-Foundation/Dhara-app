@@ -117,6 +117,14 @@ class GoogleAuthService {
       mLogger.d('Google sign-in with account picker successful for: ${googleUser.email}');
       final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
       
+      // Debug: Log token availability
+      print('🔍 DEBUG getIdTokenWithAccountPicker:');
+      print('   - idToken available: ${googleAuth.idToken != null}');
+      print('   - idToken length: ${googleAuth.idToken?.length ?? 0}');
+      print('   - accessToken available: ${googleAuth.accessToken != null}');
+      print('   - accessToken length: ${googleAuth.accessToken?.length ?? 0}');
+      print('   - Platform: ${kIsWeb ? "WEB" : "MOBILE"}');
+      
       // On web, ID token might be null, so use access token as fallback
       // The backend expects an access_token anyway (OAuth2 token)
       if (kIsWeb && googleAuth.idToken == null) {
@@ -124,6 +132,7 @@ class GoogleAuthService {
           throw Exception('Failed to get access token from account picker');
         }
         mLogger.w('! ID token is null on web, but access token is available. Using access token as fallback.');
+        print('🎫 Returning access token: ${googleAuth.accessToken!.substring(0, 20)}...');
         return googleAuth.accessToken!;
       }
       
@@ -131,6 +140,7 @@ class GoogleAuthService {
         throw Exception('Failed to get ID token from account picker');
       }
       
+      print('🎫 Returning id token: ${googleAuth.idToken!.substring(0, 20)}...');
       return googleAuth.idToken!;
     } catch (e) {
       mLogger.e('Error getting ID token with account picker: $e');
