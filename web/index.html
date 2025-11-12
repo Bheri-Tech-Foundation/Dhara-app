@@ -85,6 +85,14 @@
     <div id="loading-text">Loading Dhara...</div>
   </div>
 
+  <script>
+    // Configuration for Flutter loader - disable service worker
+    window.flutterConfiguration = {
+      serviceWorkerSettings: {
+        serviceWorkerUrl: null  // Disable service worker
+      }
+    };
+  </script>
   <script src="flutter_bootstrap.js" async></script>
   
   <script>
