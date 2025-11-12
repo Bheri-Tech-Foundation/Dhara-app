@@ -86,12 +86,14 @@
   </div>
 
   <script>
-    // Configuration for Flutter loader - disable service worker
-    window.flutterConfiguration = {
-      serviceWorkerSettings: {
-        serviceWorkerUrl: null  // Disable service worker
-      }
-    };
+    // Completely unregister service worker to prevent local network permission prompt
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.getRegistrations().then(function(registrations) {
+        for(let registration of registrations) {
+          registration.unregister();
+        }
+      });
+    }
   </script>
   <script src="flutter_bootstrap.js" async></script>
   
