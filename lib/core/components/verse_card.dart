@@ -17,6 +17,7 @@ import 'package:expandable/expandable.dart';
 import 'package:flutter/material.dart';
 import 'package:markdown_widget/config/configs.dart';
 import 'package:markdown_widget/markdown_widget.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 /// Reusable Verse Card component that works in any context
 /// Automatically updates when verse data changes through VerseService
@@ -203,24 +204,27 @@ class _VerseCardState extends State<VerseCard> {
   Widget _buildFullCard(VerseRM verse) {
     return RepaintBoundary(
       key: _repaintBoundaryKey,
-      child: CommonContainer(
-        appThemeDisplay: appThemeDisplay,
-        child: Container(
-          width: double.infinity,
-          margin: const EdgeInsets.only(top: 8),
-          decoration: TdResDecorations.decorationCardOutlined(
-            Color.alphaBlend(
-              themeColors.primary.withAlpha(0x12),
-              themeColors.onSurfaceLowest,
+      child: Container(
+        // Solid background color for screenshot/sharing (no transparency)
+        color: themeColors.surface,
+        child: CommonContainer(
+          appThemeDisplay: appThemeDisplay,
+          child: Container(
+            width: double.infinity,
+            margin: const EdgeInsets.only(top: 8),
+            decoration: TdResDecorations.decorationCardOutlined(
+              Color.alphaBlend(
+                themeColors.primary.withAlpha(0x12),
+                themeColors.onSurfaceLowest,
+              ),
+              themeColors.surface.withAlpha(0x96),
+              isElevated: false,
+            ).copyWith(
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: themeColors.onSurfaceDisable),
             ),
-            themeColors.surface.withAlpha(0x96),
-            isElevated: false,
-          ).copyWith(
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: themeColors.onSurfaceDisable),
-          ),
-          clipBehavior: Clip.antiAliasWithSaveLayer,
-          child: Column(
+            clipBehavior: Clip.antiAliasWithSaveLayer,
+            child: Column(
             children: [
               ExpandableNotifier(
                 child: ExpandablePanel(
@@ -244,6 +248,7 @@ class _VerseCardState extends State<VerseCard> {
           ),
         ),
       ),
+      ),  // Close the solid background Container wrapper
     );
   }
 
@@ -651,11 +656,19 @@ class _VerseCardState extends State<VerseCard> {
     );
   }
 
-  void _handleSourceClick(String url) {
-    // TODO: Implement URL launch
-    // launchUrl(Uri.parse(url));
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Opening: $url')),
-    );
+  Future<void> _handleSourceClick(String url) async {
+    try {
+      final uri = Uri.parse(url);
+      await launchUrl(uri, mode: LaunchMode.externalApplication);
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Could not open source link'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
   }
 }
