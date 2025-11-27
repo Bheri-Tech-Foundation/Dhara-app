@@ -51,8 +51,12 @@ class GoogleAuthService {
 
       _isInitialized = true;
       
-      // Try to restore previous session silently (only once)
-      _trySignInSilently();
+      // Try to restore previous session silently (skip on web to avoid rate limits)
+      if (!kIsWeb) {
+        _trySignInSilently();
+      } else {
+        mLogger.d('Skipping silent sign-in on web to avoid Google One Tap rate limits');
+      }
     } catch (e) {
       mLogger.e('Error initializing Google client: $e');
     }
