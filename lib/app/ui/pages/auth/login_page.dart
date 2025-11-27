@@ -14,6 +14,7 @@ import 'package:dharak_flutter/app/domain/base/domain_result.dart';
 import 'package:dharak_flutter/app/ui/constants.dart';
 import 'package:dharak_flutter/res/values/colors.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_modular/flutter_modular.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -295,7 +296,8 @@ class _LoginPageState extends State<LoginPage> {
                 
                 return Column(
                   children: [
-                    if (hasLastAccount) ...[
+                    // Only show "Sign in with last account" on mobile to avoid clock skew issues on web
+                    if (hasLastAccount && !kIsWeb) ...[
                       // Sign in with last account button (direct login)
                       Container(
                         width: double.infinity,
