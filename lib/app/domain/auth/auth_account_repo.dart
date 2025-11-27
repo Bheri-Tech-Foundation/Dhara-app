@@ -206,4 +206,57 @@ class AuthAccountRepository extends Disposable {
     _mAccountStateChanged.sink.add(false);
     _mSubjectAccountUser.sink.add(null);
   }
+
+  /// Validate existing tokens by attempting to refresh
+  /// Returns true if tokens are valid/refreshed successfully
+  /// Returns false if tokens are expired/invalid and need re-login
+  Future<bool> validateAndRefreshTokens() async {
+    try {
+      final accessToken = await mSecureStorage.getAccessToken();
+      final refreshToken = await mSecureStorage.getRefreshToken();
+      
+      // No tokens = not authenticated
+      if (accessToken == null || accessToken.isEmpty || 
+          refreshToken == null || refreshToken.isEmpty) {
+        mLogger.d('validateAndRefreshTokens: No tokens found');
+        return false;
+      }
+      
+      // Try to refresh the access token to validate the refresh token
+      mLogger.d('validateAndRefreshTokens: Attempting token refresh...');
+      final isRefreshSuccess = await _attemptTokenRefresh(refreshToken);
+      
+      if (!isRefreshSuccess) {
+        // Refresh token is expired/invalid, clear all auth data
+        mLogger.d('validateAndRefreshTokens: Refresh failed, clearing tokens');
+        await mSecureStorage.saveAccessToken(null);
+        await mSecureStorage.saveRefreshToken(null);
+        return false;
+      }
+      
+      mLogger.d('validateAndRefreshTokens: Tokens validated successfully');
+      return true;
+    } catch (e) {
+      mLogger.e('validateAndRefreshTokens: Error - $e');
+      return false;
+    }
+  }
+  
+  /// Attempt to refresh the access token using refresh token
+  Future<bool> _attemptTokenRefresh(String refreshToken) async {
+    try {
+      final response = await mAuthApiRepo.refreshToken({'refresh': refreshToken});
+      
+      if (response.accessToken != null && response.accessToken!.isNotEmpty) {
+        await mSecureStorage.saveAccessToken(response.accessToken);
+        mLogger.d('_attemptTokenRefresh: New access token saved');
+        return true;
+      }
+      
+      return false;
+    } catch (e) {
+      mLogger.e('_attemptTokenRefresh: Failed - $e');
+      return false;
+    }
+  }
 }

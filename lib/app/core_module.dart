@@ -64,7 +64,7 @@ class CoreModule extends Module {
 
 
     i.addSingleton(() => AuthApiPoint(i<Dio>(), baseUrl: F.apiUrl));
-    i.addSingleton(() => AuthApiRepo(apiPoint: i<AuthApiPoint>()));
+    i.addSingleton(() => AuthApiRepo(apiPoint: i<AuthApiPoint>(), dio: i<Dio>()));
 
     i.addSingleton(() => DictionaryApiPoint(i<Dio>(), baseUrl: F.apiUrl));
     i.addSingleton(() => DictionaryApiRepo(apiPoint: i<DictionaryApiPoint>()));

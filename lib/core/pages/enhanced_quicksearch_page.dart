@@ -1244,7 +1244,21 @@ class _EnhancedQuickSearchPageState extends State<EnhancedQuickSearchPage>
   }
 
   void _handleCopy(String text) {
-    // TODO: Implement copy functionality
+    Clipboard.setData(ClipboardData(text: text));
+    if (mounted) {
+      final themeColors = Theme.of(context).extension<AppThemeColors>() ??
+          AppThemeColors.seedColor(seedColor: const Color(0xFF6CE18D), isDark: false);
+      
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            "Copied to clipboard!",
+            style: TdResTextStyles.h5.copyWith(color: themeColors.surface),
+          ),
+          duration: const Duration(seconds: 2),
+        ),
+      );
+    }
   }
 
   void _handleShare(String text) {
@@ -2608,10 +2622,18 @@ class _EnhancedQuickSearchContentState extends State<_EnhancedQuickSearchContent
     buffer.writeln('Word: ${wordDefineResult.givenWord}');
     buffer.writeln();
     
+    // Add all definitions with numbering
     for (int i = 0; i < wordDefineResult.details.definitions.length; i++) {
       final definition = wordDefineResult.details.definitions[i];
       buffer.writeln('Definition ${i + 1}:');
       buffer.writeln(definition.text);
+      buffer.writeln();
+    }
+    
+    // Add similar words if available
+    if (wordDefineResult.similarWords.isNotEmpty) {
+      buffer.writeln('Similar Words:');
+      buffer.writeln(wordDefineResult.similarWords.join(', '));
       buffer.writeln();
     }
     
@@ -3673,7 +3695,21 @@ class _EnhancedQuickSearchContentState extends State<_EnhancedQuickSearchContent
   }
 
   void _handleCopy(String text) {
-    // TODO: Implement copy functionality
+    Clipboard.setData(ClipboardData(text: text));
+    if (mounted) {
+      final themeColors = Theme.of(context).extension<AppThemeColors>() ??
+          AppThemeColors.seedColor(seedColor: const Color(0xFF6CE18D), isDark: false);
+      
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            "Copied to clipboard!",
+            style: TdResTextStyles.h5.copyWith(color: themeColors.surface),
+          ),
+          duration: const Duration(seconds: 2),
+        ),
+      );
+    }
   }
 
   void _handleShare(String text) {

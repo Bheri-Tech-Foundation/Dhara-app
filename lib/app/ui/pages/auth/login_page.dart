@@ -53,27 +53,23 @@ class _LoginPageState extends State<LoginPage> {
   /// Check if user is already authenticated and redirect to app
   Future<void> _checkExistingAuthState() async {
     try {
-      
       final authRepo = Modular.get<AuthAccountRepository>();
       authRepo.initSetup();
       
       // Quick check without delay
       await Future.delayed(const Duration(milliseconds: 50));
       
-      // Check for valid tokens, not just user data
-      final accessToken = await authRepo.mSecureStorage.getAccessToken();
+      // Validate tokens - this will clear expired tokens automatically
+      final hasValidTokens = await authRepo.validateAndRefreshTokens();
       var user = authRepo.mAccountUserObservable.value;
       
-      bool isAuthenticated = accessToken != null && 
-                           accessToken.isNotEmpty &&
+      bool isAuthenticated = hasValidTokens && 
                            user != null && 
                            (user.email?.isNotEmpty == true || 
                             user.name?.isNotEmpty == true);
       
-      
       if (mounted && isAuthenticated) {
         Modular.to.pushReplacementNamed('/Dhara/quicksearch');
-      } else {
       }
     } catch (e) {
       // Continue with normal login flow
@@ -454,8 +450,6 @@ class _LoginPageState extends State<LoginPage> {
                         width: double.infinity,
                         constraints: BoxConstraints(maxWidth: 280),
                         child: googleSignInButton(
-                          themeColors: themeColors,
-                          appThemeDisplay: appThemeDisplay,
                           onPressed: (state.isInProgress == true) ? null : () async {
                             await mBloc.onSubmitWithAccountPicker(); // Show account picker for first time
                           },

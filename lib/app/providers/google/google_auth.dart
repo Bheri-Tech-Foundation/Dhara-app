@@ -10,6 +10,8 @@ class GoogleAuthService {
   
   GoogleSignIn? _googleSignIn;
   GoogleSignInAccount? _currentUser;
+  bool _isInitialized = false; // Track initialization state
+  DateTime? _lastSilentSignInAttempt; // Track last silent sign-in attempt
 
   final PublishSubject<bool> _mOnLoggedIn = PublishSubject<bool>();
   PublishSubject<bool> get onLoggedIn => _mOnLoggedIn;
@@ -18,6 +20,12 @@ class GoogleAuthService {
 
   void initGoogleClient() {
     try {
+      // Prevent multiple initializations
+      if (_isInitialized) {
+        mLogger.d('Google client already initialized, skipping');
+        return;
+      }
+      
       _googleSignIn = GoogleSignIn(
         scopes: [
           'email',
@@ -41,10 +49,32 @@ class GoogleAuthService {
         }
       });
 
-      // Try to restore previous session silently
-      _googleSignIn!.signInSilently();
+      _isInitialized = true;
+      
+      // Try to restore previous session silently (only once)
+      _trySignInSilently();
     } catch (e) {
       mLogger.e('Error initializing Google client: $e');
+    }
+  }
+  
+  /// Attempt silent sign-in with rate limiting protection for web
+  void _trySignInSilently() {
+    try {
+      // On web, Google limits silent sign-in to once every 10 minutes
+      if (kIsWeb && _lastSilentSignInAttempt != null) {
+        final timeSinceLastAttempt = DateTime.now().difference(_lastSilentSignInAttempt!);
+        if (timeSinceLastAttempt.inMinutes < 10) {
+          mLogger.d('Skipping silent sign-in (last attempt was ${timeSinceLastAttempt.inMinutes} minutes ago)');
+          return;
+        }
+      }
+      
+      _lastSilentSignInAttempt = DateTime.now();
+      mLogger.d('Attempting silent Google sign-in...');
+      _googleSignIn!.signInSilently();
+    } catch (e) {
+      mLogger.e('Error in silent sign-in: $e');
     }
   }
 

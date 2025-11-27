@@ -219,9 +219,47 @@ class WordDefineController extends Cubit<WordDefineCubitState> {
   }
 
   String getAllText() {
-    return state.wordDefinitions.fold("", (text, e) {
-      return "$text ${e.text} \n";
-    });
+    // Frontend-only implementation: Format all definitions nicely
+    print('📋 getAllText called - state.wordDefinitions.length: ${state.wordDefinitions.length}');
+    print('📋 dictWordDefinitions: ${state.dictWordDefinitions?.givenWord}');
+    print('📋 searchQuery: ${state.searchQuery}');
+    
+    final StringBuffer buffer = StringBuffer();
+    
+    // Add word name if available
+    if (state.dictWordDefinitions != null && 
+        state.dictWordDefinitions!.givenWord.isNotEmpty) {
+      buffer.writeln('Word: ${state.dictWordDefinitions!.givenWord}');
+      buffer.writeln();
+    } else if (state.searchQuery != null && state.searchQuery!.isNotEmpty) {
+      buffer.writeln('Word: ${state.searchQuery}');
+      buffer.writeln();
+    }
+    
+    // Add all definitions with numbering
+    if (state.wordDefinitions.isNotEmpty) {
+      for (int i = 0; i < state.wordDefinitions.length; i++) {
+        final definition = state.wordDefinitions[i];
+        buffer.writeln('Definition ${i + 1}:');
+        buffer.writeln(definition.text);
+        buffer.writeln();
+      }
+    } else {
+      buffer.writeln('No definitions available.');
+    }
+    
+    // Add similar words if available
+    if (state.similarWords.isNotEmpty) {
+      buffer.writeln('Similar Words:');
+      buffer.writeln(state.similarWords.join(', '));
+      buffer.writeln();
+    }
+    
+    final result = buffer.toString().trim();
+    print('📋 getAllText result length: ${result.length} chars');
+    print('📋 getAllText result preview: ${result.substring(0, result.length > 100 ? 100 : result.length)}');
+    
+    return result;
   }
 
   /* *****************************************************************************

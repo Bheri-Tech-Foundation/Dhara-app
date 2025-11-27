@@ -90,22 +90,26 @@ class _SplashPageState extends State<SplashPage> with TickerProviderStateMixin {
       // Wait a bit for repository initialization
       await Future.delayed(const Duration(milliseconds: 500));
       
-      // Check for valid authentication
-      final accessToken = await authRepo.mSecureStorage.getAccessToken();
+      // Validate and refresh tokens if needed
+      // This will check if tokens exist and are valid
+      // If refresh token is expired, it will clear tokens and return false
+      _logger.d("SplashPage: Validating authentication tokens...");
+      final hasValidTokens = await authRepo.validateAndRefreshTokens();
+      
+      // Also check if user data exists
       var user = authRepo.mAccountUserObservable.value;
+      bool hasUserData = user != null && 
+                        (user.email?.isNotEmpty == true || 
+                         user.name?.isNotEmpty == true);
       
-      bool isAuthenticated = accessToken != null && 
-                           accessToken.isNotEmpty &&
-                           user != null && 
-                           (user.email?.isNotEmpty == true || 
-                            user.name?.isNotEmpty == true);
-      
+      bool isAuthenticated = hasValidTokens && hasUserData;
       
       if (mounted) {
         if (isAuthenticated) {
+          _logger.d("SplashPage: User authenticated, navigating to app");
           Modular.to.pushReplacementNamed('/Dhara/quicksearch');
         } else {
-          _logger.d("SplashPage: User not authenticated, navigating to login");
+          _logger.d("SplashPage: User not authenticated or tokens expired, navigating to login");
           Modular.to.pushReplacementNamed('/login');
         }
       }
