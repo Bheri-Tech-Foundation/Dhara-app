@@ -296,9 +296,10 @@ class _LoginPageState extends State<LoginPage> {
                 
                 return Column(
                   children: [
-                    // Only show "Sign in with last account" on mobile to avoid clock skew issues on web
-                    if (hasLastAccount && !kIsWeb) ...[
-                      // Sign in with last account button (direct login)
+                    // Hide "Sign in with last account" on all platforms to avoid clock skew issues
+                    // Always use account picker for reliable authentication
+                    if (false) ...[
+                      // Sign in with last account button (direct login) - DISABLED
                       Container(
                         width: double.infinity,
                         constraints: BoxConstraints(maxWidth: 280),
