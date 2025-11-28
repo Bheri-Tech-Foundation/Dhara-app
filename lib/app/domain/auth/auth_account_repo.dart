@@ -86,54 +86,86 @@ class AuthAccountRepository extends Disposable {
   }
 
   Future<DomainResult<bool>> login({String? googleIdToken}) async {
-    var result =
-        await domainCallBeforeSave<bool, AuthLoginRM, ErrorDto, UserRM>(
-          networkCall: () async {
-            print("auth_repo login 0:");
-
-            // Detect token type: JWT (ID token) has 2 dots, OAuth access token doesn't
-            bool isJWT = googleIdToken?.contains('.') == true && 
-                         googleIdToken!.split('.').length == 3;
-            
-            String? accessToken;
-            String? idToken;
-            
-            if (isJWT) {
-              // Mobile sends ID token
-              idToken = googleIdToken;
-              print("auth_repo: Sending ID token (mobile)");
-            } else {
-              // Web sends access token
-              accessToken = googleIdToken;
-              print("auth_repo: Sending access token (web)");
-            }
-
-            return await mAuthApiRepo.login(
-              AuthLoginReqDto(
-                accessToken: accessToken,
-                idToken: idToken,
-                client: kIsWeb ? 'web_client' : 'bheri_web',
-              ),
-            );
-          },
-          saveCallResult: (remoteData) async {
-            await mSecureStorage.saveAccessToken(remoteData.accessToken);
-            await mSecureStorage.saveRefreshToken(remoteData.refreshToken);
-            await mSecureStorage.saveEmail(remoteData.user?.email);
-            await mSecureStorage.saveDisplayName(remoteData.user?.getName());
-            await mSecureStorage.savePicture(remoteData.user?.picture);
-
-            await _loadUser();
-
-            return Future.value(_mUser);
-          },
-          finalResult: (savedData) => savedData != null,
-        );
+    // First attempt
+    print('🔐 Attempting login...');
+    var result = await _attemptLogin(googleIdToken);
+    
+    print('🔍 Login result status: ${result.status}, message: ${result.message}');
+    
+    // Check if it's a clock skew error
+    if (result.status == DomainResultStatus.ERROR && 
+        result.message?.contains('Token used too early') == true) {
+      mLogger.w('⏰ Clock skew detected! Device clock is ahead of server. Retrying in 6 seconds...');
+      print('⏰ Clock skew detected! Error message: ${result.message}');
+      print('⏰ Waiting 6 seconds before retry...');
+      
+      // Wait 6 seconds to allow server time to "catch up" to the token's timestamp
+      await Future.delayed(const Duration(seconds: 6));
+      
+      mLogger.d('⏰ Retrying login after clock skew delay...');
+      print('⏰ Retrying login now...');
+      
+      // Retry the login
+      result = await _attemptLogin(googleIdToken);
+      
+      if (result.status == DomainResultStatus.SUCCESS) {
+        mLogger.i('✅ Login succeeded after clock skew retry!');
+        print('✅ Login succeeded after retry!');
+      } else {
+        print('❌ Login failed after retry: ${result.message}');
+      }
+    }
 
     if (result.status == DomainResultStatus.SUCCESS && result.data != null) {
       _mAccountStateChanged.sink.add(result.data!);
     }
     return result;
+  }
+
+  /// Internal method to attempt login (used for retry logic)
+  Future<DomainResult<bool>> _attemptLogin(String? googleIdToken) async {
+    return await domainCallBeforeSave<bool, AuthLoginRM, ErrorDto, UserRM>(
+      networkCall: () async {
+        print("auth_repo login 0:");
+
+        // Detect token type: JWT (ID token) has 2 dots, OAuth access token doesn't
+        bool isJWT = googleIdToken?.contains('.') == true && 
+                     googleIdToken!.split('.').length == 3;
+        
+        String? accessToken;
+        String? idToken;
+        
+        if (isJWT) {
+          // Mobile sends ID token
+          idToken = googleIdToken;
+          print("auth_repo: Sending ID token (mobile)");
+        } else {
+          // Web sends access token
+          accessToken = googleIdToken;
+          print("auth_repo: Sending access token (web)");
+        }
+
+        return await mAuthApiRepo.login(
+          AuthLoginReqDto(
+            accessToken: accessToken,
+            idToken: idToken,
+            client: kIsWeb ? 'web_client' : 'bheri_web',
+          ),
+        );
+      },
+      saveCallResult: (remoteData) async {
+        await mSecureStorage.saveAccessToken(remoteData.accessToken);
+        await mSecureStorage.saveRefreshToken(remoteData.refreshToken);
+        await mSecureStorage.saveEmail(remoteData.user?.email);
+        await mSecureStorage.saveDisplayName(remoteData.user?.getName());
+        await mSecureStorage.savePicture(remoteData.user?.picture);
+
+        await _loadUser();
+
+        return Future.value(_mUser);
+      },
+      finalResult: (savedData) => savedData != null,
+    );
   }
 
   /* *****************************************************************************

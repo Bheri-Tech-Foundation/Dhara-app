@@ -34,6 +34,10 @@ class ErrorDto with ErrorType {
 
   @override
   String? getMessage() {
+    // Return error field if message is empty, fallback to message field
+    if (error != null && error!.isNotEmpty) {
+      return error;
+    }
     return message;
   }
 }
