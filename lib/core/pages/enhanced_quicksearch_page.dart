@@ -649,6 +649,15 @@ class _EnhancedQuickSearchPageState extends State<EnhancedQuickSearchPage>
   }
 
   Widget _buildCenteredSearchBar(AppThemeColors themeColors) {
+    // Get screen width for responsive sizing
+    final screenWidth = MediaQuery.of(context).size.width;
+    
+    // Responsive font sizes and paddings based on screen width
+    final isSmallScreen = screenWidth < 360;
+    final textFontSize = isSmallScreen ? 14.0 : 16.0;
+    final hintFontSize = isSmallScreen ? 11.0 : 12.0;
+    final horizontalPadding = isSmallScreen ? 12.0 : 16.0;
+    
     return Container(
       constraints: const BoxConstraints(
         minHeight: 56,
@@ -687,10 +696,10 @@ class _EnhancedQuickSearchPageState extends State<EnhancedQuickSearchPage>
                   hintText: _getSearchHint(),
                 hintStyle: TextStyle(
                   color: Colors.grey.shade400, // Light grey placeholder
-                  fontSize: 12, // Smaller to prevent overflow
+                  fontSize: hintFontSize, // Responsive hint size
                 ),
-                contentPadding: const EdgeInsets.symmetric(
-                  horizontal: 16,
+                contentPadding: EdgeInsets.symmetric(
+                  horizontal: horizontalPadding, // Responsive padding
                   vertical: 12,
                 ),
                 border: InputBorder.none,
@@ -707,7 +716,7 @@ class _EnhancedQuickSearchPageState extends State<EnhancedQuickSearchPage>
                     : null,
               ),
               style: TextStyle(
-                fontSize: 16,
+                fontSize: textFontSize, // Responsive text size
                 height: 1.4,
                 color: themeColors.onSurface,
               ),
@@ -786,28 +795,39 @@ class _EnhancedQuickSearchPageState extends State<EnhancedQuickSearchPage>
                       ),
                     ],
                   ),
-                  child: TextField(
-                    controller: _searchController,
-                    onSubmitted: (_) => _performSearch(),
-                    maxLines: null,
-                    decoration: InputDecoration(
-                      hintText: _getSearchHint(),
-                      hintStyle: TextStyle(
-                        color: Colors.grey.shade400, // Light grey placeholder
-                        fontSize: 11, // Even smaller for compact variant
-                  ),
-                      contentPadding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 8,
-                      ),
-                  border: InputBorder.none,
-                    ),
-                    style: TextStyle(
-                      fontSize: 14,
-                      height: 1.4,
-                      color: themeColors.onSurface,
-                    ),
-                    textCapitalization: TextCapitalization.sentences,
+                  child: Builder(
+                    builder: (context) {
+                      // Get screen width for responsive sizing
+                      final screenWidth = MediaQuery.of(context).size.width;
+                      final isSmallScreen = screenWidth < 360;
+                      final textFontSize = isSmallScreen ? 13.0 : 14.0;
+                      final hintFontSize = isSmallScreen ? 10.0 : 11.0;
+                      final horizontalPadding = isSmallScreen ? 10.0 : 12.0;
+                      
+                      return TextField(
+                        controller: _searchController,
+                        onSubmitted: (_) => _performSearch(),
+                        maxLines: null,
+                        decoration: InputDecoration(
+                          hintText: _getSearchHint(),
+                          hintStyle: TextStyle(
+                            color: Colors.grey.shade400,
+                            fontSize: hintFontSize, // Responsive hint size
+                          ),
+                          contentPadding: EdgeInsets.symmetric(
+                            horizontal: horizontalPadding, // Responsive padding
+                            vertical: 8,
+                          ),
+                          border: InputBorder.none,
+                        ),
+                        style: TextStyle(
+                          fontSize: textFontSize, // Responsive text size
+                          height: 1.4,
+                          color: themeColors.onSurface,
+                        ),
+                        textCapitalization: TextCapitalization.sentences,
+                      );
+                    },
                   ),
                 ),
               ),
@@ -882,28 +902,39 @@ class _EnhancedQuickSearchPageState extends State<EnhancedQuickSearchPage>
                   ),
                 ],
               ),
-              child: TextField(
-                controller: _searchController,
-                onSubmitted: (_) => _performSearch(),
-                maxLines: null,
-                decoration: InputDecoration(
-                  hintText: _getSearchHint(),
-                  hintStyle: TextStyle(
-                    color: Colors.grey.shade400, // Light grey placeholder
-                    fontSize: 11, // Smaller hint text to prevent overflow
-                  ),
-                  contentPadding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 8,
-                  ),
-                  border: InputBorder.none,
-                ),
-                style: TextStyle(
-                  fontSize: 14,
-                  height: 1.4,
-                  color: themeColors.onSurface,
-                ),
-                textCapitalization: TextCapitalization.sentences,
+              child: Builder(
+                builder: (context) {
+                  // Get screen width for responsive sizing
+                  final screenWidth = MediaQuery.of(context).size.width;
+                  final isSmallScreen = screenWidth < 360;
+                  final textFontSize = isSmallScreen ? 13.0 : 14.0;
+                  final hintFontSize = isSmallScreen ? 10.0 : 11.0;
+                  final horizontalPadding = isSmallScreen ? 10.0 : 12.0;
+                  
+                  return TextField(
+                    controller: _searchController,
+                    onSubmitted: (_) => _performSearch(),
+                    maxLines: null,
+                    decoration: InputDecoration(
+                      hintText: _getSearchHint(),
+                      hintStyle: TextStyle(
+                        color: Colors.grey.shade400,
+                        fontSize: hintFontSize, // Responsive hint size
+                      ),
+                      contentPadding: EdgeInsets.symmetric(
+                        horizontal: horizontalPadding, // Responsive padding
+                        vertical: 8,
+                      ),
+                      border: InputBorder.none,
+                    ),
+                    style: TextStyle(
+                      fontSize: textFontSize, // Responsive text size
+                      height: 1.4,
+                      color: themeColors.onSurface,
+                    ),
+                    textCapitalization: TextCapitalization.sentences,
+                  );
+                },
               ),
             ),
           ),
@@ -1698,6 +1729,15 @@ class _EnhancedQuickSearchContentState extends State<_EnhancedQuickSearchContent
   }
 
   Widget _buildCenteredSearchBar(AppThemeColors themeColors) {
+    // Get screen width for responsive sizing
+    final screenWidth = MediaQuery.of(context).size.width;
+    
+    // Responsive font sizes and paddings based on screen width
+    final isSmallScreen = screenWidth < 360;
+    final textFontSize = isSmallScreen ? 14.0 : 16.0;
+    final hintFontSize = isSmallScreen ? 12.0 : 16.0;
+    final horizontalPadding = isSmallScreen ? 16.0 : 24.0;
+    
     return Center(
       child: Container(
         width: MediaQuery.of(context).size.width * 0.9,
@@ -1736,16 +1776,16 @@ class _EnhancedQuickSearchContentState extends State<_EnhancedQuickSearchContent
                 hintText: _getSearchHint(),
                 hintStyle: TextStyle(
                   color: themeColors.onSurfaceDisable ?? Colors.grey.shade500,
-                  fontSize: 16,
+                  fontSize: hintFontSize, // Responsive hint font size
                 ),
                 border: InputBorder.none,
-                contentPadding: const EdgeInsets.symmetric(
-                  horizontal: 24,
+                contentPadding: EdgeInsets.symmetric(
+                  horizontal: horizontalPadding, // Responsive padding
                   vertical: 16,
                 ),
               ),
               style: TextStyle(
-                fontSize: 16,
+                fontSize: textFontSize, // Responsive text font size
                 height: 1.4,
                 color: themeColors.onSurface,
               ),
