@@ -653,10 +653,11 @@ class _EnhancedQuickSearchPageState extends State<EnhancedQuickSearchPage>
     final screenWidth = MediaQuery.of(context).size.width;
     
     // Responsive font sizes and paddings based on screen width
-    final isSmallScreen = screenWidth < 360;
-    final textFontSize = isSmallScreen ? 14.0 : 16.0;
-    final hintFontSize = isSmallScreen ? 11.0 : 12.0;
-    final horizontalPadding = isSmallScreen ? 12.0 : 16.0;
+    final isVerySmallScreen = screenWidth < 350;
+    final isSmallScreen = screenWidth < 400;
+    final textFontSize = isVerySmallScreen ? 13.0 : (isSmallScreen ? 14.0 : 16.0);
+    final hintFontSize = isVerySmallScreen ? 9.0 : (isSmallScreen ? 10.0 : 12.0);
+    final horizontalPadding = isVerySmallScreen ? 10.0 : (isSmallScreen ? 12.0 : 16.0);
     
     return Container(
       constraints: const BoxConstraints(
@@ -799,10 +800,11 @@ class _EnhancedQuickSearchPageState extends State<EnhancedQuickSearchPage>
                     builder: (context) {
                       // Get screen width for responsive sizing
                       final screenWidth = MediaQuery.of(context).size.width;
-                      final isSmallScreen = screenWidth < 360;
-                      final textFontSize = isSmallScreen ? 13.0 : 14.0;
-                      final hintFontSize = isSmallScreen ? 10.0 : 11.0;
-                      final horizontalPadding = isSmallScreen ? 10.0 : 12.0;
+                      final isVerySmallScreen = screenWidth < 350;
+                      final isSmallScreen = screenWidth < 400;
+                      final textFontSize = isVerySmallScreen ? 12.0 : (isSmallScreen ? 13.0 : 14.0);
+                      final hintFontSize = isVerySmallScreen ? 9.0 : (isSmallScreen ? 10.0 : 11.0);
+                      final horizontalPadding = isVerySmallScreen ? 8.0 : (isSmallScreen ? 10.0 : 12.0);
                       
                       return TextField(
                         controller: _searchController,
@@ -906,10 +908,11 @@ class _EnhancedQuickSearchPageState extends State<EnhancedQuickSearchPage>
                 builder: (context) {
                   // Get screen width for responsive sizing
                   final screenWidth = MediaQuery.of(context).size.width;
-                  final isSmallScreen = screenWidth < 360;
-                  final textFontSize = isSmallScreen ? 13.0 : 14.0;
-                  final hintFontSize = isSmallScreen ? 10.0 : 11.0;
-                  final horizontalPadding = isSmallScreen ? 10.0 : 12.0;
+                  final isVerySmallScreen = screenWidth < 350;
+                  final isSmallScreen = screenWidth < 400;
+                  final textFontSize = isVerySmallScreen ? 12.0 : (isSmallScreen ? 13.0 : 14.0);
+                  final hintFontSize = isVerySmallScreen ? 9.0 : (isSmallScreen ? 10.0 : 11.0);
+                  final horizontalPadding = isVerySmallScreen ? 8.0 : (isSmallScreen ? 10.0 : 12.0);
                   
                   return TextField(
                     controller: _searchController,
@@ -1733,10 +1736,11 @@ class _EnhancedQuickSearchContentState extends State<_EnhancedQuickSearchContent
     final screenWidth = MediaQuery.of(context).size.width;
     
     // Responsive font sizes and paddings based on screen width
-    final isSmallScreen = screenWidth < 360;
-    final textFontSize = isSmallScreen ? 14.0 : 16.0;
-    final hintFontSize = isSmallScreen ? 12.0 : 16.0;
-    final horizontalPadding = isSmallScreen ? 16.0 : 24.0;
+    final isVerySmallScreen = screenWidth < 350;
+    final isSmallScreen = screenWidth < 400;
+    final textFontSize = isVerySmallScreen ? 13.0 : (isSmallScreen ? 14.0 : 16.0);
+    final hintFontSize = isVerySmallScreen ? 10.0 : (isSmallScreen ? 11.0 : 14.0);
+    final horizontalPadding = isVerySmallScreen ? 12.0 : (isSmallScreen ? 16.0 : 24.0);
     
     return Center(
       child: Container(
