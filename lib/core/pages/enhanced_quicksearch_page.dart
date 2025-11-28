@@ -1225,6 +1225,22 @@ class _EnhancedQuickSearchPageState extends State<EnhancedQuickSearchPage>
 
 
   String _getSearchHint() {
+    // Get screen width for responsive hints
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isSmallScreen = screenWidth < 400;
+    
+    // Return shorter hints for small screens
+    if (isSmallScreen) {
+      switch (_currentSearchMode) {
+        case QuickSearchMode.unified:
+          return 'e.g. Son of Abhimanyu, "agnimede purohitam"...';
+        case QuickSearchMode.dictionary:
+        case QuickSearchMode.verse:
+        case QuickSearchMode.books:
+          return _currentSearchMode.searchHint;
+      }
+    }
+    
     return _currentSearchMode.searchHint;
   }
   
@@ -2482,6 +2498,22 @@ class _EnhancedQuickSearchContentState extends State<_EnhancedQuickSearchContent
   }
 
   String _getSearchHint() {
+    // Get screen width for responsive hints
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isSmallScreen = screenWidth < 400;
+    
+    // Return shorter hints for small screens
+    if (isSmallScreen) {
+      switch (widget.currentSearchMode) {
+        case QuickSearchMode.unified:
+          return 'e.g. Son of Abhimanyu, "agnimede purohitam"...';
+        case QuickSearchMode.dictionary:
+        case QuickSearchMode.verse:
+        case QuickSearchMode.books:
+          return widget.currentSearchMode.searchHint;
+      }
+    }
+    
     return widget.currentSearchMode.searchHint;
   }
 
