@@ -106,7 +106,7 @@ class AuthAccountRepository extends Disposable {
       
       // Return a user-friendly error message
       return DomainResult<bool>(
-        status: DomainResultStatus.ERROR,
+        DomainResultStatus.ERROR,
         message: 'Your account has duplicate records in our system. Please contact support to resolve this issue. (Account: $googleEmail)',
         data: false,
       );
