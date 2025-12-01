@@ -92,6 +92,26 @@ class AuthAccountRepository extends Disposable {
     
     print('🔍 Login result status: ${result.status}, message: ${result.message}');
     
+    // Check for duplicate user error (backend database issue)
+    if (result.status == DomainResultStatus.ERROR && 
+        result.message?.contains('returned more than one User') == true) {
+      // Get Google account email for logging
+      final googleEmail = mGoogleAuthService.currentUser?.email ?? 'unknown';
+      
+      mLogger.e('🔴 Duplicate user records detected in backend database!');
+      mLogger.e('🔴 Google account with duplicates: $googleEmail');
+      print('🔴 Duplicate user error: ${result.message}');
+      print('🔴 Google account: $googleEmail');
+      print('🔴 BACKEND ACTION REQUIRED: Clean up duplicate user records for $googleEmail');
+      
+      // Return a user-friendly error message
+      return DomainResult<bool>(
+        status: DomainResultStatus.ERROR,
+        message: 'Your account has duplicate records in our system. Please contact support to resolve this issue. (Account: $googleEmail)',
+        data: false,
+      );
+    }
+    
     // Check if it's a clock skew error
     if (result.status == DomainResultStatus.ERROR && 
         result.message?.contains('Token used too early') == true) {
