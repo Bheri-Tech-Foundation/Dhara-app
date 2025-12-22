@@ -35,6 +35,7 @@ import 'package:dharak_flutter/app/ui/widgets/bug_report_service.dart';
 import 'package:dharak_flutter/app/data/services/developer_mode_service.dart';
 import 'package:dharak_flutter/app/ui/widgets/developer_settings_modal.dart';
 import 'package:logger/logger.dart';
+import 'package:flutter/services.dart';
 
 class DashboardPage extends StatefulWidget {
   final DashboardArgsRequest mRequestArgs;
@@ -738,34 +739,55 @@ class _AppRootState extends State<DashboardPage> {
             //     ),
             //   ),
             // ),
-            child: GestureDetector(
-              // Mobile: Long press
-              onLongPress: _handleDeveloperModeActivation,
-              // Web/Desktop: Ctrl+Shift+Click or Cmd+Shift+Click
-              onSecondaryTap: _handleDeveloperModeActivation,
-              behavior: HitTestBehavior.opaque,
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                // crossAxisAlignment: CrossAxisAlignment.,
-                spacing: TdResDimens.dp_4,
-                children: [
-                  SvgPicture.asset(
+            child: RawKeyboardListener(
+              focusNode: FocusNode(),
+              onKey: (RawKeyEvent event) {
+                // Check for Ctrl+Shift+Click
+                if (event is RawKeyDownEvent) {
+                  final isCtrlPressed = event.isControlPressed;
+                  final isShiftPressed = event.isShiftPressed;
+                  
+                  if (isCtrlPressed && isShiftPressed) {
+                    Logger().d("Ctrl+Shift detected - ready for click");
+                  }
+                }
+              },
+              child: GestureDetector(
+                // Mobile: Long press
+                onLongPress: _handleDeveloperModeActivation,
+                // Web/Desktop: Detect Ctrl+Shift+Click
+                onTap: () {
+                  // Check if Ctrl and Shift are pressed
+                  if (HardwareKeyboard.instance.isControlPressed && 
+                      HardwareKeyboard.instance.isShiftPressed) {
+                    Logger().d("Ctrl+Shift+Click detected!");
+                    _handleDeveloperModeActivation();
+                  }
+                },
+                behavior: HitTestBehavior.opaque,
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  // crossAxisAlignment: CrossAxisAlignment.,
+                  spacing: TdResDimens.dp_4,
+                  children: [
+                    SvgPicture.asset(
 
-                    'assets/svg/Dhara_vector.svg',
+                      'assets/svg/Dhara_vector.svg',
 
-                    width: TdResDimens.dp_32,
-                    height: TdResDimens.dp_28,
-                    
+                      width: TdResDimens.dp_32,
+                      height: TdResDimens.dp_28,
+                      
 
 
-                    // colorFilter: ,
-                    // height: TdResDimens.dp_40,
-                  ),
+                      // colorFilter: ,
+                      // height: TdResDimens.dp_40,
+                    ),
 
-                  Text("Dhārā", style: TdResTextStyles.h3.copyWith(color: themeColors.onSurface?.withAlpha(0xed))),
-                  const SizedBox(width: 8),
-                  const BetaBadge(showFloating: false),
-                ],
+                    Text("Dhārā", style: TdResTextStyles.h3.copyWith(color: themeColors.onSurface?.withAlpha(0xed))),
+                    const SizedBox(width: 8),
+                    const BetaBadge(showFloating: false),
+                  ],
+                ),
               ),
             ),
 
@@ -896,6 +918,29 @@ class _AppRootState extends State<DashboardPage> {
                                   mBloc.onClickSwitchAccount().then((onValue) {});
                                 });
                                 // Switch account logic
+                              },
+                            ),
+                            PopupMenuItem(
+                              child: Row(
+                                crossAxisAlignment: CrossAxisAlignment.center,
+                                spacing: TdResDimens.dp_12,
+                                children: [
+                                  Icon(
+                                    Icons.developer_mode,
+                                    color: themeColors.onSurface,
+                                  ),
+                                  Text(
+                                    'Developer Settings',
+                                    style: TdResTextStyles.button.copyWith(
+                                      color: themeColors.onSurface,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              onTap: () {
+                                Future.delayed(Duration(milliseconds: 100), () {
+                                  _handleDeveloperModeActivation();
+                                });
                               },
                             ),
                           ],
