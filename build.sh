@@ -15,13 +15,17 @@ export PATH="$PATH:$HOME/flutter/bin"
 # Verify Flutter installation
 flutter doctor
 
+# Clean any existing build artifacts
+echo "Cleaning build artifacts..."
+flutter clean
+
 # Get dependencies
 echo "Getting Flutter dependencies..."
 flutter pub get
 
 # Regenerate code (Retrofit, JSON serialization, etc.)
 echo "Regenerating code with build_runner..."
-flutter pub run build_runner build --delete-conflicting-outputs
+flutter packages pub run build_runner build --delete-conflicting-outputs
 
 # Build for web
 echo "Building Flutter web app..."
