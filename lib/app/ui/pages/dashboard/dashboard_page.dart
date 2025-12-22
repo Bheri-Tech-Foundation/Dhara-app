@@ -33,6 +33,7 @@ import 'package:dharak_flutter/app/ui/widgets/beta_floating_button.dart';
 import 'package:dharak_flutter/app/ui/widgets/beta_welcome_dialog.dart';
 import 'package:dharak_flutter/app/ui/widgets/bug_report_service.dart';
 import 'package:dharak_flutter/app/data/services/developer_mode_service.dart';
+import 'package:dharak_flutter/app/ui/widgets/developer_password_dialog.dart';
 import 'package:dharak_flutter/app/ui/widgets/developer_settings_modal.dart';
 import 'package:logger/logger.dart';
 import 'package:flutter/services.dart';
@@ -204,8 +205,25 @@ class _AppRootState extends State<DashboardPage> {
   Future<void> _handleDeveloperModeActivation() async {
     Logger().d("DashboardPage: Developer mode activation triggered");
     
-    // Show developer settings modal directly (no password needed)
-    _showDeveloperSettings();
+    // Show password dialog first
+    final authenticated = await _showDeveloperPasswordDialog();
+    
+    if (authenticated == true) {
+      // Password correct - show developer settings
+      _showDeveloperSettings();
+    }
+  }
+  
+  /// Show developer password dialog
+  Future<bool?> _showDeveloperPasswordDialog() async {
+    return await showDialog<bool>(
+      context: context,
+      barrierDismissible: true,
+      builder: (context) => DeveloperPasswordDialog(
+        themeColors: themeColors,
+        correctPassword: 'dev123', // You can change this password
+      ),
+    );
   }
   
   /// Show developer settings modal
