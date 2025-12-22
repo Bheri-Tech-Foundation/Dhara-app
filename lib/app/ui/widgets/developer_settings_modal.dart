@@ -287,6 +287,7 @@ class _DeveloperSettingsModalState extends State<DeveloperSettingsModal> {
           ],
         ),
       ),
+    ),
     );
   }
   
