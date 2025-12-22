@@ -175,6 +175,7 @@ class _DeveloperSettingsModalState extends State<DeveloperSettingsModal> {
                   TdResGaps.v_20,
                   TextField(
                     controller: _customUrlController,
+                    onSubmitted: (_) => _applyCustomUrl(), // Press Enter to apply
                     decoration: InputDecoration(
                       hintText: 'http://192.168.167.88:8000',
                       prefixIcon: Icon(Icons.link, color: themeColors.primary),
