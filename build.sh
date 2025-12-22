@@ -19,6 +19,10 @@ flutter doctor
 echo "Getting Flutter dependencies..."
 flutter pub get
 
+# Regenerate code (Retrofit, JSON serialization, etc.)
+echo "Regenerating code with build_runner..."
+flutter pub run build_runner build --delete-conflicting-outputs
+
 # Build for web
 echo "Building Flutter web app..."
 flutter build web --release
