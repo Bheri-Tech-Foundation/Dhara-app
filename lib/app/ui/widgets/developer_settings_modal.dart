@@ -51,31 +51,18 @@ class _DeveloperSettingsModalState extends State<DeveloperSettingsModal> {
     // Get keyboard height for proper padding
     final keyboardHeight = MediaQuery.of(context).viewInsets.bottom;
     
-    return Padding(
-      padding: EdgeInsets.only(bottom: keyboardHeight),
-      child: Container(
-        decoration: BoxDecoration(
-          color: themeColors.surface,
-          borderRadius: const BorderRadius.only(
-            topLeft: Radius.circular(TdResDimens.dp_20),
-            topRight: Radius.circular(TdResDimens.dp_20),
-          ),
-        ),
-        child: SingleChildScrollView(
+    return Container(
+      constraints: const BoxConstraints(maxWidth: 600, maxHeight: 700),
+      decoration: BoxDecoration(
+        color: themeColors.surface,
+        borderRadius: BorderRadius.circular(TdResDimens.dp_20),
+      ),
+      child: SingleChildScrollView(
+        child: Padding(
+          padding: EdgeInsets.only(bottom: keyboardHeight),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-          // Handle bar
-          Container(
-            width: 40,
-            height: 4,
-            margin: const EdgeInsets.only(top: TdResDimens.dp_12),
-            decoration: BoxDecoration(
-              color: themeColors.onSurface?.withOpacity(0.3),
-              borderRadius: BorderRadius.circular(2),
-            ),
-          ),
-          
           TdResGaps.v_20,
           
           // Header with title and close button
@@ -113,12 +100,11 @@ class _DeveloperSettingsModalState extends State<DeveloperSettingsModal> {
           TdResGaps.v_16,
           
           // Content
-          Flexible(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(horizontal: TdResDimens.dp_20),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: TdResDimens.dp_20),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
                   // Current status
                   Text(
                     'Current Status',
@@ -298,9 +284,7 @@ class _DeveloperSettingsModalState extends State<DeveloperSettingsModal> {
                 ],
               ),
             ),
-          ),
-            ],
-          ),
+          ],
         ),
       ),
     );

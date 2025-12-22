@@ -228,11 +228,16 @@ class _AppRootState extends State<DashboardPage> {
   
   /// Show developer settings modal
   void _showDeveloperSettings() {
-    showModalBottomSheet(
+    showDialog(
       context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (context) => DeveloperSettingsModal(themeColors: themeColors),
+      barrierDismissible: true,
+      builder: (context) => Dialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
+        ),
+        backgroundColor: Colors.transparent,
+        child: DeveloperSettingsModal(themeColors: themeColors),
+      ),
     );
   }
 
