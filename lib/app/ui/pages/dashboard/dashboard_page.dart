@@ -871,20 +871,21 @@ class _AppRootState extends State<DashboardPage> {
                     ),
                   Text(state.user?.name ?? "", style: TdResTextStyles.h6),
                   
-                  // Developer Mode Button (Web/Desktop only)
-                  if (!_isMobile())
-                    Tooltip(
-                      message: 'Developer Settings',
-                      child: IconButton(
-                        icon: Icon(
-                          Icons.developer_mode,
-                          color: DeveloperModeService.instance.isEnabled 
-                              ? themeColors.primary 
-                              : themeColors.onSurface?.withOpacity(0.6),
-                        ),
-                        onPressed: _handleDeveloperModeActivation,
+                  // Developer Mode Button - Always visible for easy access
+                  Tooltip(
+                    message: 'Developer Settings',
+                    child: IconButton(
+                      icon: Icon(
+                        Icons.developer_mode,
+                        color: DeveloperModeService.instance.isEnabled 
+                            ? themeColors.primary 
+                            : themeColors.onSurface?.withOpacity(0.6),
+                        size: 24,
                       ),
+                      onPressed: _handleDeveloperModeActivation,
+                      splashRadius: 20,
                     ),
+                  ),
                   
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 8),
