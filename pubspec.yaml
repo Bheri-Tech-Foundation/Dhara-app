@@ -40,7 +40,7 @@ dependencies:
   flutter_svg: ^2.0.17
   dio: ^5.8.0+1
   pretty_dio_logger: ^1.4.0
-  retrofit: ^4.4.2
+  retrofit: 4.6.0  # Pinned to match pubspec.lock and ensure compatibility with retrofit_generator
   google_sign_in: ^6.2.2
   rxdart: ^0.28.0
   flutter_bloc: ^9.0.0
@@ -82,7 +82,7 @@ dev_dependencies:
   build_runner: ^2.4.15
   json_serializable: ^6.9.4
   copy_with_extension_gen: ^6.0.1
-  retrofit_generator: ^9.1.9
+  retrofit_generator: 9.7.0  # Pinned to ensure compatibility with retrofit 4.6.0
   flutter_launcher_icons: ^0.14.3
   build_web_compilers: ^4.1.1
 
