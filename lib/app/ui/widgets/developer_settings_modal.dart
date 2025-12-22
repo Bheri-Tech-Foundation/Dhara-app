@@ -48,17 +48,23 @@ class _DeveloperSettingsModalState extends State<DeveloperSettingsModal> {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        color: themeColors.surface,
-        borderRadius: const BorderRadius.only(
-          topLeft: Radius.circular(TdResDimens.dp_20),
-          topRight: Radius.circular(TdResDimens.dp_20),
+    // Get keyboard height for proper padding
+    final keyboardHeight = MediaQuery.of(context).viewInsets.bottom;
+    
+    return Padding(
+      padding: EdgeInsets.only(bottom: keyboardHeight),
+      child: Container(
+        decoration: BoxDecoration(
+          color: themeColors.surface,
+          borderRadius: const BorderRadius.only(
+            topLeft: Radius.circular(TdResDimens.dp_20),
+            topRight: Radius.circular(TdResDimens.dp_20),
+          ),
         ),
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
           // Handle bar
           Container(
             width: 40,
@@ -402,7 +408,9 @@ class _DeveloperSettingsModalState extends State<DeveloperSettingsModal> {
               ),
             ),
           ),
-        ],
+            ],
+          ),
+        ),
       ),
     );
   }
