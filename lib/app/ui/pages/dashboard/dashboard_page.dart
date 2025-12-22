@@ -870,6 +870,22 @@ class _AppRootState extends State<DashboardPage> {
                       // ),
                     ),
                   Text(state.user?.name ?? "", style: TdResTextStyles.h6),
+                  
+                  // Developer Mode Button (Web/Desktop only)
+                  if (!_isMobile())
+                    Tooltip(
+                      message: 'Developer Settings',
+                      child: IconButton(
+                        icon: Icon(
+                          Icons.developer_mode,
+                          color: DeveloperModeService.instance.isEnabled 
+                              ? themeColors.primary 
+                              : themeColors.onSurface?.withOpacity(0.6),
+                        ),
+                        onPressed: _handleDeveloperModeActivation,
+                      ),
+                    ),
+                  
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 8),
                     child: PopupMenuButton<void>(
