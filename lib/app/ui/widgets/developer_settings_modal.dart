@@ -119,53 +119,6 @@ class _DeveloperSettingsModalState extends State<DeveloperSettingsModal> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Description
-                  Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.all(TdResDimens.dp_16),
-                    decoration: BoxDecoration(
-                      color: Colors.blue.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(TdResDimens.dp_8),
-                      border: Border.all(
-                        color: Colors.blue.withOpacity(0.3),
-                      ),
-                    ),
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Icon(
-                          Icons.info_outline,
-                          color: Colors.blue,
-                          size: 20,
-                        ),
-                        const SizedBox(width: TdResDimens.dp_12),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'Replace domain with your local development server.',
-                                style: TdResTextStyles.h6.copyWith(
-                                  color: themeColors.onSurface?.withOpacity(0.8),
-                                ),
-                              ),
-                              const SizedBox(height: 4),
-                              Text(
-                                'Note: /bheri path will be automatically appended',
-                                style: TdResTextStyles.buttonSmall.copyWith(
-                                  color: Colors.blue,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  
-                  TdResGaps.v_24,
-                  
                   // Current status
                   Text(
                     'Current Status',
@@ -219,70 +172,7 @@ class _DeveloperSettingsModalState extends State<DeveloperSettingsModal> {
                     ),
                   ),
                   
-                  TdResGaps.v_24,
-                  
-                  // Custom URL section
-                  Text(
-                    'Custom Domain & Port',
-                    style: TdResTextStyles.h4.copyWith(
-                      color: themeColors.onSurface,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  TdResGaps.v_8,
-                  Container(
-                    padding: const EdgeInsets.all(TdResDimens.dp_12),
-                    decoration: BoxDecoration(
-                      color: Colors.amber.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(TdResDimens.dp_8),
-                      border: Border.all(
-                        color: Colors.amber.withOpacity(0.3),
-                      ),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          children: [
-                            Text(
-                              'Enter: ',
-                              style: TdResTextStyles.h6.copyWith(
-                                color: themeColors.onSurface?.withOpacity(0.7),
-                              ),
-                            ),
-                            Text(
-                              'http://192.168.167.88:8000',
-                              style: TdResTextStyles.h6.copyWith(
-                                color: themeColors.onSurface,
-                                fontFamily: 'monospace',
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 4),
-                        Row(
-                          children: [
-                            Text(
-                              'Result: ',
-                              style: TdResTextStyles.h6.copyWith(
-                                color: themeColors.onSurface?.withOpacity(0.7),
-                              ),
-                            ),
-                            Text(
-                              'http://192.168.167.88:8000/bheri',
-                              style: TdResTextStyles.h6.copyWith(
-                                color: Colors.green,
-                                fontFamily: 'monospace',
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-                  TdResGaps.v_12,
+                  TdResGaps.v_20,
                   TextField(
                     controller: _customUrlController,
                     decoration: InputDecoration(

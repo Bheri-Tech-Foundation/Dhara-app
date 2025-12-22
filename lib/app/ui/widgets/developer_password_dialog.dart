@@ -176,36 +176,6 @@ class _DeveloperPasswordDialogState extends State<DeveloperPasswordDialog> {
                 ),
               ],
             ),
-            
-            TdResGaps.v_12,
-            
-            // Hint for development
-            Container(
-              padding: const EdgeInsets.all(TdResDimens.dp_12),
-              decoration: BoxDecoration(
-                color: themeColors.primary?.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(TdResDimens.dp_8),
-              ),
-              child: Row(
-                children: [
-                  Icon(
-                    Icons.info_outline,
-                    size: TdResDimens.dp_16,
-                    color: themeColors.primary,
-                  ),
-                  TdResGaps.h_8,
-                  Expanded(
-                    child: Text(
-                      'Default password: dev123',
-                      style: TdResTextStyles.caption.copyWith(
-                        color: themeColors.primary,
-                        fontSize: 12,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
           ],
         ),
       ),
