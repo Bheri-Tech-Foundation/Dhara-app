@@ -33,7 +33,6 @@ import 'package:dharak_flutter/app/ui/widgets/beta_floating_button.dart';
 import 'package:dharak_flutter/app/ui/widgets/beta_welcome_dialog.dart';
 import 'package:dharak_flutter/app/ui/widgets/bug_report_service.dart';
 import 'package:dharak_flutter/app/data/services/developer_mode_service.dart';
-import 'package:dharak_flutter/app/ui/widgets/developer_password_dialog.dart';
 import 'package:dharak_flutter/app/ui/widgets/developer_settings_modal.dart';
 import 'package:logger/logger.dart';
 

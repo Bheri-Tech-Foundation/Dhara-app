@@ -152,8 +152,9 @@ class _LoginPageState extends State<LoginPage> {
                             SizedBox(height: TdResDimens.dp_20),
                             Text(
                               'Signing you in...',
-                              style: TdResTextStyles.h3SemiBold.copyWith(
+                              style: TdResTextStyles.h4.copyWith(
                                 color: themeColors.onSurface,
+                                fontWeight: FontWeight.w600,
                               ),
                             ),
                             SizedBox(height: TdResDimens.dp_8),
