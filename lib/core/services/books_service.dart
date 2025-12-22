@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:dharak_flutter/app/data/services/developer_mode_service.dart';
 import 'package:dharak_flutter/app/domain/base/domain_result.dart';
 import 'package:dharak_flutter/app/domain/books/repo.dart';
 import 'package:dharak_flutter/app/types/books/book_chunk.dart';
@@ -46,9 +47,12 @@ class BooksService extends Disposable {
       }
 
       
+      // Use developer mode service to get effective URL
+      final baseUrl = DeveloperModeService.instance.getEffectiveApiUrl();
+      
       // Make API call
       final response = await _dio.get(
-        'https://project.iith.ac.in/bheri/chunk/multivec/',
+        '$baseUrl/chunk/multivec/',
         queryParameters: {'inp_str': query},
         options: Options(
           headers: {'accept': '*/*'},

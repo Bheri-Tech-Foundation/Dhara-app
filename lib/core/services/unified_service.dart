@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'dart:developer';
 
 import 'package:dharak_flutter/app/data/local/secure/secure_local_data.dart';
+import 'package:dharak_flutter/app/data/services/developer_mode_service.dart';
 import 'package:dharak_flutter/app/types/books/book_chunk.dart';
 import 'package:dharak_flutter/app/types/dictionary/word_definitions.dart';
 import 'package:dharak_flutter/app/types/unified/unified_response.dart';
@@ -20,7 +21,9 @@ class UnifiedService {
   UnifiedService._internal();
 
   Dio? _dio;
-  final String _baseUrl = 'https://project.iith.ac.in/bheri';
+  
+  // Use developer mode service to get effective URL
+  String get _baseUrl => DeveloperModeService.instance.getEffectiveApiUrl();
   
   // Get the configured Dio instance with auth interceptors
   Dio get dio {

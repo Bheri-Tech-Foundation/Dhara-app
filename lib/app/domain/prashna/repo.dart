@@ -64,25 +64,14 @@ class PrashnaRepository {
   }
 
   void initData() {
-    // Listen to developer mode model changes if authenticated
-    if (DeveloperModeService.instance.isAuthenticated) {
-      DeveloperModeService.instance.preferredModelStream.listen((model) {
-        if (kDebugMode) _logger.d('🔧 Developer mode preferred model changed to: ${model.displayName}');
-        _selectedAiModelSubject.sink.add(model);
-      });
-    }
-    
     // Start with a new session if none exists
     if (_currentSessionSubject.value == null) {
       createNewSession();
     }
   }
   
-  /// Get the effective AI model (considers developer mode preferences)
+  /// Get the effective AI model
   AiModel _getEffectiveAiModel() {
-    if (DeveloperModeService.instance.isAuthenticated) {
-      return DeveloperModeService.instance.preferredModel;
-    }
     return _selectedAiModelSubject.value;
   }
 

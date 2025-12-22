@@ -80,28 +80,40 @@ class GoogleLoginController extends Cubit<GoogleLoginCubitState> {
   }
 
   onSubmitWithAccountPicker() {
+    // Set loading state immediately when user clicks sign-in
+    emit(state.copyWith(isInProgress: true));
+    
     Future.delayed(Duration(milliseconds: 100), () async {
       await _getGoogleIdTokenWithAccountPicker();
 
       if (state.idToken != null) {
         print("google login onSubmitWithAccountPicker: success");
+        // Keep isInProgress true - backend login will happen next
         onSuccess();
       } else {
         print("google login onSubmitWithAccountPicker: failed - no token");
+        // Clear loading state on failure
+        emit(state.copyWith(isInProgress: false));
         onFailed("unable to login with selected account");
       }
     });
   }
 
   onSubmitSilent() {
+    // Set loading state immediately
+    emit(state.copyWith(isInProgress: true));
+    
     Future.delayed(Duration(milliseconds: 100), () async {
       await _getGoogleIdTokenSilent();
 
       if (state.idToken != null) {
         print("google login onSubmitSilent: success");
+        // Keep isInProgress true - backend login will happen next
         onSuccess();
       } else {
         print("google login onSubmitSilent: failed - no token");
+        // Clear loading state on failure
+        emit(state.copyWith(isInProgress: false));
         onFailed("unable to silent login");
       }
     });
@@ -202,6 +214,7 @@ class GoogleLoginController extends Cubit<GoogleLoginCubitState> {
         result: GoogleLoginArgsResult(
           resultCode: "RESULT_FAILED",
         ),
+        isInProgress: false, // Clear loading state on failure
       ),
     );
   }

@@ -100,8 +100,11 @@ class BooksRepositoryImpl implements BooksRepository {
       // Update current search word for cache
       _mCurrentSearchWord.add(query);
       
+      // Use developer mode service to get effective URL
+      final baseUrl = DeveloperModeService.instance.getEffectiveApiUrl();
+      
       final response = await mDio.get(
-        'https://project.iith.ac.in/bheri/chunk/multivec/',
+        '$baseUrl/chunk/multivec/',
         queryParameters: {'inp_str': query},
       );
 
@@ -132,9 +135,11 @@ class BooksRepositoryImpl implements BooksRepository {
   @override
   Future<DomainResult<BookChunkNextResultRM>> getNextChunk({required String chunkRefId}) async {
     try {
+      // Use developer mode service to get effective URL
+      final baseUrl = DeveloperModeService.instance.getEffectiveApiUrl();
       
       final response = await mDio.get(
-        'https://project.iith.ac.in/bheri/chunk/next/$chunkRefId/',
+        '$baseUrl/chunk/next/$chunkRefId/',
         options: Options(
           headers: {
             'accept': '*/*',
@@ -169,9 +174,11 @@ class BooksRepositoryImpl implements BooksRepository {
   @override
   Future<DomainResult<BookChunkPrevResultRM>> getPreviousChunk({required String chunkRefId}) async {
     try {
+      // Use developer mode service to get effective URL
+      final baseUrl = DeveloperModeService.instance.getEffectiveApiUrl();
       
       final response = await mDio.get(
-        'https://project.iith.ac.in/bheri/chunk/prev/$chunkRefId/',
+        '$baseUrl/chunk/prev/$chunkRefId/',
         options: Options(
           headers: {
             'accept': '*/*',
@@ -206,9 +213,11 @@ class BooksRepositoryImpl implements BooksRepository {
   @override
   Future<DomainResult<BookChunkAugmentationListRM>> getAugmentationList({required String chunkRefId}) async {
     try {
+      // Use developer mode service to get effective URL
+      final baseUrl = DeveloperModeService.instance.getEffectiveApiUrl();
       
       final response = await mDio.get(
-        'https://project.iith.ac.in/bheri/chunk/auglist/$chunkRefId/',
+        '$baseUrl/chunk/auglist/$chunkRefId/',
         options: Options(
           headers: {
             'accept': '*/*',
@@ -257,9 +266,11 @@ class BooksRepositoryImpl implements BooksRepository {
   @override
   Future<DomainResult<BookChunkAugmentedRM>> getAugmentedChunk({required String text}) async {
     try {
+      // Use developer mode service to get effective URL
+      final baseUrl = DeveloperModeService.instance.getEffectiveApiUrl();
       
       final response = await mDio.get(
-        'https://project.iith.ac.in/bheri/chunk/get_aug/',
+        '$baseUrl/chunk/get_aug/',
         queryParameters: {'text': text},
         options: Options(
           headers: {
@@ -309,9 +320,11 @@ class BooksRepositoryImpl implements BooksRepository {
   @override
   Future<DomainResult<BookChunkOriginalRM>> getOriginalChunk({required String chunkRefId}) async {
     try {
+      // Use developer mode service to get effective URL
+      final baseUrl = DeveloperModeService.instance.getEffectiveApiUrl();
       
       final response = await mDio.get(
-        'https://project.iith.ac.in/bheri/chunk/get_orig/$chunkRefId/',
+        '$baseUrl/chunk/get_orig/$chunkRefId/',
         options: Options(
           headers: {
             'accept': '*/*',
@@ -370,10 +383,12 @@ class BooksRepositoryImpl implements BooksRepository {
   @override
   Future<DomainResult<BookChunkBookmarkToggleResultRM>> toggleBookmark(int chunkRefId, {bool isToRemove = true}) async {
     try {
+      // Use developer mode service to get effective URL
+      final baseUrl = DeveloperModeService.instance.getEffectiveApiUrl();
       
       final endpoint = isToRemove 
-        ? 'https://project.iith.ac.in/bheri/chunk/unstar/$chunkRefId/'
-        : 'https://project.iith.ac.in/bheri/chunk/star/$chunkRefId/';
+        ? '$baseUrl/chunk/unstar/$chunkRefId/'
+        : '$baseUrl/chunk/star/$chunkRefId/';
       
       final response = await mDio.get(
         endpoint,
@@ -436,9 +451,11 @@ class BooksRepositoryImpl implements BooksRepository {
   @override
   Future<DomainResult<BookChunkStarredListResultRM>> getStarredChunks() async {
     try {
+      // Use developer mode service to get effective URL
+      final baseUrl = DeveloperModeService.instance.getEffectiveApiUrl();
       
       final response = await mDio.get(
-        'https://project.iith.ac.in/bheri/chunk/get_starred/',
+        '$baseUrl/chunk/get_starred/',
         options: Options(
           headers: {
             'accept': '*/*',
@@ -483,9 +500,11 @@ class BooksRepositoryImpl implements BooksRepository {
   @override
   Future<DomainResult<BookChunkCitationRM>> getChunkCitation({required int chunkRefId}) async {
     try {
+      // Use developer mode service to get effective URL
+      final baseUrl = DeveloperModeService.instance.getEffectiveApiUrl();
       
       final response = await mDio.get(
-        'https://project.iith.ac.in/bheri/chunk/cite/$chunkRefId/',
+        '$baseUrl/chunk/cite/$chunkRefId/',
         options: Options(
           headers: {
             'accept': '*/*',
@@ -537,9 +556,11 @@ class BooksRepositoryImpl implements BooksRepository {
   @override
   Future<DomainResult<String>> shareChunkAsText({required int chunkRefId}) async {
     try {
+      // Use developer mode service to get effective URL
+      final baseUrl = DeveloperModeService.instance.getEffectiveApiUrl();
       
       final response = await mDio.get(
-        'https://project.iith.ac.in/bheri/share/',
+        '$baseUrl/share/',
         queryParameters: {
           'chunk_id': chunkRefId,
           'platform': 'app',
@@ -589,9 +610,11 @@ class BooksRepositoryImpl implements BooksRepository {
   @override
   Future<DomainResult<String>> shareChunkAsImage({required int chunkRefId}) async {
     try {
+      // Use developer mode service to get effective URL
+      final baseUrl = DeveloperModeService.instance.getEffectiveApiUrl();
       
       final response = await mDio.get(
-        'https://project.iith.ac.in/bheri/share/',
+        '$baseUrl/share/',
         queryParameters: {
           'chunk_id': chunkRefId,
           'platform': 'app',

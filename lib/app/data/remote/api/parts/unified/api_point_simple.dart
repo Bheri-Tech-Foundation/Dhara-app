@@ -9,11 +9,8 @@ class UnifiedSearchApiPointSimple {
   final Dio _dio = Dio();
 
   String get _baseUrl {
-    // Use developer mode URL if authenticated, otherwise use production URL
-    if (DeveloperModeService.instance.isAuthenticated) {
-      return DeveloperModeService.instance.currentApiUrl;
-    }
-    return F.apiUrl;
+    // Use developer mode service to get effective URL
+    return DeveloperModeService.instance.getEffectiveApiUrl();
   }
 
   /// Perform unified search using the quick_search endpoint

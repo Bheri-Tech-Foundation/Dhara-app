@@ -1,5 +1,6 @@
 import 'package:dharak_flutter/app/data/local/secure/secure_local_data.dart';
 import 'package:dharak_flutter/app/data/remote/api/constants.dart';
+import 'package:dharak_flutter/app/data/services/developer_mode_service.dart';
 import 'package:dharak_flutter/app/types/auth/access_token.dart';
 import 'package:dharak_flutter/flavors.dart';
 import 'package:dio/dio.dart';
@@ -189,43 +190,65 @@ class AuthInterceptor extends InterceptorsWrapper {
 
   Future<bool> _refreshToken() async {
     try {
-      // final refreshToken = getRefreshTokenFromLocalStorage();
-
       print("_refresh called");
       final refreshToken = await storage.getRefreshToken();
 
       if (refreshToken == null || refreshToken.isEmpty) {
+        print("🔴 No refresh token found - clearing auth data");
+        await _clearAuthData();
         return false;
       }
 
       final Response res;
+      
+      // Use developer mode URL if enabled, otherwise use production URL
+      final baseUrl = DeveloperModeService.instance.getEffectiveApiUrl();
 
       res = await dio.post(
-        '${F.apiUrl}/api/token/refresh/',
+        '$baseUrl/api/token/refresh/',
         data: {'refresh': refreshToken},
       );
 
       if (res.statusCode == 200) {
-        print("refresh token success");
+        print("✅ Refresh token success");
         // Handle the actual response format from the server
         final responseData = res.data as Map<String, dynamic>;
         final newAccessToken = responseData['access'] as String?;
         
         if (newAccessToken != null) {
           await storage.saveAccessToken(newAccessToken);
-          print("refresh token: new access token saved successfully");
+          print("✅ New access token saved successfully");
           return true;
         } else {
-          print("refresh token fail: no access token in response");
+          print("🔴 Refresh token fail: no access token in response");
+          await _clearAuthData();
           return false;
         }
       } else {
-        print("refresh token fail ${res.statusMessage ?? res.toString()}");
+        print("🔴 Refresh token fail: ${res.statusCode} ${res.statusMessage ?? res.toString()}");
+        await _clearAuthData();
         return false;
       }
     } catch (error) {
-      print("refresh token fail $error");
+      print("🔴 Refresh token exception: $error");
+      // Check if it's a 401 error (refresh token expired)
+      if (error is DioException && error.response?.statusCode == 401) {
+        print("🔴 Refresh token expired (after ~1 month) - clearing all auth data");
+        await _clearAuthData();
+      }
       return false;
+    }
+  }
+  
+  /// Clear all auth data when refresh token expires
+  Future<void> _clearAuthData() async {
+    try {
+      print("🧹 Clearing all auth tokens due to refresh token expiry");
+      await storage.saveAccessToken(null);
+      await storage.saveRefreshToken(null);
+      // Note: We don't clear user info (email, name, picture) to allow smooth re-login
+    } catch (e) {
+      print("❌ Error clearing auth data: $e");
     }
   }
 }

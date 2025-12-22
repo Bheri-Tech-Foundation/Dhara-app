@@ -45,6 +45,11 @@ import 'package:flutter_modular/flutter_modular.dart';
 // import 'modules/home/home_module.dart';
 
 class CoreModule extends Module {
+  /// Get the effective API URL (respects developer mode)
+  String _getApiUrl() {
+    return DeveloperModeService.instance.getEffectiveApiUrl();
+  }
+
   @override
   void exportedBinds(i) {
     // UiAuthBinds.bindControllers(i);
@@ -63,23 +68,23 @@ class CoreModule extends Module {
     // i.addSingleton(AuthAccountRepository.new);
 
 
-    i.addSingleton(() => AuthApiPoint(i<Dio>(), baseUrl: F.apiUrl));
+    i.addSingleton(() => AuthApiPoint(i<Dio>(), baseUrl: _getApiUrl()));
     i.addSingleton(() => AuthApiRepo(apiPoint: i<AuthApiPoint>(), dio: i<Dio>()));
 
-    i.addSingleton(() => DictionaryApiPoint(i<Dio>(), baseUrl: F.apiUrl));
+    i.addSingleton(() => DictionaryApiPoint(i<Dio>(), baseUrl: _getApiUrl()));
     i.addSingleton(() => DictionaryApiRepo(apiPoint: i<DictionaryApiPoint>()));
 
     
-    i.addSingleton(() => VerseApiPoint(i<Dio>(), baseUrl: F.apiUrl));
-    i.addSingleton(() => VerseApiRepo(dio: i<Dio>(), baseUrl: F.apiUrl, apiPoint: i<VerseApiPoint>()));
+    i.addSingleton(() => VerseApiPoint(i<Dio>(), baseUrl: _getApiUrl()));
+    i.addSingleton(() => VerseApiRepo(dio: i<Dio>(), baseUrl: _getApiUrl(), apiPoint: i<VerseApiPoint>()));
 
-    i.addSingleton(() => CitationApiPoint(i<Dio>(), baseUrl: F.apiUrl));
+    i.addSingleton(() => CitationApiPoint(i<Dio>(), baseUrl: _getApiUrl()));
     i.addSingleton(() => CitationApiRepo(apiPoint: i<CitationApiPoint>()));
 
-    i.addSingleton(() => ShareApiPoint(i<Dio>(), baseUrl: F.apiUrl));
+    i.addSingleton(() => ShareApiPoint(i<Dio>(), baseUrl: _getApiUrl()));
     i.addSingleton(() => ShareApiRepo(apiPoint: i<ShareApiPoint>()));
 
-    i.addSingleton(() => PrashnaApiPointSimple(dio: i<Dio>(), baseUrl: F.apiUrl));
+    i.addSingleton(() => PrashnaApiPointSimple(dio: i<Dio>(), baseUrl: _getApiUrl()));
     i.addSingleton(() => PrashnaApiRepo(apiPoint: i<PrashnaApiPointSimple>()));
 
     i.addSingleton(AuthAccountRepository.new);

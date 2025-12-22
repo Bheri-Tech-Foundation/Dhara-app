@@ -1,11 +1,10 @@
 import 'dart:async';
-import 'package:dharak_flutter/app/types/prashna/ai_model.dart';
 import 'package:logger/logger.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-/// Service for managing developer mode settings and preferences
-/// This handles authentication and model preferences for development/testing
+/// Simplified Developer Mode Service - Only handles custom base URL configuration
+/// Allows developers to point the app to a local development server
 class DeveloperModeService {
   static final DeveloperModeService _instance = DeveloperModeService._internal();
   static DeveloperModeService get instance => _instance;
@@ -15,18 +14,20 @@ class DeveloperModeService {
   // Private constructor
   DeveloperModeService._internal();
   
-  // ===== AUTHENTICATION STATE =====
-  bool _isAuthenticated = false;
-  bool get isAuthenticated => _isAuthenticated;
+  // ===== CONSTANTS =====
+  static const String defaultProductionUrl = 'https://project.iith.ac.in/bheri';
+  static const String apiPath = '/bheri'; // Path to append to custom domain
   
-  // ===== PREFERRED MODEL MANAGEMENT =====
-  final BehaviorSubject<AiModel> _preferredModelSubject = BehaviorSubject.seeded(AiModel.qwen);
-  Stream<AiModel> get preferredModelStream => _preferredModelSubject.stream;
-  AiModel get preferredModel => _preferredModelSubject.value;
+  // ===== AUTHENTICATION STATE =====
+  bool _isEnabled = false;
+  bool get isEnabled => _isEnabled;
   
   // ===== API URL MANAGEMENT =====
-  String? _currentApiUrl;
-  String? get currentApiUrl => _currentApiUrl;
+  String _customDomain = ''; // Stores just domain:port (e.g., "192.168.167.88:8000")
+  String get customDomain => _customDomain;
+  
+  final BehaviorSubject<String> _apiUrlSubject = BehaviorSubject.seeded(defaultProductionUrl);
+  Stream<String> get apiUrlStream => _apiUrlSubject.stream;
   
   // ===== INITIALIZATION =====
   
@@ -45,23 +46,20 @@ class DeveloperModeService {
     try {
       final prefs = await SharedPreferences.getInstance();
       
-      // Load authentication state
-      _isAuthenticated = prefs.getBool('dev_mode_authenticated') ?? false;
+      // Load developer mode enabled state
+      _isEnabled = prefs.getBool('dev_mode_enabled') ?? false;
       
-      // Load preferred model
-      final modelString = prefs.getString('dev_mode_preferred_model');
-      if (modelString != null) {
-        final model = AiModel.values.firstWhere(
-          (m) => m.modelParameter == modelString,
-          orElse: () => AiModel.qwen,
-        );
-        _preferredModelSubject.add(model);
+      // Load custom domain (just domain:port without path)
+      _customDomain = prefs.getString('dev_mode_custom_domain') ?? '';
+      
+      final effectiveUrl = getEffectiveApiUrl();
+      _apiUrlSubject.add(effectiveUrl);
+      
+      if (_isEnabled && _customDomain.isNotEmpty) {
+        _logger.d('🔧 Developer mode enabled: $_customDomain → $effectiveUrl');
+      } else {
+        _logger.d('🔧 Using production URL: $effectiveUrl');
       }
-      
-      // Load API URL
-      _currentApiUrl = prefs.getString('dev_mode_api_url');
-      
-      _logger.d('🔧 Developer mode settings loaded: authenticated=$_isAuthenticated, model=${preferredModel.displayName}');
     } catch (e) {
       _logger.e('❌ Error loading developer mode settings', error: e);
     }
@@ -72,12 +70,8 @@ class DeveloperModeService {
     try {
       final prefs = await SharedPreferences.getInstance();
       
-      await prefs.setBool('dev_mode_authenticated', _isAuthenticated);
-      await prefs.setString('dev_mode_preferred_model', preferredModel.modelParameter);
-      
-      if (_currentApiUrl != null) {
-        await prefs.setString('dev_mode_api_url', _currentApiUrl!);
-      }
+      await prefs.setBool('dev_mode_enabled', _isEnabled);
+      await prefs.setString('dev_mode_custom_domain', _customDomain);
       
       _logger.d('💾 Developer mode settings saved');
     } catch (e) {
@@ -85,75 +79,60 @@ class DeveloperModeService {
     }
   }
   
-  // ===== AUTHENTICATION METHODS =====
+  // ===== DEVELOPER MODE METHODS =====
   
-  /// Authenticate developer mode (for testing/development)
-  Future<void> authenticate(String password) async {
-    // Simple password check for development
-    if (password == 'dev123' || password == 'developer') {
-      _isAuthenticated = true;
-      await _saveSettings();
-      _logger.d('🔐 Developer mode authenticated');
-    } else {
-      throw Exception('Invalid developer password');
-    }
+  /// Enable developer mode with custom domain (e.g., "http://192.168.167.88:8000")
+  /// The /bheri path will be automatically appended
+  Future<void> enable(String customDomainWithProtocol) async {
+    _isEnabled = true;
+    // Store the domain without any path
+    _customDomain = customDomainWithProtocol.endsWith('/') 
+        ? customDomainWithProtocol.substring(0, customDomainWithProtocol.length - 1)
+        : customDomainWithProtocol;
+    
+    final fullUrl = getEffectiveApiUrl();
+    _apiUrlSubject.add(fullUrl);
+    await _saveSettings();
+    _logger.d('🔐 Developer mode enabled: $_customDomain → $fullUrl');
   }
   
-  /// Logout from developer mode
-  Future<void> logout() async {
-    _isAuthenticated = false;
+  /// Disable developer mode and return to production URL
+  Future<void> disable() async {
+    _isEnabled = false;
+    _customDomain = '';
+    _apiUrlSubject.add(defaultProductionUrl);
     await _saveSettings();
-    _logger.d('🔓 Developer mode logged out');
-  }
-  
-  // ===== MODEL PREFERENCE METHODS =====
-  
-  /// Set preferred AI model
-  Future<void> setPreferredModel(AiModel model) async {
-    _preferredModelSubject.add(model);
-    await _saveSettings();
-    _logger.d('🎯 Preferred model changed to: ${model.displayName}');
+    _logger.d('🔓 Developer mode disabled, using production URL');
   }
   
   // ===== API URL METHODS =====
   
-  /// Set custom API URL for development
-  Future<void> setApiUrl(String? url) async {
-    _currentApiUrl = url;
-    await _saveSettings();
-    _logger.d('🌐 API URL set to: ${url ?? "default"}');
-  }
-  
-  // ===== CLEANUP =====
-  
-  /// Dispose resources
-  void dispose() {
-    _preferredModelSubject.close();
+  /// Get the effective API URL (custom domain + /bheri if enabled, production otherwise)
+  /// Examples:
+  /// - Production: "https://project.iith.ac.in/bheri"
+  /// - Developer mode with "http://192.168.167.88:8000" → "http://192.168.167.88:8000/bheri"
+  String getEffectiveApiUrl() {
+    if (_isEnabled && _customDomain.isNotEmpty) {
+      return '$_customDomain$apiPath';
+    }
+    return defaultProductionUrl;
   }
   
   // ===== UTILITY METHODS =====
   
-  /// Reset all developer mode settings
-  Future<void> reset() async {
-    _isAuthenticated = false;
-    _currentApiUrl = null;
-    _preferredModelSubject.add(AiModel.qwen);
-    
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.remove('dev_mode_authenticated');
-    await prefs.remove('dev_mode_preferred_model');
-    await prefs.remove('dev_mode_api_url');
-    
-    _logger.d('🔄 Developer mode settings reset');
-  }
-  
   /// Get debug information
   Map<String, dynamic> getDebugInfo() {
     return {
-      'isAuthenticated': _isAuthenticated,
-      'preferredModel': preferredModel.displayName,
-      'apiUrl': _currentApiUrl ?? 'default',
+      'isEnabled': _isEnabled,
+      'customDomain': _customDomain,
+      'apiPath': apiPath,
+      'effectiveApiUrl': getEffectiveApiUrl(),
     };
+  }
+  
+  /// Dispose resources
+  void dispose() {
+    _apiUrlSubject.close();
   }
 }
 

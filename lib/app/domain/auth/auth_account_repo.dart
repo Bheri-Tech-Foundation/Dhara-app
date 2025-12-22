@@ -86,53 +86,41 @@ class AuthAccountRepository extends Disposable {
   }
 
   Future<DomainResult<bool>> login({String? googleIdToken}) async {
-    // First attempt
     print('🔐 Attempting login...');
     var result = await _attemptLogin(googleIdToken);
     
     print('🔍 Login result status: ${result.status}, message: ${result.message}');
     
+    // With backend clock skew tolerance added, retries should rarely be needed
+    // But keep them as a fallback safety net
+    
     // Check for duplicate user error (backend database issue)
     if (result.status == DomainResultStatus.ERROR && 
         result.message?.contains('returned more than one User') == true) {
-      // Get Google account email for logging
       final googleEmail = mGoogleAuthService.currentUser?.email ?? 'unknown';
       
       mLogger.e('🔴 Duplicate user records detected in backend database!');
       mLogger.e('🔴 Google account with duplicates: $googleEmail');
-      print('🔴 Duplicate user error: ${result.message}');
-      print('🔴 Google account: $googleEmail');
-      print('🔴 BACKEND ACTION REQUIRED: Clean up duplicate user records for $googleEmail');
       
-      // Return a user-friendly error message
+      // User-friendly error message (no technical details)
       return DomainResult<bool>(
         DomainResultStatus.ERROR,
-        message: 'Your account has duplicate records in our system. Please contact support to resolve this issue. (Account: $googleEmail)',
+        message: 'There seems to be an issue with your account. Please contact support for assistance.',
         data: false,
       );
     }
     
-    // Check if it's a clock skew error
+    // Fallback: Check if it's a clock skew error (should be rare with backend tolerance)
     if (result.status == DomainResultStatus.ERROR && 
         result.message?.contains('Token used too early') == true) {
-      mLogger.w('⏰ Clock skew detected! Device clock is ahead of server. Retrying in 6 seconds...');
-      print('⏰ Clock skew detected! Error message: ${result.message}');
-      print('⏰ Waiting 6 seconds before retry...');
+      mLogger.w('⏰ Clock skew detected (backend tolerance may not be working). Retrying...');
       
-      // Wait 6 seconds to allow server time to "catch up" to the token's timestamp
-      await Future.delayed(const Duration(seconds: 6));
-      
-      mLogger.d('⏰ Retrying login after clock skew delay...');
-      print('⏰ Retrying login now...');
-      
-      // Retry the login
+      // Shorter wait since backend should have tolerance now
+      await Future.delayed(const Duration(seconds: 3));
       result = await _attemptLogin(googleIdToken);
       
       if (result.status == DomainResultStatus.SUCCESS) {
-        mLogger.i('✅ Login succeeded after clock skew retry!');
-        print('✅ Login succeeded after retry!');
-      } else {
-        print('❌ Login failed after retry: ${result.message}');
+        mLogger.i('✅ Login succeeded after retry!');
       }
     }
 
@@ -279,10 +267,10 @@ class AuthAccountRepository extends Disposable {
       final isRefreshSuccess = await _attemptTokenRefresh(refreshToken);
       
       if (!isRefreshSuccess) {
-        // Refresh token is expired/invalid, clear all auth data
-        mLogger.d('validateAndRefreshTokens: Refresh failed, clearing tokens');
-        await mSecureStorage.saveAccessToken(null);
-        await mSecureStorage.saveRefreshToken(null);
+        // Refresh token is expired/invalid (after ~1 month)
+        // Clear ALL auth data to force fresh login
+        mLogger.w('🔴 Refresh token expired! Clearing all auth data and forcing re-login');
+        await clearAllAuthData();
         return false;
       }
       
@@ -290,6 +278,8 @@ class AuthAccountRepository extends Disposable {
       return true;
     } catch (e) {
       mLogger.e('validateAndRefreshTokens: Error - $e');
+      // Clear auth data on error to be safe
+      await clearAllAuthData();
       return false;
     }
   }
@@ -305,10 +295,31 @@ class AuthAccountRepository extends Disposable {
         return true;
       }
       
+      mLogger.w('_attemptTokenRefresh: No access token in response');
       return false;
     } catch (e) {
       mLogger.e('_attemptTokenRefresh: Failed - $e');
+      // Likely means refresh token is expired
       return false;
+    }
+  }
+  
+  /// Clear all authentication data (used when refresh token expires)
+  Future<void> clearAllAuthData() async {
+    try {
+      mLogger.d('clearAllAuthData: Clearing all tokens and user data');
+      await mSecureStorage.saveAccessToken(null);
+      await mSecureStorage.saveRefreshToken(null);
+      // Optionally clear user info (email, name, picture) to force complete re-login
+      // Uncomment these if you want to clear user info too:
+      // await mSecureStorage.saveEmail(null);
+      // await mSecureStorage.saveDisplayName(null);
+      // await mSecureStorage.savePicture(null);
+      
+      _mAccountStateChanged.sink.add(false);
+      _mSubjectAccountUser.sink.add(null);
+    } catch (e) {
+      mLogger.e('clearAllAuthData: Error - $e');
     }
   }
 }

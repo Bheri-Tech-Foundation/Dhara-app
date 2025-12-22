@@ -29,11 +29,6 @@ class ApiUrlProviderService {
     // Set initial URL
     _updateApiUrl();
     
-    // Listen to developer mode authentication changes
-    DeveloperModeService.instance.authStateStream.listen((isAuthenticated) {
-      _updateApiUrl();
-    });
-    
     // Listen to developer mode API URL changes
     DeveloperModeService.instance.apiUrlStream.listen((url) {
       _updateApiUrl();
@@ -43,15 +38,8 @@ class ApiUrlProviderService {
   }
   
   void _updateApiUrl() {
-    String newUrl;
-    
-    if (DeveloperModeService.instance.isAuthenticated) {
-      // Use developer mode URL if authenticated
-      newUrl = DeveloperModeService.instance.currentApiUrl;
-    } else {
-      // Use default environment URL
-      newUrl = F.apiUrl;
-    }
+    // Use developer mode service to get effective URL
+    final newUrl = DeveloperModeService.instance.getEffectiveApiUrl();
     
     if (_currentApiUrl != newUrl) {
       _currentApiUrl = newUrl;

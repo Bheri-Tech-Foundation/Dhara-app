@@ -123,7 +123,7 @@ class _SplashPageState extends State<SplashPage> with TickerProviderStateMixin {
       }
     }
   }
-
+  
   @override
   Widget build(BuildContext context) {
     _prepareTheme(context);

@@ -7,6 +7,7 @@ import '../../../../../res/theme/app_theme_colors.dart';
 import '../../../../../res/theme/app_theme_display.dart';
 import '../../../../../res/values/dimens.dart';
 import '../../../../../core/services/books_service.dart';
+import '../../../../data/services/developer_mode_service.dart';
 import '../../../../domain/books/repo.dart';
 import '../../../../domain/base/domain_result.dart';
 import '../../../../domain/citation/repo.dart';
@@ -1453,8 +1454,9 @@ class _BookChunkItemLightweightWidgetState extends State<BookChunkItemLightweigh
         ),
       );
       
-      // Test the API URL first
-      final testUrl = 'https://project.iith.ac.in/bheri/chunk/auglist/${widget.chunk.chunkRefId}/';
+      // Use developer mode service to get effective URL
+      final baseUrl = DeveloperModeService.instance.getEffectiveApiUrl();
+      final testUrl = '$baseUrl/chunk/auglist/${widget.chunk.chunkRefId}/';
       print('🔶 Testing API URL: $testUrl');
       
       // Get repository and make API call

@@ -14,10 +14,8 @@ class PrashnaApiPointSimple {
   
   /// Get the current base URL (developer mode aware)
   String get _baseUrl {
-    if (DeveloperModeService.instance.isAuthenticated) {
-      return DeveloperModeService.instance.currentApiUrl ?? _defaultBaseUrl;
-    }
-    return _defaultBaseUrl;
+    // Use developer mode service to get effective URL
+    return DeveloperModeService.instance.getEffectiveApiUrl();
   }
 
   /// Unified chat endpoint - Returns SSE stream for any AI model

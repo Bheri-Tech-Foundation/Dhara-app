@@ -83,43 +83,97 @@ class _LoginPageState extends State<LoginPage> {
     
     return Scaffold(
       backgroundColor: themeColors.surface,
-      body: MultiBlocListener(
-        listeners: [
-          BlocListener<GoogleLoginController, GoogleLoginCubitState>(
-            bloc: mBloc,
-            listenWhen: (previous, current) => previous.result != current.result,
-            listener: (context, state) {
-              if (state.result != null && 
-                  state.result!.resultCode == "RESULT_SUCCESS") {
-                // Complete backend authentication with the Google ID token
-                _completeBackendLogin(state.result!.idToken);
-              }
-            },
-          ),
-        ],
-        child: SafeArea(
-          child: Padding(
-            padding: EdgeInsets.symmetric(
-              horizontal: TdResDimens.dp_32,
-              vertical: TdResDimens.dp_24,
-            ),
-            child: Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  // App Header
-                  _buildAppHeader(),
-                  
-                  TdResGaps.v_64,
-                  
-                  // Google Sign In Button
-                  _buildSignInSection(),
-                ],
+      body: Stack(
+        children: [
+          MultiBlocListener(
+            listeners: [
+              BlocListener<GoogleLoginController, GoogleLoginCubitState>(
+                bloc: mBloc,
+                listenWhen: (previous, current) => previous.result != current.result,
+                listener: (context, state) {
+                  if (state.result != null && 
+                      state.result!.resultCode == "RESULT_SUCCESS") {
+                    // Complete backend authentication with the Google ID token
+                    _completeBackendLogin(state.result!.idToken);
+                  }
+                },
+              ),
+            ],
+            child: SafeArea(
+              child: Padding(
+                padding: EdgeInsets.symmetric(
+                  horizontal: TdResDimens.dp_32,
+                  vertical: TdResDimens.dp_24,
+                ),
+                child: Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      // App Header
+                      _buildAppHeader(),
+                      
+                      TdResGaps.v_64,
+                      
+                      // Google Sign In Button
+                      _buildSignInSection(),
+                    ],
+                  ),
+                ),
               ),
             ),
           ),
-        ),
+          
+          // Loading overlay during authentication
+          BlocBuilder<GoogleLoginController, GoogleLoginCubitState>(
+            bloc: mBloc,
+            buildWhen: (previous, current) => 
+                current.isInProgress != previous.isInProgress,
+            builder: (context, state) {
+              if (state.isInProgress == true) {
+                return Container(
+                  color: Colors.black.withOpacity(0.5),
+                  child: Center(
+                    child: Card(
+                      elevation: 8,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      child: Padding(
+                        padding: EdgeInsets.all(TdResDimens.dp_32),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            CircularProgressIndicator(
+                              valueColor: AlwaysStoppedAnimation<Color>(
+                                TdResColors.colorDharaBlue,
+                              ),
+                            ),
+                            SizedBox(height: TdResDimens.dp_20),
+                            Text(
+                              'Signing you in...',
+                              style: TdResTextStyles.h3SemiBold.copyWith(
+                                color: themeColors.onSurface,
+                              ),
+                            ),
+                            SizedBox(height: TdResDimens.dp_8),
+                            Text(
+                              'Please wait a moment',
+                              style: TdResTextStyles.caption.copyWith(
+                                color: themeColors.onSurface.withOpacity(0.7),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                );
+              }
+              return SizedBox.shrink();
+            },
+          ),
+        ],
       ),
     );
   }
@@ -151,17 +205,20 @@ class _LoginPageState extends State<LoginPage> {
   /// Complete the backend authentication process after Google sign-in
   Future<void> _completeBackendLogin(String? googleIdToken) async {
     if (googleIdToken == null) {
+      // Clear loading state
+      mBloc.emit(mBloc.state.copyWith(isInProgress: false));
       return;
     }
 
     try {
-      
       // Get the auth repository and complete the login
       final authRepo = Modular.get<AuthAccountRepository>();
       final result = await authRepo.login(googleIdToken: googleIdToken);
       
+      // Clear loading state
+      mBloc.emit(mBloc.state.copyWith(isInProgress: false));
+      
       if (result.status == DomainResultStatus.SUCCESS) {
-        
         // Wait a moment to ensure the UI state is updated
         await Future.delayed(const Duration(milliseconds: 100));
         
@@ -170,10 +227,48 @@ class _LoginPageState extends State<LoginPage> {
           Modular.to.pushReplacementNamed('/Dhara/quicksearch');
         }
       } else {
-        _showErrorMessage("Backend login failed: ${result.message}");
+        // Show user-friendly error message (no technical jargon)
+        String errorMsg = _getUserFriendlyErrorMessage(result.message);
+        _showErrorMessage(errorMsg);
       }
     } catch (e) {
-      _showErrorMessage("Login error: ${e.toString()}");
+      // Clear loading state
+      mBloc.emit(mBloc.state.copyWith(isInProgress: false));
+      _showErrorMessage("Something went wrong. Please try logging in again.");
+    }
+  }
+  
+  /// Convert technical error messages to user-friendly ones
+  String _getUserFriendlyErrorMessage(String? technicalMessage) {
+    if (technicalMessage == null || technicalMessage.isEmpty) {
+      return "Please try logging in again.";
+    }
+    
+    // Check for specific error patterns and return friendly messages
+    final lowerMessage = technicalMessage.toLowerCase();
+    
+    if (lowerMessage.contains('account') && lowerMessage.contains('issue')) {
+      return technicalMessage; // Already user-friendly from backend
+    } else if (lowerMessage.contains('invalid') || 
+               lowerMessage.contains('token') ||
+               lowerMessage.contains('bad request') ||
+               lowerMessage.contains('400')) {
+      return "Please try logging in again.";
+    } else if (lowerMessage.contains('network') || 
+               lowerMessage.contains('connection') ||
+               lowerMessage.contains('timeout')) {
+      return "Please check your internet connection and try again.";
+    } else if (lowerMessage.contains('server') || 
+               lowerMessage.contains('500') ||
+               lowerMessage.contains('503')) {
+      return "Our servers are experiencing issues. Please try again in a moment.";
+    } else if (lowerMessage.contains('unauthorized') || 
+               lowerMessage.contains('401') ||
+               lowerMessage.contains('403')) {
+      return "Please try logging in again.";
+    } else {
+      // Generic friendly message for any other error
+      return "Something went wrong. Please try again.";
     }
   }
 
