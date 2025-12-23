@@ -221,20 +221,30 @@ class AuthInterceptor extends InterceptorsWrapper {
           return true;
         } else {
           print("🔴 Refresh token fail: no access token in response");
-          await _clearAuthData();
+          // Don't clear auth data - might be temporary server issue
           return false;
         }
-      } else {
-        print("🔴 Refresh token fail: ${res.statusCode} ${res.statusMessage ?? res.toString()}");
+      } else if (res.statusCode == 401 || res.statusCode == 403) {
+        // Only clear auth data for 401/403 (expired/invalid refresh token)
+        print("🔴 Refresh token expired/invalid (${res.statusCode}) - clearing all auth data");
         await _clearAuthData();
+        return false;
+      } else {
+        // Other error codes (500, 503, etc.) - don't clear auth data
+        print("🔴 Refresh token fail: ${res.statusCode} ${res.statusMessage ?? res.toString()}");
+        print("⚠️ Keeping auth data - might be temporary server issue");
         return false;
       }
     } catch (error) {
       print("🔴 Refresh token exception: $error");
-      // Check if it's a 401 error (refresh token expired)
-      if (error is DioException && error.response?.statusCode == 401) {
-        print("🔴 Refresh token expired (after ~1 month) - clearing all auth data");
+      // Only clear auth data for 401/403 (refresh token expired/invalid)
+      if (error is DioException && 
+          (error.response?.statusCode == 401 || error.response?.statusCode == 403)) {
+        print("🔴 Refresh token expired/invalid (after ~1 month) - clearing all auth data");
         await _clearAuthData();
+      } else {
+        // Network error or other temporary issue - keep auth data
+        print("⚠️ Keeping auth data - might be temporary network issue");
       }
       return false;
     }

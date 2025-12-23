@@ -262,24 +262,22 @@ class AuthAccountRepository extends Disposable {
         return false;
       }
       
-      // Try to refresh the access token to validate the refresh token
-      mLogger.d('validateAndRefreshTokens: Attempting token refresh...');
-      final isRefreshSuccess = await _attemptTokenRefresh(refreshToken);
-      
-      if (!isRefreshSuccess) {
-        // Refresh token is expired/invalid (after ~1 month)
-        // Clear ALL auth data to force fresh login
-        mLogger.w('🔴 Refresh token expired! Clearing all auth data and forcing re-login');
-        await clearAllAuthData();
-        return false;
-      }
-      
-      mLogger.d('validateAndRefreshTokens: Tokens validated successfully');
+      // IMPORTANT: Don't force refresh on every app start!
+      // Just check if tokens exist - they'll be refreshed automatically 
+      // by AuthInterceptor when API calls get 401 errors
+      mLogger.d('validateAndRefreshTokens: Tokens found, assuming valid (will auto-refresh if needed)');
       return true;
+      
+      // OLD CODE: This was too aggressive - would logout on any network error!
+      // final isRefreshSuccess = await _attemptTokenRefresh(refreshToken);
+      // if (!isRefreshSuccess) {
+      //   await clearAllAuthData();
+      //   return false;
+      // }
     } catch (e) {
-      mLogger.e('validateAndRefreshTokens: Error - $e');
-      // Clear auth data on error to be safe
-      await clearAllAuthData();
+      mLogger.e('validateAndRefreshTokens: Error reading tokens - $e');
+      // Don't clear auth data for read errors - might be temporary storage issue
+      // Only return false to trigger login if tokens are actually missing
       return false;
     }
   }
