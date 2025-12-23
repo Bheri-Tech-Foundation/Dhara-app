@@ -359,24 +359,30 @@ class UnifiedService {
 
             case 'verse':
               final versesData = data as List<dynamic>;
-              print('🔍 RAW VERSE API RESPONSE: ${versesData.length} verses received');
+              print('🔍 RAW VERSE API RESPONSE: ${versesData.length} items received');
               print('🔍 QUOTED TEXTS: ${currentResult.splits?.quotedTexts ?? 'None'}');
-              print('🔍 COMPLETE API RESPONSE DATA:');
-              print(versesData.toString());
               
               final verses = <VerseRM>[];
               for (int i = 0; i < versesData.length; i++) {
                 var v = versesData[i];
                 try {
+                  // Skip info objects (metadata) - only parse actual verses
+                  if (v is Map<String, dynamic> && v['data_type'] == 'info') {
+                    print('🔍 Skipping info object at index $i: ${v.toString().substring(0, 100)}...');
+                    continue;
+                  }
+                  
                   final verse = VerseRM.fromJson(v as Map<String, dynamic>);
                   verses.add(verse); // Store original verses first
                   print('🔍 VERSE $i: PK=${verse.versePk}, Text="${verse.verseText?.substring(0, 100) ?? 'N/A'}...", LetText="${verse.verseLetText?.substring(0, 100) ?? 'N/A'}...", Source="${verse.sourceTitle ?? 'N/A'}"');
                 } catch (e) {
-                  print('❌ Error parsing individual verse: $e');
+                  print('❌ Error parsing individual verse at index $i: $e');
                   print('📄 Problematic verse data: $v');
                   // Skip this verse and continue
                 }
               }
+              
+              print('✅ Successfully parsed ${verses.length} actual verses (filtered out info objects)');
               
               // ✅ CORRECT APPROACH: Each verse response creates ONE card
               // The API sends 3 separate verse responses, so we create one card per response

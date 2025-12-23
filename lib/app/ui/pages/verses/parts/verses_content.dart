@@ -42,7 +42,15 @@ class _VersesContentWidgetState extends State<VersesContentWidget> {
 
   @override
   Widget build(BuildContext context) {
-    if (widget.verses.isEmpty) {
+    // Filter out dummy/empty verses (verses with no text and no reference)
+    final validVerses = widget.verses.where((verse) {
+      final hasText = (verse.verseText != null && verse.verseText!.isNotEmpty) ||
+                     (verse.verseLetText != null && verse.verseLetText!.isNotEmpty);
+      final hasRef = verse.verseRef != null && verse.verseRef!.isNotEmpty;
+      return hasText || hasRef; // Keep verse if it has either text or reference
+    }).toList();
+    
+    if (validVerses.isEmpty) {
       return Container(
         padding: const EdgeInsets.all(32),
         child: Text(
@@ -59,9 +67,9 @@ class _VersesContentWidgetState extends State<VersesContentWidget> {
     return ListView.builder(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
-      itemCount: widget.verses.length,
+      itemCount: validVerses.length,
       itemBuilder: (context, index) {
-        final verse = widget.verses[index];
+        final verse = validVerses[index];
         return Container(
           key: ValueKey('verse_unified_${verse.versePk}'),
           margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
