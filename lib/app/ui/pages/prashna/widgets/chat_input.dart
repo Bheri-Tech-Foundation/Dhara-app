@@ -189,7 +189,9 @@ class ChatInput extends StatelessWidget {
                         onChanged: onChanged,
                         onSubmitted: (_) => onSubmitted(),
                         enabled: !isStreaming,
-                        maxLines: 1,
+                        maxLines: 3,
+                        minLines: 1,
+                        textInputAction: TextInputAction.send,
                                                   decoration: InputDecoration(
                             hintText: isStreaming 
                                 ? 'Please wait...' 
