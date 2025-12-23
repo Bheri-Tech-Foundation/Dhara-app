@@ -646,7 +646,10 @@ class VersesPageState extends State<VersesPage> {
                       // _mFormTitle = value;
                     },
                     onFieldSubmitted: (term) {
-                      // FocusScope.of(context).requestFocus(lname);
+                      if (term.trim().isNotEmpty) {
+                        FocusScope.of(context).unfocus();
+                        mBloc.onFormSubmit();
+                      }
                     },
 
                     decoration: TdResDecorations.inputSmallDecorationInner(
