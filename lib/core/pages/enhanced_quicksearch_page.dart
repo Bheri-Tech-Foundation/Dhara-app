@@ -114,7 +114,7 @@ extension QuickSearchModeExtension on QuickSearchMode {
   String get searchHint {
     switch (this) {
       case QuickSearchMode.unified:
-        return 'e.g.\n• Who was the son of Abhimanyu,\n• find verse "agnimede purohitam",\n• Story of dhaumya';
+        return 'e.g. Who was the son of Abhimanyu, find verse "agnimede purohitam", Story of dhaumya';
       case QuickSearchMode.dictionary:
         return 'Type a single word to search...';
       case QuickSearchMode.verse:
