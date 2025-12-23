@@ -114,7 +114,7 @@ extension QuickSearchModeExtension on QuickSearchMode {
   String get searchHint {
     switch (this) {
       case QuickSearchMode.unified:
-        return 'e.g. Who was the son of Abhimanyu, find verse "agnimede purohitam", Story of dhaumya';
+        return 'e.g.\n• Who was the son of Abhimanyu,\n• find verse "agnimede purohitam",\n• Story of dhaumya';
       case QuickSearchMode.dictionary:
         return 'Type a single word to search...';
       case QuickSearchMode.verse:
@@ -682,7 +682,9 @@ class _EnhancedQuickSearchPageState extends State<EnhancedQuickSearchPage>
       child: TextField(
         controller: _searchController,
               onSubmitted: (_) => _performSearch(),
-              maxLines: 1,
+              maxLines: 3,
+              minLines: 1,
+              textInputAction: TextInputAction.search,
         decoration: InputDecoration(
                   hintText: _getSearchHint(),
                 hintStyle: TextStyle(
@@ -789,7 +791,9 @@ class _EnhancedQuickSearchPageState extends State<EnhancedQuickSearchPage>
                   child: TextField(
                     controller: _searchController,
                     onSubmitted: (_) => _performSearch(),
-                    maxLines: 1,
+                    maxLines: 3,
+                    minLines: 1,
+                    textInputAction: TextInputAction.search,
                     decoration: InputDecoration(
                       hintText: _getSearchHint(),
                       hintStyle: TextStyle(
@@ -885,7 +889,9 @@ class _EnhancedQuickSearchPageState extends State<EnhancedQuickSearchPage>
               child: TextField(
                 controller: _searchController,
                 onSubmitted: (_) => _performSearch(),
-                maxLines: 1,
+                maxLines: 3,
+                minLines: 1,
+                textInputAction: TextInputAction.search,
                 decoration: InputDecoration(
                   hintText: _getSearchHint(),
                   hintStyle: TextStyle(
@@ -1749,7 +1755,9 @@ class _EnhancedQuickSearchContentState extends State<_EnhancedQuickSearchContent
                 height: 1.4,
                 color: themeColors.onSurface,
               ),
-              maxLines: 1,
+              maxLines: 3,
+              minLines: 1,
+              textInputAction: TextInputAction.search,
               textCapitalization: TextCapitalization.sentences,
               onSubmitted: (query) => _performSearch(),
             ),
@@ -1895,7 +1903,9 @@ class _EnhancedQuickSearchContentState extends State<_EnhancedQuickSearchContent
                   ),
                 ),
                 style: const TextStyle(fontSize: 15),
-                maxLines: 1,
+                maxLines: 3,
+                minLines: 1,
+                textInputAction: TextInputAction.search,
                 textCapitalization: TextCapitalization.sentences,
                 onSubmitted: (query) => _performSearch(),
               ),
@@ -1983,7 +1993,9 @@ class _EnhancedQuickSearchContentState extends State<_EnhancedQuickSearchContent
               child: TextField(
                 controller: widget.searchController,
                 onSubmitted: (_) => _performSearch(),
-                maxLines: 1,
+                maxLines: 3,
+                minLines: 1,
+                textInputAction: TextInputAction.search,
                 decoration: InputDecoration(
                   hintText: _getSearchHint(),
                   hintStyle: TextStyle(
