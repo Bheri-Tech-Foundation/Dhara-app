@@ -682,7 +682,7 @@ class _EnhancedQuickSearchPageState extends State<EnhancedQuickSearchPage>
       child: TextField(
         controller: _searchController,
               onSubmitted: (_) => _performSearch(),
-              maxLines: 3,
+              maxLines: 4,
               minLines: 1,
               textInputAction: TextInputAction.search,
         decoration: InputDecoration(
@@ -791,7 +791,7 @@ class _EnhancedQuickSearchPageState extends State<EnhancedQuickSearchPage>
                   child: TextField(
                     controller: _searchController,
                     onSubmitted: (_) => _performSearch(),
-                    maxLines: 3,
+                    maxLines: 4,
                     minLines: 1,
                     textInputAction: TextInputAction.search,
                     decoration: InputDecoration(
@@ -889,7 +889,7 @@ class _EnhancedQuickSearchPageState extends State<EnhancedQuickSearchPage>
               child: TextField(
                 controller: _searchController,
                 onSubmitted: (_) => _performSearch(),
-                maxLines: 3,
+                maxLines: 4,
                 minLines: 1,
                 textInputAction: TextInputAction.search,
                 decoration: InputDecoration(
@@ -1755,7 +1755,7 @@ class _EnhancedQuickSearchContentState extends State<_EnhancedQuickSearchContent
                 height: 1.4,
                 color: themeColors.onSurface,
               ),
-              maxLines: 3,
+              maxLines: 4,
               minLines: 1,
               textInputAction: TextInputAction.search,
               textCapitalization: TextCapitalization.sentences,
@@ -1903,7 +1903,7 @@ class _EnhancedQuickSearchContentState extends State<_EnhancedQuickSearchContent
                   ),
                 ),
                 style: const TextStyle(fontSize: 15),
-                maxLines: 3,
+                maxLines: 4,
                 minLines: 1,
                 textInputAction: TextInputAction.search,
                 textCapitalization: TextCapitalization.sentences,
@@ -1993,7 +1993,7 @@ class _EnhancedQuickSearchContentState extends State<_EnhancedQuickSearchContent
               child: TextField(
                 controller: widget.searchController,
                 onSubmitted: (_) => _performSearch(),
-                maxLines: 3,
+                maxLines: 4,
                 minLines: 1,
                 textInputAction: TextInputAction.search,
                 decoration: InputDecoration(

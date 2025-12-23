@@ -274,7 +274,7 @@ class _BookAugmentationModalState extends State<BookAugmentationModal>
               height: 1.4,
               color: widget.themeColors.onSurface,
             ),
-            maxLines: 3,
+            maxLines: 4,
             overflow: TextOverflow.ellipsis,
           ),
         ],

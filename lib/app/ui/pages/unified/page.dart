@@ -1462,7 +1462,7 @@ class _UnifiedSearchPageState extends State<UnifiedSearchPage> {
               height: 1.6,
               fontSize: 16,
             ),
-            maxLines: 3,
+            maxLines: 4,
             overflow: TextOverflow.ellipsis,
           ),
         ),

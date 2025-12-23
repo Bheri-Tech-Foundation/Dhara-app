@@ -181,7 +181,7 @@ class EmptyChatState extends StatelessWidget {
               controller: controller,
               onChanged: onChanged,
               onSubmitted: (_) => onSubmitted?.call(),
-              maxLines: 3,
+              maxLines: 4,
               minLines: 1,
               textInputAction: TextInputAction.send,
               decoration: InputDecoration(
