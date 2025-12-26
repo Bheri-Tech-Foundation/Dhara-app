@@ -270,9 +270,10 @@ class _DeveloperSettingsModalState extends State<DeveloperSettingsModal> {
                         const SizedBox(width: TdResDimens.dp_12),
                         Expanded(
                           child: Text(
-                            'You may need to restart the app for changes to take full effect.',
+                            'IMPORTANT: You must restart the app after enabling/disabling developer mode for changes to take effect.',
                             style: TdResTextStyles.h6.copyWith(
                               color: themeColors.onSurface?.withOpacity(0.8),
+                              fontWeight: FontWeight.w600,
                             ),
                           ),
                         ),
@@ -310,7 +311,10 @@ class _DeveloperSettingsModalState extends State<DeveloperSettingsModal> {
       _isEnabled = true;
     });
     
-    _showSuccessMessage('Developer mode enabled!\nUsing: $url');
+    // Show dialog to restart app
+    if (context.mounted) {
+      _showRestartDialog();
+    }
   }
   
   Future<void> _disableDeveloperMode() async {
@@ -319,7 +323,33 @@ class _DeveloperSettingsModalState extends State<DeveloperSettingsModal> {
       _isEnabled = false;
     });
     
-    _showSuccessMessage('Developer mode disabled. Using production URL.');
+    // Show dialog to restart app
+    if (context.mounted) {
+      _showRestartDialog();
+    }
+  }
+  
+  void _showRestartDialog() {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => AlertDialog(
+        title: const Text('Restart Required'),
+        content: const Text(
+          'Developer mode settings have been updated.\n\n'
+          'Please close and restart the app for changes to take effect.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).pop(); // Close dialog
+              Navigator.of(context).pop(); // Close developer settings
+            },
+            child: const Text('OK'),
+          ),
+        ],
+      ),
+    );
   }
   
   void _showSuccessMessage(String message) {

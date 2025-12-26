@@ -762,20 +762,7 @@ class _AppRootState extends State<DashboardPage> {
             //     ),
             //   ),
             // ),
-            child: RawKeyboardListener(
-              focusNode: FocusNode(),
-              onKey: (RawKeyEvent event) {
-                // Check for Ctrl+Shift+Click
-                if (event is RawKeyDownEvent) {
-                  final isCtrlPressed = event.isControlPressed;
-                  final isShiftPressed = event.isShiftPressed;
-                  
-                  if (isCtrlPressed && isShiftPressed) {
-                    Logger().d("Ctrl+Shift detected - ready for click");
-                  }
-                }
-              },
-              child: GestureDetector(
+            child: GestureDetector(
                 // Mobile: Long press
                 onLongPress: _handleDeveloperModeActivation,
                 // Web/Desktop: Detect Ctrl+Shift+Click
@@ -813,9 +800,6 @@ class _AppRootState extends State<DashboardPage> {
                 ),
               ),
             ),
-
-            // ),
-          ),
 
           Flexible(
             flex: 1,
