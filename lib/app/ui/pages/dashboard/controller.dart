@@ -38,6 +38,7 @@ class DashboardController extends Cubit<DashboardCubitState> {
 
   StreamSubscription<bool>? _mLoginSubscription;
   StreamSubscription<UserRM?>? _mAccountCommonSubscription;
+  StreamSubscription<bool>? _mAuthInterceptorSubscription;
 
   StreamSubscription<VersesLanguagePrefRM?>? _mVerseLanguagePrefSubscription;
   DashboardController({
@@ -60,6 +61,7 @@ class DashboardController extends Cubit<DashboardCubitState> {
   @override
   Future<void> close() {
     _mAccountCommonSubscription?.cancel();
+    _mAuthInterceptorSubscription?.cancel();
 
     _mVerseLanguagePrefSubscription?.cancel();
     try {
@@ -146,21 +148,16 @@ class DashboardController extends Cubit<DashboardCubitState> {
           if (state.user != value) {
             emit(state.copyWith(user: value));
           }
-
-          print("DashboardController _subscribeBloc: 3");
         });
 
-    mAuthInterceptor.eventLoginNeeded.listen((value) {
-      print("eventLoginNeeded:${value}");
+    // ✅ FIX: Save auth interceptor listener to variable to prevent duplicates
+    _mAuthInterceptorSubscription = mAuthInterceptor.eventLoginNeeded.listen((value) {
       emit(state.copyWith(loginNeededCounter: state.loginNeededCounter + 1));
     });
 
     _mVerseLanguagePrefSubscription = mVersesRepo.mLanguagePrefObservable
         .listen((value) {
-          print("🎯 DashboardController _subscribeBloc: Received language pref: ${value?.output}");
-          print("🎯 DashboardController _subscribeBloc: Before emit - current state: ${state.verseLanguagePref?.output}");
           emit(state.copyWith(verseLanguagePref: value));
-          print("🎯 DashboardController _subscribeBloc: After emit - new state: ${state.verseLanguagePref?.output}");
         });
   }
 
@@ -187,46 +184,32 @@ class DashboardController extends Cubit<DashboardCubitState> {
   }
 
   Future<void> onVerseLanguageChange(String languageOutput) async {
-    print("🎯 DashboardController onVerseLanguageChange: Changing language to $languageOutput");
-    
     try {
       var result = await mVersesRepo.getlanguagePref(output: languageOutput);
       
       if (result.status == DomainResultStatus.SUCCESS) {
-        print("✅ DashboardController onVerseLanguageChange: Language changed successfully to ${result.data?.output}");
-        print("🎯 DashboardController onVerseLanguageChange: Repository will emit via stream, no manual emit needed");
-        
         // Clear relevant caches to ensure fresh results
         _clearSearchCaches();
         
         // Note: State update will happen automatically via _mVerseLanguagePrefSubscription listener
         // This eliminates the race condition between manual emit and repository stream
-        
-      } else {
-        print("❌ DashboardController onVerseLanguageChange: Failed to change language - ${result.message}");
       }
     } catch (e) {
-      print("💥 DashboardController onVerseLanguageChange: Exception - $e");
+      // Silently handle error
     }
   }
 
   /// Clear search caches when language changes to ensure fresh results
   void _clearSearchCaches() {
     try {
-      // Clear verse cache
       final verseService = VerseService.instance;
       verseService.clearCache();
-      print("🗑️ DashboardController: Cleared verse cache for language change");
       
-      // Clear dictionary cache
       final dictionaryService = DictionaryService.instance;
       dictionaryService.clearCache();
-      print("🗑️ DashboardController: Cleared dictionary cache for language change");
       
-      // Clear unified cache
       final unifiedService = UnifiedService.instance;
       unifiedService.clearCache();
-      print("🗑️ DashboardController: Cleared unified cache for language change");
       
     } catch (e) {
       print("⚠️ DashboardController: Error clearing caches - $e");
@@ -239,24 +222,19 @@ class DashboardController extends Cubit<DashboardCubitState> {
 
   /// Immediate language preference loading (called from constructor)
   void _loadLanguagePreferenceImmediately() {
-    print("🔥 DashboardController: _loadLanguagePreferenceImmediately called");
-    
     // First check if repository already has a cached language preference
     try {
       if (mVersesRepo.mLanguagePrefObservable.hasValue && mVersesRepo.mLanguagePrefObservable.value != null) {
         final cachedPref = mVersesRepo.mLanguagePrefObservable.value!;
-        print("🔥 DashboardController: Found cached language preference: ${cachedPref.output}");
         emit(state.copyWith(verseLanguagePref: cachedPref));
         return;
       }
     } catch (e) {
-      print("⚠️ DashboardController: Error checking cached preference: $e");
+      // Silently handle error
     }
     
     // If no cached preference, load from API asynchronously
-    print("🔥 DashboardController: No cached preference, loading from API...");
     _load().catchError((e) {
-      print("💥 DashboardController: Error in immediate load: $e");
       // Set a default if loading fails
       _setDefaultLanguagePreference();
     });
@@ -264,29 +242,22 @@ class DashboardController extends Cubit<DashboardCubitState> {
 
   /// Set default language preference if loading fails
   void _setDefaultLanguagePreference() {
-    print("🔥 DashboardController: Setting default language preference to Devanagari");
     final defaultPref = VersesLanguagePrefRM(
       output: VersesConstants.LANGUAGE_DEFAULT,
-      // Add other required fields if needed
     );
     emit(state.copyWith(verseLanguagePref: defaultPref));
   }
 
   _load() async {
-    print("🎯 DashboardController _load: Loading initial language preference...");
     try {
       var result = await mVersesRepo.getlanguagePref();
-      print("🎯 DashboardController _load: Initial language result: ${result.data?.output}");
       
       if (result.status == DomainResultStatus.SUCCESS && result.data != null) {
-        print("🎯 DashboardController _load: Setting initial language preference: ${result.data?.output}");
         emit(state.copyWith(verseLanguagePref: result.data));
       } else {
-        print("❌ DashboardController _load: Failed to load initial language preference - ${result.message}");
         _setDefaultLanguagePreference();
       }
     } catch (e) {
-      print("💥 DashboardController _load: Exception loading language preference: $e");
       _setDefaultLanguagePreference();
     }
   }

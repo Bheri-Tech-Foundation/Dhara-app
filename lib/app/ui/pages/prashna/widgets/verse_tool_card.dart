@@ -34,30 +34,64 @@ class VerseToolCard extends StatefulWidget {
 class _VerseToolCardState extends State<VerseToolCard> {
   bool _hasSearched = false;
   final GlobalKey _repaintBoundaryKey = GlobalKey();
+  String? _previousLanguage;
+
+  @override
+  void initState() {
+    super.initState();
+    // Get initial language
+    final dashboardController = Modular.get<DashboardController>();
+    _previousLanguage = dashboardController.state.verseLanguagePref?.output;
+  }
 
   @override
   Widget build(BuildContext context) {
-    return StreamBuilder<List<VerseRM>>(
-      stream: SearchOrchestrator.versesResults,
-      builder: (context, snapshot) {
-        return StreamBuilder<bool>(
-          stream: SearchOrchestrator.versesLoading,
-          builder: (context, loadingSnapshot) {
-            final isLoading = _hasSearched && (loadingSnapshot.data ?? false);
+    final dashboardController = Modular.get<DashboardController>();
+    
+    return BlocBuilder<DashboardController, DashboardCubitState>(
+      bloc: dashboardController,
+      buildWhen: (previous, current) {
+        // Only rebuild when language changes
+        return current.verseLanguagePref?.output != previous.verseLanguagePref?.output;
+      },
+      builder: (context, dashboardState) {
+        // Check if language changed and we have searched before
+        final currentLanguage = dashboardState.verseLanguagePref?.output;
+        if (_hasSearched && currentLanguage != _previousLanguage && _previousLanguage != null) {
+          if (kDebugMode) {
+            print("🔄 PRASHNA VerseToolCard: Language changed from $_previousLanguage to $currentLanguage - refreshing verses");
+          }
+          
+          // Language changed after initial search - refresh the results
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            SearchOrchestrator.searchVerses(widget.toolCall.query, forceRefresh: true);
+          });
+        }
+        _previousLanguage = currentLanguage;
+        
+        return StreamBuilder<List<VerseRM>>(
+          stream: SearchOrchestrator.versesResults,
+          builder: (context, snapshot) {
+            return StreamBuilder<bool>(
+              stream: SearchOrchestrator.versesLoading,
+              builder: (context, loadingSnapshot) {
+                final isLoading = _hasSearched && (loadingSnapshot.data ?? false);
 
-            return StreamBuilder<String?>(
-              stream: SearchOrchestrator.versesError,
-              builder: (context, errorSnapshot) {
-                final error = _hasSearched ? errorSnapshot.data : null;
-                final verses = snapshot.data ?? [];
-                
-                return ExpandableToolCard(
-                  toolCall: widget.toolCall,
-                  isLoading: isLoading,
-                  error: error,
-                  resultCount: verses.isNotEmpty ? verses.length : null,
-                  onExpand: _onExpand,
-                  resultsWidget: _buildResults(verses),
+                return StreamBuilder<String?>(
+                  stream: SearchOrchestrator.versesError,
+                  builder: (context, errorSnapshot) {
+                    final error = _hasSearched ? errorSnapshot.data : null;
+                    final verses = snapshot.data ?? [];
+                    
+                    return ExpandableToolCard(
+                      toolCall: widget.toolCall,
+                      isLoading: isLoading,
+                      error: error,
+                      resultCount: verses.isNotEmpty ? verses.length : null,
+                      onExpand: _onExpand,
+                      resultsWidget: _buildResults(verses),
+                    );
+                  },
                 );
               },
             );

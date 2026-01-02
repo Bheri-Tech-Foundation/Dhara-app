@@ -99,8 +99,8 @@ class _SplashPageState extends State<SplashPage> with TickerProviderStateMixin {
       // Also check if user data exists
       var user = authRepo.mAccountUserObservable.value;
       bool hasUserData = user != null && 
-                        (user.email?.isNotEmpty == true || 
-                         user.name?.isNotEmpty == true);
+                           (user.email?.isNotEmpty == true || 
+                            user.name?.isNotEmpty == true);
       
       bool isAuthenticated = hasValidTokens && hasUserData;
       
@@ -123,7 +123,7 @@ class _SplashPageState extends State<SplashPage> with TickerProviderStateMixin {
       }
     }
   }
-  
+
   @override
   Widget build(BuildContext context) {
     _prepareTheme(context);

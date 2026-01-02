@@ -93,7 +93,16 @@ class VerseService extends Disposable {
   }
   
   /// Setup listener for global language changes to refresh current verse results
+  /// 
+  /// NOTE: This is currently DISABLED to prevent duplicate API calls.
+  /// The EnhancedQuickSearchPage already handles language changes through UnifiedService.
+  /// If you need language change handling for standalone verse pages, re-enable this
+  /// but add logic to prevent conflicts with UnifiedService.
   void _setupLanguageChangeListener() {
+    // DISABLED: Causes duplicate API calls when used with UnifiedService
+    // The enhanced_quicksearch_page already handles language changes properly
+    
+    /* 
     try {
       _languageChangeSubscription = repository.mLanguagePrefObservable.listen((languagePref) {
         if (languagePref != null && _currentVerses.value.isNotEmpty) {
@@ -105,6 +114,7 @@ class VerseService extends Disposable {
     } catch (e) {
       // Language listener setup failed
     }
+    */
   }
   
   /// Silent refresh of current verses for language change by re-running original search

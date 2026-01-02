@@ -54,7 +54,7 @@ class AuthInterceptor extends InterceptorsWrapper {
       try {
         accessToken = await storage.getAccessToken();
       } catch (e) {
-        print("onRequest: exception: $accessToken $e");
+        // Silent exception handling
       }
       // var header = prefs.get("Header");
 
@@ -84,9 +84,6 @@ class AuthInterceptor extends InterceptorsWrapper {
 
   @override
   void onError(DioException err, ErrorInterceptorHandler handler) async {
-    print(
-      "Auth Interceptor : OnError: ${err.response} ${err.response?.requestOptions} ${err.response?.statusCode}",
-    );
     final response = err.response;
     if (response?.requestOptions != null &&
         // status code for unauthorized usually 401
@@ -99,14 +96,9 @@ class AuthInterceptor extends InterceptorsWrapper {
         !(response!.requestOptions.path.contains("/auth") ||
             response.requestOptions.path.contains("/google_login") ||
             response.requestOptions.path.contains("/token"))) {
-      print(
-        "Auth Interceptor : OnError: ${err.response} ${err.response?.requestOptions} ${err.response?.statusCode}",
-      );
-
-      print("Auth Interceptor onerror2: ${_isRefreshing}");
+      
       // if hasn't not refreshing yet, let's start it
       if (!_isRefreshing) {
-        print("Auth Interceptor onerror 3:_isRefreshing: not");
         _isRefreshing = true;
 
         // add request (requestOptions and handler) to queue and wait to retry later
@@ -131,18 +123,14 @@ class AuthInterceptor extends InterceptorsWrapper {
 
             // TODO may be await needed
 
-            print("AuthInterceptor retry 1: ${requestNeedRetry.options.path}");
-
             String? accessToken;
 
             try {
               accessToken = await storage.getAccessToken();
             } catch (e) {
-              print("onError: exception: $accessToken $e");
+              // Silent exception handling
             }
             // var header = prefs.get("Header");
-
-            print("get Token: $accessToken");
 
             var options = requestNeedRetry.options;
 
@@ -152,9 +140,6 @@ class AuthInterceptor extends InterceptorsWrapper {
             dio
                 .fetch(options)
                 .then((response) {
-                  print(
-                    "AuthInterceptor retry 2: ${requestNeedRetry.options.path} ${response.requestOptions.path}",
-                  );
                   requestNeedRetry.handler.resolve(response);
                 })
                 .catchError((_) {});
@@ -165,7 +150,6 @@ class AuthInterceptor extends InterceptorsWrapper {
         } else {
           _requestsNeedRetry.clear();
 
-          print("onError loginneeded:");
           _mEventLoginNeeded.sink.add(true);
 
           _isRefreshing = false;
@@ -173,7 +157,6 @@ class AuthInterceptor extends InterceptorsWrapper {
           // if refresh fail, force logout user here
         }
       } else {
-        print("Auth Interceptor onerror 3: _isRefreshing: yes");
         // if refresh flow is processing, add this request to queue and wait to retry later
         _requestsNeedRetry.add((
           options: response.requestOptions,
@@ -181,8 +164,6 @@ class AuthInterceptor extends InterceptorsWrapper {
         ));
       }
     } else {
-      print("OnError else: ");
-
       // ignore other error is not unauthorized
       return handler.next(err);
     }
@@ -190,7 +171,6 @@ class AuthInterceptor extends InterceptorsWrapper {
 
   Future<bool> _refreshToken() async {
     try {
-      print("_refresh called");
       final refreshToken = await storage.getRefreshToken();
 
       if (refreshToken == null || refreshToken.isEmpty) {

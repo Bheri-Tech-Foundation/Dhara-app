@@ -414,16 +414,21 @@ class _EnhancedQuickSearchPageState extends State<EnhancedQuickSearchPage>
     // Keep the search results and UI state - don't navigate back to welcome
   }
 
+  bool _isSearching = false;
+
   void _performSearch() {
-    
     final query = _searchController.text.trim();
-    print("🔍 QUICKSEARCH: Search controller text: '$query'");
-    print("🔍 QUICKSEARCH: Query is empty: ${query.isEmpty}");
     
     if (query.isEmpty) {
-      print("❌ QUICKSEARCH: Search aborted - query is empty");
       return;
     }
+
+    // Prevent duplicate searches (e.g., from Enter key + accidental tap during keyboard hide)
+    if (_isSearching) {
+      return;
+    }
+
+    _isSearching = true;
 
     setState(() {
       _currentQuery = query;
@@ -432,10 +437,13 @@ class _EnhancedQuickSearchPageState extends State<EnhancedQuickSearchPage>
     // Mark that this mode has been searched and save the query
     _hasSearchedByMode[_currentSearchMode] = true;
     _savedQueries[_currentSearchMode] = query;
-    
-    print("🔍 QUICKSEARCH: Performing search - mode: ${_currentSearchMode.label}, query: '$query'");
 
     _performSearchForMode(_currentSearchMode, query);
+
+    // Reset the flag after a short delay to allow next search
+    Future.delayed(const Duration(milliseconds: 500), () {
+      _isSearching = false;
+    });
   }
   
   void _performSearchForMode(QuickSearchMode mode, String query) {
@@ -443,39 +451,27 @@ class _EnhancedQuickSearchPageState extends State<EnhancedQuickSearchPage>
     _hasSearchedByMode[mode] = true;
     _savedQueries[mode] = query;
     
-    print("🔍 QUICKSEARCH: _performSearchForMode - mode: ${mode.label}, query: '$query'");
-    print("🔍 QUICKSEARCH: Updated _hasSearchedByMode[${mode.label}] = true");
-    
     // Call the appropriate search based on current search mode
-    try {
-      switch (mode) {
-        case QuickSearchMode.unified:
-          print("🔍 QUICKSEARCH: Getting UnifiedController via Modular");
-          final controller = Modular.get<UnifiedController>();
-          controller.searchUnified(query, forceRefresh: true);
-          break;
-        case QuickSearchMode.dictionary:
-          print("🔍 QUICKSEARCH: Getting QuickSearchController via Modular for dictionary");
-          final controller = Modular.get<QuickSearchController>();
-          controller.switchSearchType(SearchType.wordDefine);
-          controller.performSearch(query);
-          break;
-        case QuickSearchMode.verse:
-          print("🔍 QUICKSEARCH: Getting QuickSearchController via Modular for verse");
-          final controller = Modular.get<QuickSearchController>();
-          controller.switchSearchType(SearchType.quickVerse);
-          controller.performSearch(query);
-          break;
-        case QuickSearchMode.books:
-          print("🔍 QUICKSEARCH: Getting QuickSearchController via Modular for books");
-          final controller = Modular.get<QuickSearchController>();
-          controller.switchSearchType(SearchType.books);
-          controller.performSearch(query);
-          break;
-      }
-      print("✅ QUICKSEARCH: Search executed successfully for ${mode.label}");
-    } catch (e) {
-      print("❌ QUICKSEARCH: Error executing search for ${mode.label}: $e");
+    switch (mode) {
+      case QuickSearchMode.unified:
+        final controller = Modular.get<UnifiedController>();
+        controller.searchUnified(query, forceRefresh: true);
+        break;
+      case QuickSearchMode.dictionary:
+        final controller = Modular.get<QuickSearchController>();
+        controller.switchSearchType(SearchType.wordDefine);
+        controller.performSearch(query);
+        break;
+      case QuickSearchMode.verse:
+        final controller = Modular.get<QuickSearchController>();
+        controller.switchSearchType(SearchType.quickVerse);
+        controller.performSearch(query);
+        break;
+      case QuickSearchMode.books:
+        final controller = Modular.get<QuickSearchController>();
+        controller.switchSearchType(SearchType.books);
+        controller.performSearch(query);
+        break;
     }
   }
 
@@ -2494,67 +2490,27 @@ class _EnhancedQuickSearchContentState extends State<_EnhancedQuickSearchContent
   }
 
   void _performSearch() {
-    print("🔍 CONTENT: _performSearch() called in content widget!");
-    
     final query = widget.searchController.text.trim();
-    print("🔍 CONTENT: Search controller text: '$query'");
-    print("🔍 CONTENT: Query is empty: ${query.isEmpty}");
-    print("🔍 CONTENT: Is searching: $_isSearching");
     
     if (query.isEmpty) {
-      print("❌ CONTENT: Search aborted - query is empty");
       return;
     }
 
     // Reset the search flag if it's stuck from a previous search
     if (_isSearching) {
-      print("⚠️ CONTENT: _isSearching was true, resetting to false");
       _isSearching = false;
     }
 
     _isSearching = true;
-    print('🔍 CONTENT: Performing ${widget.currentSearchMode.label} search: "$query"');
     
-    // Notify parent about the search (IMPORTANT for tracking)
+    // Notify parent about the search - parent will handle the actual API call
+    // This prevents duplicate API calls since parent's _performSearch already triggers the controller
     widget.onPerformSearch();
     
     // Reset the search flag after a short delay to prevent multiple rapid searches
     Future.delayed(const Duration(milliseconds: 300), () {
       _isSearching = false;
-      print("🔍 CONTENT: Search flag reset - ready for next search");
     });
-
-    // Call the appropriate search based on current search mode
-    try {
-      switch (widget.currentSearchMode) {
-        case QuickSearchMode.unified:
-          print("🔍 CONTENT: Calling UnifiedController.searchUnified via Modular");
-          final controller = Modular.get<UnifiedController>();
-          controller.searchUnified(query, forceRefresh: true);
-          break;
-        case QuickSearchMode.dictionary:
-          print("🔍 CONTENT: Calling QuickSearchController.performSearch for dictionary via Modular");
-          final controller = Modular.get<QuickSearchController>();
-          controller.switchSearchType(SearchType.wordDefine);
-          controller.performSearch(query);
-          break;
-        case QuickSearchMode.verse:
-          print("🔍 CONTENT: Calling QuickSearchController.performSearch for verse via Modular");
-          final controller = Modular.get<QuickSearchController>();
-          controller.switchSearchType(SearchType.quickVerse);
-          controller.performSearch(query);
-          break;
-        case QuickSearchMode.books:
-          print("🔍 CONTENT: Calling QuickSearchController.performSearch for books via Modular");
-          final controller = Modular.get<QuickSearchController>();
-          controller.switchSearchType(SearchType.books);
-          controller.performSearch(query);
-          break;
-      }
-      print("✅ CONTENT: Search executed successfully for ${widget.currentSearchMode.label}");
-    } catch (e) {
-      print("❌ CONTENT: Error executing search for ${widget.currentSearchMode.label}: $e");
-    }
   }
 
   Widget _buildDropdownMenu(AppThemeColors themeColors) {
