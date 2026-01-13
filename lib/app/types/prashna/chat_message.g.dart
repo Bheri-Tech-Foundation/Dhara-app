@@ -52,6 +52,7 @@ ChatMessage _$ChatMessageFromJson(Map<String, dynamic> json) => ChatMessage(
   timestamp: DateTime.parse(json['timestamp'] as String),
   aiModel: $enumDecodeNullable(_$AiModelEnumMap, json['aiModel']),
   sessionId: json['sessionId'] as String?,
+  queryId: (json['queryId'] as num?)?.toInt(),
   citations:
       (json['citations'] as List<dynamic>?)
           ?.map((e) => SourceCitation.fromJson(e as Map<String, dynamic>))
@@ -79,6 +80,7 @@ Map<String, dynamic> _$ChatMessageToJson(ChatMessage instance) =>
       'timestamp': instance.timestamp.toIso8601String(),
       'aiModel': _$AiModelEnumMap[instance.aiModel],
       'sessionId': instance.sessionId,
+      'queryId': instance.queryId,
       'citations': instance.citations,
       'toolCalls': instance.toolCalls,
       'errorMessage': instance.errorMessage,

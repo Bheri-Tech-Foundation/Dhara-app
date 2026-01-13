@@ -18,6 +18,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_modular/flutter_modular.dart';
 import 'package:markdown_widget/markdown_widget.dart';
+import 'package:dharak_flutter/app/ui/widgets/prashna_voting_widget.dart';
 
 class ChatMessageWidget extends StatefulWidget {
   final ChatMessage message;
@@ -127,9 +128,21 @@ class _ChatMessageWidgetState extends State<ChatMessageWidget> {
   @override
   void didUpdateWidget(ChatMessageWidget oldWidget) {
     super.didUpdateWidget(oldWidget);
+    
     // Reinitialize keys if citations changed
     if (oldWidget.message.citations.length != widget.message.citations.length) {
       _initializeSourceKeys();
+    }
+    
+    // Detect queryId changes for voting widget
+    if (oldWidget.message.queryId != widget.message.queryId) {
+      print('🔄 QueryID CHANGED in ChatMessageWidget!');
+      print('   Old queryId: ${oldWidget.message.queryId}');
+      print('   New queryId: ${widget.message.queryId}');
+      print('   Triggering rebuild...');
+      setState(() {
+        // Force rebuild to show voting widget
+      });
     }
   }
 
@@ -549,6 +562,27 @@ class _ChatMessageWidgetState extends State<ChatMessageWidget> {
                     // Actions (only for AI messages, not user messages)
                     if (!message.isUser && (message.isCompleted || message.hasError))
                       _buildMessageActions(),
+                    
+                    // Prashna Voting Widget (only for completed AI messages)
+                    if (!message.isUser && message.isCompleted) ...[
+                      Builder(
+                        builder: (context) {
+                          print('═══════════════════════════════════════');
+                          print('🔍 CHAT MESSAGE DEBUG (Prashna Voting):');
+                          print('   Message ID: ${message.id}');
+                          print('   Is User: ${message.isUser}');
+                          print('   Is Completed: ${message.isCompleted}');
+                          print('   Query ID: ${message.queryId}');
+                          print('   Rendering PrashnaVotingWidget...');
+                          print('═══════════════════════════════════════');
+                          return const SizedBox.shrink();
+                        },
+                      ),
+                      PrashnaVotingWidget(
+                        key: ValueKey('voting_${message.id}_${message.queryId}'),
+                        queryId: message.queryId,
+                      ),
+                    ],
                   ],
                 ),
               ),

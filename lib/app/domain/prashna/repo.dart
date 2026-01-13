@@ -140,6 +140,29 @@ class PrashnaRepository {
 
   // ===== CHAT FUNCTIONALITY =====
 
+  /// Send a standalone query (for Scholar Mode on Shodh)
+  /// Returns a stream of SSE events without managing chat sessions
+  Stream<SseEventResult> sendStandaloneQuery({
+    required String query,
+    required int sodhQueryId,
+    AiModel? aiModel,
+  }) {
+    final model = aiModel ?? AiModel.qwen;
+    final sessionId = 'standalone_${DateTime.now().millisecondsSinceEpoch}';
+    
+    print('🔵 Sending standalone Prashna query for Shodh:');
+    print('   Query: "$query"');
+    print('   Shodh QueryID: $sodhQueryId');
+    print('   Model: ${model.displayName}');
+    
+    return _prashnaApiRepo.sendChatMessage(
+      message: query,
+      sessionId: sessionId,
+      aiModel: model,
+      sodhQueryId: sodhQueryId,
+    );
+  }
+
   /// Send a message and get streaming response
   Future<DomainResult<bool>> sendMessage(String message) async {
     _logger.d('🔧 SEND MESSAGE DEBUG: sendMessage called with: "$message"');
@@ -195,6 +218,7 @@ class PrashnaRepository {
         message: message,
         sessionId: apiSessionId,
         aiModel: apiModel,
+        sodhQueryId: null, // Not applicable for normal Prashna tab chat
       ).listen(
         (result) {
           _logger.d('🔧 SSE DEBUG: Received SSE event - handling...');
@@ -259,6 +283,14 @@ class PrashnaRepository {
       
       // Debug: Log what events we're actually receiving
       _logger.d('🔧 SSE EVENT DEBUG: Received ${event.runtimeType} with content: "${event.content ?? "null"}"');
+      
+      // Extra logging for QueryID detection
+      if (event.runtimeType.toString().contains('QueryId') || event.event.toLowerCase() == 'queryid') {
+        print('🚨 QueryID EVENT DETECTED IN SSE STREAM! 🚨');
+        print('   Event type: ${event.runtimeType}');
+        print('   Event.event: ${event.event}');
+        print('   Content: ${event.content}');
+      }
 
       final currentSession = _currentSessionSubject.value;
       if (currentSession == null) return;
@@ -300,7 +332,20 @@ class PrashnaRepository {
         
         // Update the message with the correct session ID too
         updatedMessage = currentMessage.copyWith(sessionId: event.content ?? "");
-            } else if (event is RunStartedEvent) {
+      } else if (event is QueryIdEvent) {
+        // Capture Query ID for voting - comes AFTER message completion
+        print('═══════════════════════════════════════');
+        print('📊 VOTING: QueryID EVENT RECEIVED!');
+        print('   Content: ${event.content}');
+        print('   Parsed Query ID: ${event.queryId}');
+        print('   Message ID: ${currentMessage.id}');
+        print('   Current message status: ${currentMessage.status}');
+        print('═══════════════════════════════════════');
+        _logger.d('📊 VOTING: QueryID received = ${event.content}');
+        
+        // Update message with QueryID - CRITICAL for voting widget
+        updatedMessage = currentMessage.copyWith(queryId: event.queryId);
+      } else if (event is RunStartedEvent) {
         // Message already created, just continue
       } else if (event is ToolCallStartedEvent) {
         // Skip heritage_lookup as it will be broken down in ToolParametersEvent

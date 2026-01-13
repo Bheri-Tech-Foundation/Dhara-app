@@ -3,6 +3,7 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../../../../types/books/book_chunk.dart';
 import '../../../../types/books/book_chunk_augmentation.dart';
+import '../../../../types/voting/vote_type.dart';
 import '../../../../../res/theme/app_theme_colors.dart';
 import '../../../../../res/theme/app_theme_display.dart';
 import '../../../../../res/values/dimens.dart';
@@ -14,6 +15,7 @@ import '../../../../domain/citation/repo.dart';
 import '../../../../domain/share/repo.dart';
 import '../../../widgets/book_augmentation_modal.dart';
 import '../../../widgets/citation_modal.dart';
+import '../../../widgets/compact_voting_widget.dart';
 import '../../../widgets/share_modal.dart';
 import 'package:flutter_modular/flutter_modular.dart';
 
@@ -39,6 +41,10 @@ class BookChunkItemLightweightWidget extends StatefulWidget {
   final Function(GlobalKey)? onClickShare;
   final Function(String)? onClickExternalUrl;
   final Function(int)? onClickCitation;
+  
+  // Voting data (for Scholar Mode)
+  final int? queryId;
+  final int? itemId;
 
   const BookChunkItemLightweightWidget({
     super.key,
@@ -54,6 +60,8 @@ class BookChunkItemLightweightWidget extends StatefulWidget {
     this.onClickShare,
     this.onClickExternalUrl,
     this.onClickCitation,
+    this.queryId,
+    this.itemId,
   });
 
   @override
@@ -194,6 +202,19 @@ class _BookChunkItemLightweightWidgetState extends State<BookChunkItemLightweigh
             
             // Actions: source link left, other icons right
             _buildReorganizedActions(),
+            
+            // Voting widget (only shown in Scholar Mode)
+            if (widget.queryId != null && widget.itemId != null && widget.chunk.chunkRefId != null)
+              Padding(
+                padding: const EdgeInsets.fromLTRB(12, 0, 12, 8),
+                child: CompactVotingWidget(
+                  queryId: widget.queryId,
+                  itemId: widget.itemId,
+                  refId: widget.chunk.chunkRefId.toString(),
+                  contentType: VoteContentType.chunk,
+                  themeColors: effectiveThemeColors,
+                ),
+              ),
           ],
         ),
       ),

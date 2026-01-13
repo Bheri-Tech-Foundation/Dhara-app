@@ -15,11 +15,20 @@ abstract class SseEvent {
   factory SseEvent.fromJson(Map<String, dynamic> json) {
     final eventType = json['event'] as String;
     
+    // Debug: Log unknown events that might be QueryID with different casing
+    if (eventType.toLowerCase() == 'queryid' && eventType != 'QueryID') {
+      print('⚠️ QueryID event received with different casing: "$eventType"');
+      print('   Expected: "QueryID", Got: "$eventType"');
+      print('   Content: ${json['content']}');
+    }
+    
     switch (eventType) {
       case 'ContentDelta':
         return ContentDeltaEvent.fromJson(json);
       case 'SessionID':
         return SessionIdEvent.fromJson(json);
+      case 'QueryID':
+        return QueryIdEvent.fromJson(json);
       case 'RunStarted':
         return RunStartedEvent.fromJson(json);
       case 'ToolCallStarted':
@@ -33,6 +42,11 @@ abstract class SseEvent {
       case 'EventData':
         return EventDataEvent.fromJson(json);
       default:
+        // Log unknown events
+        if (eventType.toLowerCase().contains('query')) {
+          print('🚨 Unknown event with "query" in name: "$eventType"');
+          print('   Full JSON: $json');
+        }
         return UnknownEvent.fromJson(json);
     }
   }
@@ -64,6 +78,30 @@ class SessionIdEvent extends SseEvent {
       _$SessionIdEventFromJson(json);
 
   Map<String, dynamic> toJson() => _$SessionIdEventToJson(this);
+}
+
+/// Query ID event for voting
+@JsonSerializable()
+class QueryIdEvent extends SseEvent {
+  @JsonKey(name: 'content')
+  final dynamic queryIdContent;
+
+  const QueryIdEvent({
+    required this.queryIdContent,
+    required super.event,
+  }) : super(content: '');
+
+  int? get queryId {
+    if (queryIdContent == null) return null;
+    if (queryIdContent is int) return queryIdContent as int;
+    if (queryIdContent is String) return int.tryParse(queryIdContent);
+    return null;
+  }
+
+  factory QueryIdEvent.fromJson(Map<String, dynamic> json) =>
+      _$QueryIdEventFromJson(json);
+
+  Map<String, dynamic> toJson() => _$QueryIdEventToJson(this);
 }
 
 /// Run started event from LangGraph API

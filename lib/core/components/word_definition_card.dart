@@ -1,6 +1,8 @@
 import 'package:dharak_flutter/app/types/dictionary/definition.dart';
 import 'package:dharak_flutter/app/types/dictionary/dict_word_detail.dart';
+import 'package:dharak_flutter/app/types/voting/vote_type.dart';
 import 'package:dharak_flutter/app/ui/widgets/code_wrapper.dart';
+import 'package:dharak_flutter/app/ui/widgets/compact_voting_widget.dart';
 import 'package:dharak_flutter/core/services/citation_share_service.dart';
 import 'package:dharak_flutter/res/layouts/containers.dart';
 import 'package:dharak_flutter/res/styles/decorations.dart';
@@ -37,6 +39,10 @@ class WordDefinitionCard extends StatefulWidget {
   // Theme (auto-detected if not provided)
   final AppThemeColors? themeColors;
   final AppThemeDisplay? appThemeDisplay;
+  
+  // Voting data (for Scholar Mode)
+  final int? queryId;
+  final int? itemId;
 
   const WordDefinitionCard({
     super.key,
@@ -54,6 +60,8 @@ class WordDefinitionCard extends StatefulWidget {
     this.showCitation = true,
     this.themeColors,
     this.appThemeDisplay,
+    this.queryId,
+    this.itemId,
   });
 
   @override
@@ -146,6 +154,18 @@ class _WordDefinitionCardState extends State<WordDefinitionCard> {
             else
               _buildStaticContent(themeColors),
             _buildActions(themeColors),
+            // Voting widget (only shown in Scholar Mode)
+            if (widget.queryId != null && widget.itemId != null && widget.definition.dictRefId != null)
+              Padding(
+                padding: const EdgeInsets.fromLTRB(12, 0, 12, 8),
+                child: CompactVotingWidget(
+                  queryId: widget.queryId,
+                  itemId: widget.itemId,
+                  refId: widget.definition.dictRefId.toString(),
+                  contentType: VoteContentType.definition,
+                  themeColors: themeColors,
+                ),
+              ),
           ],
         ),
       ),

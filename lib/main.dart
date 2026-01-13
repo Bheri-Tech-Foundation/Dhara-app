@@ -1,6 +1,7 @@
 import 'package:dharak_flutter/app/app_module.dart';
 import 'package:dharak_flutter/app/app_widget.dart';
 import 'package:dharak_flutter/app/data/services/developer_mode_service.dart';
+import 'package:dharak_flutter/app/data/services/tester_mode_service.dart';
 import 'package:dharak_flutter/flavors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_modular/flutter_modular.dart';
@@ -13,8 +14,9 @@ void main() async {
   F.appFlavor = Flavor.FINALE_RELEASE;
   WidgetsFlutterBinding.ensureInitialized();
   
-  // Initialize DeveloperModeService
+  // Initialize services
   await DeveloperModeService.instance.initialize();
+  await TesterModeService.instance.initialize();
   
   // runApp(const MyApp());
 

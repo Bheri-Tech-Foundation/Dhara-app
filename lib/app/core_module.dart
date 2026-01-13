@@ -11,6 +11,11 @@ import 'package:dharak_flutter/app/data/remote/api/parts/share/api.dart';
 import 'package:dharak_flutter/app/data/remote/api/parts/share/api_point.dart';
 import 'package:dharak_flutter/app/data/remote/api/parts/prashna/api.dart';
 import 'package:dharak_flutter/app/data/remote/api/parts/prashna/api_point_simple.dart';
+import 'package:dharak_flutter/app/data/remote/api/parts/voting/api.dart';
+import 'package:dharak_flutter/app/data/remote/api/parts/voting/api_point.dart';
+import 'package:dharak_flutter/app/data/voting/voting_repository.dart';
+import 'package:dharak_flutter/app/data/remote/api/parts/prashna/voting/api_point.dart';
+import 'package:dharak_flutter/app/data/voting/prashna_voting_repository.dart';
 import 'package:dharak_flutter/app/domain/auth/auth_account_repo.dart';
 import 'package:dharak_flutter/app/domain/prashna/repo.dart';
 import 'package:dharak_flutter/app/data/services/developer_mode_service.dart';
@@ -86,6 +91,15 @@ class CoreModule extends Module {
 
     i.addSingleton(() => PrashnaApiPointSimple(dio: i<Dio>(), baseUrl: _getApiUrl()));
     i.addSingleton(() => PrashnaApiRepo(apiPoint: i<PrashnaApiPointSimple>()));
+
+    i.addSingleton(() => VotingApiPoint(i<Dio>(), baseUrl: _getApiUrl()));
+    i.addSingleton(() => VotingApiRepo(apiPoint: i<VotingApiPoint>()));
+    i.addSingleton(() => VotingRepository(i<VotingApiRepo>()));
+
+    i.addSingleton(() => PrashnaVotingApiPoint(i<Dio>(), baseUrl: _getApiUrl()));
+    i.addSingleton(() => PrashnaVotingRepository(
+      apiPoint: i<PrashnaVotingApiPoint>(),
+    ));
 
     i.addSingleton(AuthAccountRepository.new);
 

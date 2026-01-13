@@ -118,6 +118,7 @@ class ChatMessage {
   final DateTime timestamp;
   final AiModel? aiModel; // Only for assistant messages
   final String? sessionId;
+  final int? queryId; // For Prashna voting
   final List<SourceCitation> citations;
   final List<ToolCall> toolCalls;
   final String? errorMessage;
@@ -132,6 +133,7 @@ class ChatMessage {
     required this.timestamp,
     this.aiModel,
     this.sessionId,
+    this.queryId,
     this.citations = const [],
     this.toolCalls = const [],
     this.errorMessage,
@@ -214,6 +216,7 @@ class ChatMessage {
     DateTime? timestamp,
     AiModel? aiModel,
     String? sessionId,
+    int? queryId,
     List<SourceCitation>? citations,
     List<ToolCall>? toolCalls,
     String? errorMessage,
@@ -228,6 +231,7 @@ class ChatMessage {
       timestamp: timestamp ?? this.timestamp,
       aiModel: aiModel ?? this.aiModel,
       sessionId: sessionId ?? this.sessionId,
+      queryId: queryId ?? this.queryId,
       citations: citations ?? this.citations,
       toolCalls: toolCalls ?? this.toolCalls,
       errorMessage: errorMessage ?? this.errorMessage,

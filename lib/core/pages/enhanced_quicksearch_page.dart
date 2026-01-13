@@ -1,10 +1,14 @@
 import 'package:dharak_flutter/app/data/services/supported_languages_service.dart';
+import 'package:dharak_flutter/app/data/services/tester_mode_service.dart';
 import 'package:dharak_flutter/res/values/colors.dart';
 import 'package:dharak_flutter/app/domain/verse/constants.dart';
 import 'package:dharak_flutter/app/types/unified/unified_response.dart';
 import 'package:dharak_flutter/app/types/verse/bookmarks/verse_bookmark.dart';
 import 'package:dharak_flutter/app/ui/pages/dashboard/controller.dart';
 import 'package:dharak_flutter/app/ui/pages/dashboard/cubit_states.dart';
+import 'package:dharak_flutter/app/ui/widgets/feedback_modal.dart';
+import 'package:dharak_flutter/app/data/voting/voting_repository.dart';
+import 'package:dharak_flutter/app/types/voting/vote_request.dart';
 import 'dart:async';
 import 'package:dharak_flutter/core/components/tool_card.dart';
 import 'package:dharak_flutter/core/components/word_definition_card.dart';
@@ -1075,6 +1079,7 @@ class _EnhancedQuickSearchPageState extends State<EnhancedQuickSearchPage>
             final result = state.searchResults[index];
             final controller = BlocProvider.of<UnifiedController>(context);
             final tools = controller.getExpandableTools(result);
+            final isLastItem = index == state.searchResults.length - 1;
 
             return Column(
               children: [
@@ -1089,13 +1094,130 @@ class _EnhancedQuickSearchPageState extends State<EnhancedQuickSearchPage>
                   onReferenceClick: (reference) => _handleReferenceClick(reference),
                 )).toList(),
 
-                if (index < state.searchResults.length - 1)
+                // General feedback button after last result (all tool cards of last query)
+                if (isLastItem) ...[
+                  const SizedBox(height: 8),
+                  _buildGeneralFeedbackButton(result, Theme.of(context).extension<AppThemeColors>()!),
+                ],
+
+                if (!isLastItem)
                   const SizedBox(height: 16), // More spacious results
               ],
             );
           },
         );
       },
+    );
+  }
+
+  Widget _buildGeneralFeedbackButton(UnifiedSearchResult result, AppThemeColors themeColors) {
+    final isScholarMode = TesterModeService.instance.isEnabled;
+    print('🔍 Scholar Mode enabled: $isScholarMode, queryId: ${result.queryId}');
+    
+    // Only show in Scholar Mode
+    if (!isScholarMode) {
+      print('⚠️ General feedback button hidden: Scholar Mode not enabled');
+      return const SizedBox.shrink();
+    }
+    
+    // Validate required data
+    if (result.queryId == null) {
+      print('⚠️ General feedback button hidden: No queryId');
+      return const SizedBox.shrink();
+    }
+    
+    print('✅ Showing general feedback button for queryId: ${result.queryId}');
+    
+    return Container(
+      margin: const EdgeInsets.only(top: 24, bottom: 16),
+      padding: const EdgeInsets.all(2),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [
+            themeColors.primary.withOpacity(0.3),
+            themeColors.secondaryColor.withOpacity(0.3),
+          ],
+        ),
+        borderRadius: BorderRadius.circular(14),
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: () {
+            print('📝 Opening general feedback modal for queryId: ${result.queryId}');
+            _showGeneralFeedbackModal(result.queryId!);
+          },
+          borderRadius: BorderRadius.circular(12),
+          child: Container(
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              color: themeColors.surface,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [
+                        themeColors.primary.withOpacity(0.2),
+                        themeColors.secondaryColor.withOpacity(0.2),
+                      ],
+                    ),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Icon(
+                    Icons.chat_bubble_outline,
+                    size: 24,
+                    color: themeColors.primary,
+                  ),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Share Overall Feedback',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w700,
+                          color: themeColors.onSurface,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        'Tell us about your complete search experience',
+                        style: TextStyle(
+                          fontSize: 13,
+                          color: themeColors.onSurface.withOpacity(0.7),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Icon(
+                  Icons.arrow_forward_ios_rounded,
+                  size: 18,
+                  color: themeColors.primary,
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+  
+  void _showGeneralFeedbackModal(int queryId) {
+    showDialog(
+      context: context,
+      builder: (context) => FeedbackModal(
+        queryId: queryId,
+        itemId: null, // General feedback for entire search query
+      ),
     );
   }
 
@@ -2700,6 +2822,10 @@ class _EnhancedQuickSearchContentState extends State<_EnhancedQuickSearchContent
               _buildUnifiedSectionHeader('Current Search', Icons.search, currentResults.length),
               const SizedBox(height: 8),
               ...currentResults.map((result) => _buildUnifiedResultItem(result, false)),
+              
+              // General feedback button after all current search results
+              if (currentResults.isNotEmpty)
+                _buildGeneralFeedbackButton(currentResults.first, Theme.of(context).extension<AppThemeColors>()!),
             ],
             
             // Previous Searches Section (Expandable)
@@ -2833,6 +2959,32 @@ class _EnhancedQuickSearchContentState extends State<_EnhancedQuickSearchContent
     final sessionIds = allResults.map((r) => r.searchSessionId);
     final mostRecentSessionId = sessionIds.reduce((a, b) => a > b ? a : b);
     return result.searchSessionId < mostRecentSessionId;
+  }
+
+  Widget _buildGeneralFeedbackButton(UnifiedSearchResult result, AppThemeColors themeColors) {
+    final isScholarMode = TesterModeService.instance.isEnabled;
+    
+    print('═══════════════════════════════════════');
+    print('🔍 FEEDBACK SECTION DEBUG (Shodh Screen):');
+    print('   Scholar Mode: $isScholarMode');
+    print('   Query ID: ${result.queryId}');
+    print('   Will show section: ${isScholarMode && result.queryId != null}');
+    print('═══════════════════════════════════════');
+    
+    // Only show in Scholar Mode
+    if (!isScholarMode) {
+      return const SizedBox.shrink();
+    }
+    
+    // Validate required data
+    if (result.queryId == null) {
+      return const SizedBox.shrink();
+    }
+    
+    return _FeedbackSection(
+      queryId: result.queryId!,
+      themeColors: themeColors,
+    );
   }
 
   Widget _buildComingSoonContent(String title, IconData icon, Color color) {
@@ -3937,4 +4089,244 @@ class _EnhancedQuickSearchContentState extends State<_EnhancedQuickSearchContent
     booksService.navigateChunk(bookChunk.chunkRefId!, true);
   }
 
+}
+
+/// Inline Feedback Section Widget
+class _FeedbackSection extends StatefulWidget {
+  final int queryId;
+  final AppThemeColors themeColors;
+
+  const _FeedbackSection({
+    required this.queryId,
+    required this.themeColors,
+  });
+
+  @override
+  State<_FeedbackSection> createState() => _FeedbackSectionState();
+}
+
+class _FeedbackSectionState extends State<_FeedbackSection> {
+  final TextEditingController _feedbackController = TextEditingController();
+  bool _isSubmittingFeedback = false;
+
+  @override
+  void dispose() {
+    _feedbackController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _submitFeedback() async {
+    if (_feedbackController.text.trim().isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please enter your feedback')),
+      );
+      return;
+    }
+
+    setState(() => _isSubmittingFeedback = true);
+
+    try {
+      final votingRepository = Modular.get<VotingRepository>();
+      final voteRequest = VoteRequest(
+        queryId: widget.queryId,
+        itemId: 'feed_back', // Always use 'feed_back' for query-level feedback
+        vote: _feedbackController.text.trim(),
+        value: 'general_feedback', // Distinguish from missing resources using value
+      );
+
+      print('💬 Submitting GENERAL FEEDBACK: queryId=${widget.queryId}, itemId=feed_back, value=general_feedback');
+      await votingRepository.submitVote(voteRequest);
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Text('✅ Feedback submitted successfully'),
+            backgroundColor: Colors.green,
+          ),
+        );
+        _feedbackController.clear();
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('❌ Error: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isSubmittingFeedback = false);
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: widget.themeColors.surface,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: widget.themeColors.primary.withOpacity(0.2),
+          width: 1,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: widget.themeColors.primary.withOpacity(0.05),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Header
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [
+                      widget.themeColors.primary.withOpacity(0.15),
+                      widget.themeColors.secondaryColor.withOpacity(0.15),
+                    ],
+                  ),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Icon(
+                  Icons.feedback_outlined,
+                  size: 18,
+                  color: widget.themeColors.primary,
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Help Us Improve',
+                      style: TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w600,
+                        color: widget.themeColors.onSurface,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      'Share your thoughts on these results',
+                      style: TextStyle(
+                        fontSize: 11,
+                        color: widget.themeColors.onSurface.withOpacity(0.6),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+
+          const SizedBox(height: 16),
+
+          // General Feedback Section
+          Text(
+            '💬 General Feedback',
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
+              color: widget.themeColors.onSurface,
+            ),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            'Share your overall thoughts about the results',
+            style: TextStyle(
+              fontSize: 12,
+              color: widget.themeColors.onSurface.withOpacity(0.6),
+            ),
+          ),
+          const SizedBox(height: 10),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                child: TextField(
+                  controller: _feedbackController,
+                  maxLines: 2,
+                  decoration: InputDecoration(
+                    hintText: 'e.g., "Results are accurate but need more context"',
+                    hintStyle: TextStyle(
+                      fontSize: 12,
+                      color: widget.themeColors.onSurface.withOpacity(0.4),
+                    ),
+                    filled: true,
+                    fillColor: widget.themeColors.onSurface.withOpacity(0.04),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                      borderSide: BorderSide(
+                        color: widget.themeColors.onSurface.withOpacity(0.15),
+                      ),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                      borderSide: BorderSide(
+                        color: widget.themeColors.onSurface.withOpacity(0.15),
+                      ),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                      borderSide: BorderSide(
+                        color: widget.themeColors.secondaryColor,
+                        width: 1.5,
+                      ),
+                    ),
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                  ),
+                  style: TextStyle(
+                    fontSize: 13,
+                    color: widget.themeColors.onSurface,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 10),
+              Container(
+                margin: const EdgeInsets.only(top: 2),
+                child: Material(
+                  color: widget.themeColors.secondaryColor,
+                  borderRadius: BorderRadius.circular(10),
+                  child: InkWell(
+                    onTap: _isSubmittingFeedback ? null : _submitFeedback,
+                    borderRadius: BorderRadius.circular(10),
+                    child: Container(
+                      padding: const EdgeInsets.all(12),
+                      child: _isSubmittingFeedback
+                          ? SizedBox(
+                              width: 20,
+                              height: 20,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: Colors.white,
+                              ),
+                            )
+                          : Icon(
+                              Icons.send_rounded,
+                              size: 20,
+                              color: Colors.white,
+                            ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
 }

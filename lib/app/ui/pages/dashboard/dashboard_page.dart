@@ -33,7 +33,9 @@ import 'package:dharak_flutter/app/ui/widgets/beta_floating_button.dart';
 import 'package:dharak_flutter/app/ui/widgets/beta_welcome_dialog.dart';
 import 'package:dharak_flutter/app/ui/widgets/bug_report_service.dart';
 import 'package:dharak_flutter/app/data/services/developer_mode_service.dart';
+import 'package:dharak_flutter/app/data/services/tester_mode_service.dart';
 import 'package:dharak_flutter/app/ui/widgets/developer_password_dialog.dart';
+import 'package:dharak_flutter/app/ui/widgets/scholar_mode_onboarding_dialog.dart';
 import 'package:dharak_flutter/app/ui/widgets/developer_settings_modal.dart';
 import 'package:logger/logger.dart';
 import 'package:flutter/services.dart';
@@ -928,27 +930,62 @@ class _AppRootState extends State<DashboardPage> {
                                 // Switch account logic
                               },
                             ),
+                            // Scholar Mode Toggle
                             PopupMenuItem(
-                              child: Row(
-                                crossAxisAlignment: CrossAxisAlignment.center,
-                                spacing: TdResDimens.dp_12,
-                                children: [
-                                  Icon(
-                                    Icons.developer_mode,
-                                    color: themeColors.onSurface,
-                                  ),
-                                  Text(
-                                    'Developer Settings',
-                                    style: TdResTextStyles.button.copyWith(
-                                      color: themeColors.onSurface,
-                                    ),
-                                  ),
-                                ],
+                              child: StreamBuilder<bool>(
+                                stream: TesterModeService.instance.testerModeStream,
+                                initialData: TesterModeService.instance.isEnabled,
+                                builder: (context, snapshot) {
+                                  final isEnabled = snapshot.data ?? false;
+                                  return Row(
+                                    crossAxisAlignment: CrossAxisAlignment.center,
+                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      Row(
+                                        spacing: TdResDimens.dp_12,
+                                        children: [
+                                          Icon(
+                                            Icons.star_outline,
+                                            color: isEnabled 
+                                                ? themeColors.primary 
+                                                : themeColors.onSurface,
+                                          ),
+                                          Text(
+                                            'Tester Mode',
+                                            style: TdResTextStyles.button.copyWith(
+                                              color: isEnabled 
+                                                  ? themeColors.primary 
+                                                  : themeColors.onSurface,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                      Switch(
+                                        value: isEnabled,
+                                        onChanged: (value) async {
+                                          await TesterModeService.instance.setEnabled(value);
+                                          
+                                          // Show onboarding if enabling for first time
+                                          if (value && context.mounted) {
+                                            // Delay to allow menu to close first
+                                            Future.delayed(const Duration(milliseconds: 300), () {
+                                              if (context.mounted) {
+                                                showScholarModeOnboarding(context);
+                                              }
+                                            });
+                                          }
+                                          
+                                          // Close menu
+                                          Navigator.of(context).pop();
+                                        },
+                                        activeColor: themeColors.primary,
+                                      ),
+                                    ],
+                                  );
+                                },
                               ),
                               onTap: () {
-                                Future.delayed(Duration(milliseconds: 100), () {
-                                  _handleDeveloperModeActivation();
-                                });
+                                // Handle by switch, do nothing here
                               },
                             ),
                           ],

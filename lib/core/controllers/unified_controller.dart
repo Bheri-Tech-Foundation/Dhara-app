@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:copy_with_extension/copy_with_extension.dart';
 import 'package:dharak_flutter/app/bloc/state_bloc.dart';
+import 'package:dharak_flutter/app/data/services/tester_mode_service.dart';
 import 'package:dharak_flutter/app/types/unified/unified_response.dart';
 import 'package:dharak_flutter/core/services/unified_service.dart';
 import 'package:dharak_flutter/core/components/tool_card.dart';
@@ -123,9 +124,35 @@ class UnifiedController extends Cubit<UnifiedState> {
   List<ExpandableToolType> getExpandableTools(UnifiedSearchResult result) {
     final tools = <ExpandableToolType>[];
     
+    print('🔍 getExpandableTools DEBUG:');
+    print('   Query: "${result.query}"');
+    print('   Original Query: "${result.originalQuery}"');
+    print('   QueryID: ${result.queryId}');
+    print('   Scholar Mode: ${TesterModeService.instance.isEnabled}');
+    print('   Has data: Definition=${result.hasDefinition}, Verses=${result.hasVerses}, Chunks=${result.hasChunks}');
+    
     if (result.hasDefinition) tools.add(ExpandableToolType.definition);
     if (result.hasVerses) tools.add(ExpandableToolType.verse);
     if (result.hasChunks) tools.add(ExpandableToolType.chunk);
+    
+    // Add Prashna AI tool to results that have chunks OR have the originalQuery
+    // This ensures Prashna appears with the main query result, not fragment results
+    if (TesterModeService.instance.isEnabled && 
+        result.queryId != null &&
+        result.originalQuery != null && 
+        result.originalQuery!.isNotEmpty) {
+      tools.add(ExpandableToolType.prashna);
+      print('✅ Adding Prashna tool to Shodh results (Scholar Mode)');
+      print('   Original Query: "${result.originalQuery}"');
+      print('   QueryID: ${result.queryId}');
+    } else {
+      print('❌ NOT adding Prashna because:');
+      print('   Scholar Mode enabled: ${TesterModeService.instance.isEnabled}');
+      print('   QueryID present: ${result.queryId != null}');
+      print('   Original Query: ${result.originalQuery}');
+    }
+    
+    print('   Tools to show: $tools');
     
     return tools;
   }

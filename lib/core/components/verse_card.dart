@@ -1,6 +1,8 @@
 import 'package:dharak_flutter/app/types/verse/verse.dart';
 import 'package:dharak_flutter/app/types/verse/verse_other_field.dart';
+import 'package:dharak_flutter/app/types/voting/vote_type.dart';
 import 'package:dharak_flutter/app/ui/widgets/code_wrapper.dart';
+import 'package:dharak_flutter/app/ui/widgets/compact_voting_widget.dart';
 import 'package:dharak_flutter/app/ui/widgets/verse_text.dart';
 import 'package:dharak_flutter/app/ui/pages/dashboard/controller.dart';
 import 'package:dharak_flutter/core/services/verse_service.dart';
@@ -45,6 +47,10 @@ class VerseCard extends StatefulWidget {
   // Theme (auto-detected if not provided)
   final AppThemeColors? themeColors;
   final AppThemeDisplay? appThemeDisplay;
+  
+  // Voting data (for Scholar Mode)
+  final int? queryId;
+  final int? itemId;
 
   const VerseCard({
     super.key,
@@ -65,6 +71,8 @@ class VerseCard extends StatefulWidget {
     this.showCitation = true,
     this.themeColors,
     this.appThemeDisplay,
+    this.queryId,
+    this.itemId,
   });
 
   @override
@@ -244,6 +252,18 @@ class _VerseCardState extends State<VerseCard> {
                 ),
               ),
               _buildBottomSection(verse),
+              // Voting widget (only shown in Scholar Mode)
+              if (widget.queryId != null && widget.itemId != null)
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(12, 0, 12, 8),
+                  child: CompactVotingWidget(
+                    queryId: widget.queryId,
+                    itemId: widget.itemId,
+                    refId: verse.versePk.toString(),
+                    contentType: VoteContentType.verse,
+                    themeColors: themeColors,
+                  ),
+                ),
             ],
           ),
         ),

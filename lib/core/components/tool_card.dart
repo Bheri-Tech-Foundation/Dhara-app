@@ -1,13 +1,19 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_modular/flutter_modular.dart';
 import 'package:dharak_flutter/app/data/services/supported_languages_service.dart';
+import 'package:dharak_flutter/app/data/services/tester_mode_service.dart';
+import 'package:dharak_flutter/app/data/voting/voting_repository.dart';
 import 'package:dharak_flutter/app/domain/verse/constants.dart';
 import 'package:dharak_flutter/app/types/books/book_chunk.dart';
 import 'package:dharak_flutter/app/types/dictionary/word_definitions.dart';
 import 'package:dharak_flutter/app/types/unified/unified_response.dart';
 import 'package:dharak_flutter/app/types/verse/verse.dart';
+import 'package:dharak_flutter/app/types/voting/vote_request.dart';
+import 'package:dharak_flutter/app/types/voting/vote_type.dart';
 import 'package:dharak_flutter/app/ui/pages/dashboard/controller.dart';
 import 'package:dharak_flutter/app/ui/pages/dashboard/cubit_states.dart';
+import 'package:dharak_flutter/app/ui/widgets/missing_count_modal.dart';
+import 'package:dharak_flutter/app/ui/widgets/scroll_hint_widget.dart';
 import 'package:dharak_flutter/res/theme/app_theme_colors.dart';
 import 'package:dharak_flutter/res/theme/app_theme_display.dart';
 import 'package:dharak_flutter/res/theme/theme_helper.dart';
@@ -17,6 +23,7 @@ import 'package:dharak_flutter/app/ui/pages/books/parts/item_lightweight.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:dharak_flutter/core/components/word_definition_card.dart';
 import 'package:dharak_flutter/core/components/verse_card.dart';
+import 'package:dharak_flutter/core/components/prashna_tool_card_content.dart';
 import 'package:dharak_flutter/core/controllers/unified_controller.dart';
 import 'package:dharak_flutter/core/services/dictionary_service.dart';
 import 'package:dharak_flutter/core/services/verse_service.dart';
@@ -28,7 +35,7 @@ import 'package:expandable/expandable.dart';
 import 'package:flutter/material.dart';
 import 'package:markdown_widget/config/all.dart';
 
-enum ExpandableToolType { definition, verse, chunk }
+enum ExpandableToolType { definition, verse, chunk, prashna }
 
 extension ExpandableToolTypeExtension on ExpandableToolType {
   String get label {
@@ -39,6 +46,8 @@ extension ExpandableToolTypeExtension on ExpandableToolType {
         return 'Verse';
       case ExpandableToolType.chunk:
         return 'Chunk';
+      case ExpandableToolType.prashna:
+        return 'Prashna';
     }
   }
 }
@@ -72,6 +81,11 @@ class _ToolCardState extends State<ToolCard> {
   late List<VerseRM> _currentVerses;
   late List<BookChunkRM> _currentChunks; // Local chunks state for managing navigation updates
   bool _isExpanded = false; // Track expansion state for UI updates
+  
+  // Report Missing state
+  bool _isSubmittingMissing = false;
+  final TextEditingController _missingController = TextEditingController();
+  final List<String> _submittedMissingResources = [];
 
   @override
   void initState() {
@@ -106,6 +120,7 @@ class _ToolCardState extends State<ToolCard> {
   @override
   void dispose() {
     _expandableController.dispose();
+    _missingController.dispose();
     super.dispose();
   }
 
@@ -135,6 +150,8 @@ class _ToolCardState extends State<ToolCard> {
         return const Color(0xFF189565); // Green for verses (from unified plugin)
       case ExpandableToolType.chunk:
         return Colors.blue; // Blue for books (from unified plugin)
+      case ExpandableToolType.prashna:
+        return const Color(0xFF9333EA); // Purple for Prashna AI
     }
   }
 
@@ -147,6 +164,8 @@ class _ToolCardState extends State<ToolCard> {
         return Icons.keyboard_command_key; // Command key icon for verses
       case ExpandableToolType.chunk:
         return Icons.menu_book; // Menu book icon for chunks
+      case ExpandableToolType.prashna:
+        return Icons.psychology_outlined; // AI brain icon for Prashna
     }
   }
 
@@ -569,11 +588,19 @@ class _ToolCardState extends State<ToolCard> {
           
           // Tool-specific content
           _buildToolContent(),
+          
+          // Report Missing section (tool-level, only in Scholar Mode)
+          if (_isExpanded && TesterModeService.instance.isEnabled && widget.toolType != ExpandableToolType.prashna)
+            _buildReportMissingSection(),
+          
+          // Scroll hint (shown first time user expands a card in Scholar Mode)
+          if (_isExpanded)
+            const ScrollHintWidget(),
         ],
       ),
     );
   }
-
+  
   Widget _buildToolContent() {
     switch (widget.toolType) {
       case ExpandableToolType.definition:
@@ -582,6 +609,8 @@ class _ToolCardState extends State<ToolCard> {
         return _buildVerseContent();
       case ExpandableToolType.chunk:
         return _buildChunkContent();
+      case ExpandableToolType.prashna:
+        return _buildPrashnaContent();
     }
   }
 
@@ -629,6 +658,9 @@ class _ToolCardState extends State<ToolCard> {
                 ? () => widget.onCopy!(definition.text) 
                 : null,
             onSourceClick: widget.onReferenceClick,
+            // Pass voting data (parse itemId from String to int)
+            queryId: widget.result.queryId,
+            itemId: widget.result.itemId != null ? int.tryParse(widget.result.itemId.toString()) : null,
           ),
         )).toList(),
         
@@ -806,6 +838,9 @@ class _ToolCardState extends State<ToolCard> {
               onCopy: widget.onCopy != null 
                   ? () => widget.onCopy!(verse.verseText ?? 'No verse text available') 
                   : null,
+              // Pass voting data (parse itemId from String to int)
+              queryId: widget.result.queryId,
+              itemId: widget.result.itemId != null ? int.tryParse(widget.result.itemId.toString()) : null,
             ),
           );
         }).toList(),
@@ -860,11 +895,340 @@ class _ToolCardState extends State<ToolCard> {
               },
               onNavigateNext: () => _handleNextChunk(chunk),
               onNavigatePrevious: () => _handlePreviousChunk(chunk),
+              // Pass voting data (parse itemId from String to int)
+              queryId: widget.result.queryId,
+              itemId: widget.result.itemId != null ? int.tryParse(widget.result.itemId.toString()) : null,
             ),
           );
         }).toList(),
       ],
     );
+  }
+
+  Widget _buildPrashnaContent() {
+    // Prashna content requires queryId and query
+    if (widget.result.queryId == null) {
+      return const Text('No query ID available for Prashna');
+    }
+
+    // Use originalQuery if available, otherwise fall back to query
+    final queryToSend = widget.result.originalQuery ?? widget.result.query;
+
+    // Debug: Log what we're passing to Prashna
+    print('🔵 Building Prashna content for tool card:');
+    print('   Original Query: "${widget.result.originalQuery}"');
+    print('   Display Query: "${widget.result.query}"');
+    print('   Query to send to Prashna: "$queryToSend"');
+    print('   QueryID: ${widget.result.queryId}');
+    print('   Is Expanded: $_isExpanded');
+
+    return PrashnaToolCardContent(
+      key: ValueKey('prashna_${widget.result.queryId}'), // Prevent recreating widget on rebuild
+      query: queryToSend,
+      queryId: widget.result.queryId!,
+      isExpanded: _isExpanded, // Pass expansion state
+      themeColors: widget.themeColors,
+    );
+  }
+
+  Widget _buildReportMissingSection() {
+    return Container(
+      margin: const EdgeInsets.only(top: 16, bottom: 8),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: widget.themeColors.surface.withOpacity(0.5),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(
+          color: widget.themeColors.primary.withOpacity(0.15),
+          width: 1,
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Header
+          Row(
+            children: [
+              Icon(
+                Icons.lightbulb_outline,
+                size: 16,
+                color: widget.themeColors.primary,
+              ),
+              const SizedBox(width: 8),
+              Text(
+                'Are we missing anything?',
+                style: TextStyle(
+                  fontSize: 13,
+                  color: widget.themeColors.onSurface,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 4),
+          Text(
+            'Help us improve by sharing what\'s missing',
+            style: TextStyle(
+              fontSize: 11,
+              color: widget.themeColors.onSurface.withOpacity(0.6),
+            ),
+          ),
+          
+          // Input fields (always shown)
+          const SizedBox(height: 12),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              // Active text box (primary)
+              TextField(
+                  controller: _missingController,
+                  maxLines: 2,
+                  decoration: InputDecoration(
+                    hintText: 'e.g., "Missing Bhagavad Gita Chapter 2, Verse 47"',
+                    hintStyle: TextStyle(
+                      fontSize: 12,
+                      color: widget.themeColors.onSurface.withOpacity(0.4),
+                    ),
+                    filled: true,
+                    fillColor: widget.themeColors.onSurface.withOpacity(0.04),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                      borderSide: BorderSide(
+                        color: widget.themeColors.onSurface.withOpacity(0.15),
+                      ),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                      borderSide: BorderSide(
+                        color: widget.themeColors.onSurface.withOpacity(0.15),
+                      ),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                      borderSide: BorderSide(
+                        color: widget.themeColors.primary,
+                        width: 1.5,
+                      ),
+                    ),
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                  ),
+                  style: TextStyle(
+                    fontSize: 13,
+                    color: widget.themeColors.onSurface,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                
+                // Placeholder text box (greyed out - indicates multiple entries)
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                  decoration: BoxDecoration(
+                    color: widget.themeColors.onSurface.withOpacity(0.02),
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(
+                      color: widget.themeColors.onSurface.withOpacity(0.08),
+                      style: BorderStyle.solid,
+                    ),
+                  ),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          'Add another reference...',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: widget.themeColors.onSurface.withOpacity(0.25),
+                            fontStyle: FontStyle.italic,
+                          ),
+                        ),
+                      ),
+                      Icon(
+                        Icons.add_rounded,
+                        size: 16,
+                        color: widget.themeColors.onSurface.withOpacity(0.2),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 10),
+                
+                // Add button (full width for better UX)
+                ElevatedButton.icon(
+                  onPressed: _isSubmittingMissing ? null : _submitMissingResource,
+                  icon: _isSubmittingMissing
+                      ? SizedBox(
+                          width: 16,
+                          height: 16,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: Colors.white,
+                          ),
+                        )
+                      : Icon(Icons.add_circle_outline, size: 18),
+                  label: Text(
+                    _isSubmittingMissing ? 'Adding...' : 'Add to List',
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: widget.themeColors.primary,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    elevation: 0,
+                  ),
+                ),
+            ],
+          ),
+          
+          // Display submitted missing resources
+          if (_submittedMissingResources.isNotEmpty) ...[
+            const SizedBox(height: 12),
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: widget.themeColors.primary.withOpacity(0.04),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(
+                    color: widget.themeColors.primary.withOpacity(0.15),
+                  ),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Icon(
+                          Icons.check_circle,
+                          size: 14,
+                          color: widget.themeColors.primary,
+                        ),
+                        const SizedBox(width: 6),
+                        Text(
+                          'Submitted (${_submittedMissingResources.length})',
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                            color: widget.themeColors.onSurface,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    Wrap(
+                      spacing: 6,
+                      runSpacing: 6,
+                      children: _submittedMissingResources.asMap().entries.map((entry) {
+                        final index = entry.key;
+                        final resource = entry.value;
+                        return Chip(
+                          label: Text(
+                            resource,
+                            style: TextStyle(
+                              fontSize: 11,
+                              color: widget.themeColors.onSurface,
+                            ),
+                          ),
+                          deleteIcon: Icon(
+                            Icons.close,
+                            size: 14,
+                            color: widget.themeColors.onSurface.withOpacity(0.6),
+                          ),
+                          onDeleted: () => _removeMissingResource(index),
+                          backgroundColor: widget.themeColors.surface,
+                          side: BorderSide(
+                            color: widget.themeColors.primary.withOpacity(0.25),
+                          ),
+                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                          labelPadding: const EdgeInsets.only(left: 4),
+                          visualDensity: VisualDensity.compact,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                        );
+                      }).toList(),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+        ],
+      ),
+    );
+  }
+
+  void _removeMissingResource(int index) {
+    setState(() {
+      _submittedMissingResources.removeAt(index);
+    });
+  }
+
+  Future<void> _submitMissingResource() async {
+    if (_missingController.text.trim().isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please describe what\'s missing')),
+      );
+      return;
+    }
+
+    if (widget.result.itemId == null || widget.result.queryId == null) {
+      print('❌ Cannot submit: Missing itemId or queryId');
+      return;
+    }
+
+    setState(() => _isSubmittingMissing = true);
+
+    try {
+      final votingRepository = Modular.get<VotingRepository>();
+      final voteRequest = VoteRequest(
+        itemId: widget.result.itemId!, // Use the TOOL's item_id (0, 1, 2, etc.)
+        queryId: widget.result.queryId!,
+        value: 'add_missing', // Specifies this is a missing resource report
+        vote: _missingController.text.trim(), // The actual text
+      );
+
+      print('📝 Submitting MISSING RESOURCE for TOOL:');
+      print('   Tool Type: ${widget.toolType.name}');
+      print('   item_id: ${widget.result.itemId}');
+      print('   query_id: ${widget.result.queryId}');
+      print('   value: add_missing');
+      print('   vote: "${_missingController.text.trim()}"');
+
+      await votingRepository.submitVote(voteRequest);
+
+      if (mounted) {
+        setState(() {
+          _submittedMissingResources.add(_missingController.text.trim());
+        });
+        _missingController.clear();
+        // Don't hide the field - allow multiple entries
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Text('✅ Missing resource added'),
+            duration: const Duration(seconds: 2),
+          ),
+        );
+      }
+    } catch (e) {
+      print('❌ Failed to submit missing resource: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to report - please try again'),
+            backgroundColor: Colors.red,
+            duration: const Duration(seconds: 2),
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isSubmittingMissing = false);
+      }
+    }
   }
 
   /// Compact language selector for the Aksharamukha bar - exactly like random folder

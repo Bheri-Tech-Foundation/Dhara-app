@@ -24,6 +24,17 @@ SessionIdEvent _$SessionIdEventFromJson(Map<String, dynamic> json) =>
 Map<String, dynamic> _$SessionIdEventToJson(SessionIdEvent instance) =>
     <String, dynamic>{'content': instance.content, 'event': instance.event};
 
+QueryIdEvent _$QueryIdEventFromJson(Map<String, dynamic> json) => QueryIdEvent(
+  queryIdContent: json['content'],
+  event: json['event'] as String,
+);
+
+Map<String, dynamic> _$QueryIdEventToJson(QueryIdEvent instance) =>
+    <String, dynamic>{
+      'event': instance.event,
+      'content': instance.queryIdContent,
+    };
+
 RunStartedEvent _$RunStartedEventFromJson(Map<String, dynamic> json) =>
     RunStartedEvent(
       content: json['content'] as String?,

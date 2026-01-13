@@ -93,10 +93,13 @@ class UnifiedService {
         if (cachedResult.hasDefinition) {
           final definitionResult = UnifiedSearchResult(
             query: cachedResult.definition!.givenWord ?? query,
+            originalQuery: query, // Store original user query for Prashna
             timestamp: DateTime.now(),
             searchSessionId: currentSessionId, // ✅ NEW session ID
             splits: cachedResult.splits,
             definition: cachedResult.definition,
+            queryId: cachedResult.queryId, // ✅ Preserve queryId from cache
+            itemId: cachedResult.itemId, // ✅ Preserve itemId from cache
           );
           _addOrUpdateResult(definitionResult);
           print('📖 Recreated cached definition result for word: ${cachedResult.definition!.givenWord}');
@@ -111,11 +114,14 @@ class UnifiedService {
           
           final verseResult = UnifiedSearchResult(
             query: verseQuery,
+            originalQuery: query, // Store original user query for Prashna
             timestamp: DateTime.now(),
             searchSessionId: currentSessionId, // ✅ NEW session ID
             splits: cachedResult.splits,
             verses: cachedResult.verses,
             outputScript: cachedResult.outputScript,
+            queryId: cachedResult.queryId, // ✅ Preserve queryId from cache
+            itemId: cachedResult.itemId, // ✅ Preserve itemId from cache
           );
           _addOrUpdateResult(verseResult);
           print('📜 Recreated cached verse result with ${cachedResult.verses!.length} verses');
@@ -136,10 +142,13 @@ class UnifiedService {
           
           final chunkResult = UnifiedSearchResult(
             query: chunkQuery,
+            originalQuery: query, // Store original user query for Prashna
             timestamp: DateTime.now(),
             searchSessionId: currentSessionId, // ✅ NEW session ID
             splits: cachedResult.splits,
             chunks: cachedResult.chunks,
+            queryId: cachedResult.queryId, // ✅ Preserve queryId from cache
+            itemId: cachedResult.itemId, // ✅ Preserve itemId from cache
           );
           _addOrUpdateResult(chunkResult);
           print('📚 Recreated cached chunk result with ${cachedResult.chunks!.length} book chunks');
@@ -157,6 +166,7 @@ class UnifiedService {
       // Prepare new result container
       final newResult = UnifiedSearchResult(
         query: query,
+        originalQuery: query, // Store original user query for Prashna
         timestamp: DateTime.now(),
         searchSessionId: currentSessionId,
       );
@@ -280,13 +290,53 @@ class UnifiedService {
         print('🎯 Extracted complete JSON: ${jsonString.length} chars');
         
             try {
-              final jsonMap = jsonDecode(jsonString) as Map<String, dynamic>;
+              // Fix Python-style single-quoted JSON to valid JSON with double quotes
+              // Replace single quotes with double quotes, but be careful with apostrophes in text
+              String normalizedJson = jsonString;
+              if (jsonString.contains("'type':") || jsonString.startsWith("{'")){
+                // This looks like Python dict format, normalize it
+                normalizedJson = jsonString
+                    .replaceAll("'", '"')  // Replace all single quotes with double quotes
+                    .replaceAll('True', 'true')  // Python True -> JSON true
+                    .replaceAll('False', 'false')  // Python False -> JSON false
+                    .replaceAll('None', 'null');  // Python None -> JSON null
+                print('🔧 Normalized Python-style JSON to valid JSON');
+              }
+              
+              final jsonMap = jsonDecode(normalizedJson) as Map<String, dynamic>;
               final type = jsonMap['type'] as String?;
               final data = jsonMap['data'];
+              final itemId = jsonMap['item_id']?.toString(); // Parse item_id
 
               if (type == null || data == null) continue;
 
-              print('📦 Received unified data type: $type');
+              print('📦 Received unified data type: $type, item_id: $itemId');
+              
+              // Parse query_id if this is the query_id response
+              if (type == 'query_id') {
+                // data can be int or string, convert to int
+                final int? parsedQueryId = data is int ? data : (data is String ? int.tryParse(data) : null);
+                if (parsedQueryId != null) {
+                  // Update current result
+                  currentResult = currentResult.copyWith(
+                    queryId: parsedQueryId,
+                    searchSessionId: currentSessionId
+                  );
+                  print('🎯 VOTING: Received query_id: $parsedQueryId');
+                  
+                  // ✅ CRITICAL FIX: Update ALL existing results for this search with the queryId
+                  final updatedResults = _currentResults.value.map((result) {
+                    if (result.searchSessionId == currentSessionId) {
+                      return result.copyWith(queryId: parsedQueryId);
+                    }
+                    return result;
+                  }).toList();
+                  
+                  _currentResults.add(updatedResults);
+                  print('✅ Updated ${updatedResults.where((r) => r.searchSessionId == currentSessionId).length} results with query_id: $parsedQueryId');
+                }
+                continue;
+              }
 
               // Fix null word_hyplinks issue and other null fields
               if (type == 'verse' && data is List) {
@@ -346,6 +396,8 @@ class UnifiedService {
                 searchSessionId: currentSessionId, // ✅ FIX: Use session ID from current search
                 splits: currentResult.splits, // Share the splits
                 definition: definition,
+                queryId: currentResult.queryId, // Pass query_id from parent
+                itemId: itemId, // Use item_id from this response
               );
               
               if (definition.details.definitions.isNotEmpty) {
@@ -405,11 +457,14 @@ class UnifiedService {
               // Create ONE verse result for this specific response
               final verseResult = UnifiedSearchResult(
                 query: cardQuery,
+                originalQuery: query, // Store original user query for Prashna
                 timestamp: DateTime.now(),
                 searchSessionId: currentSessionId,
                 splits: currentResult.splits,
                 verses: verses, // These verses are specifically for this quoted text
                 outputScript: currentResult.outputScript,
+                queryId: currentResult.queryId, // Pass query_id from parent
+                itemId: itemId, // Use item_id from this response
               );
               
               print('🔍 VERSE DEBUG: Creating verse result for "$cardQuery" with ${verses.length} verses (response #$_verseResponseCounter)');
@@ -441,10 +496,13 @@ class UnifiedService {
               
               final chunkResult = UnifiedSearchResult(
                 query: chunkQuery,
+                originalQuery: query, // Store original user query for Prashna
                 timestamp: DateTime.now(),
                 searchSessionId: currentSessionId, // ✅ FIX: Use session ID from current search
                 splits: currentResult.splits,
                 chunks: chunks,
+                queryId: currentResult.queryId, // Pass query_id from parent
+                itemId: itemId, // Use item_id from this response
               );
               
               _addOrUpdateResult(chunkResult);
@@ -532,11 +590,14 @@ class UnifiedService {
     print('🔍 REPROCESS DEBUG: Creating transformed verse result for "${verseQuery}" with session $sessionId (original query: "$query")');
     final verseResult = UnifiedSearchResult(
       query: verseQuery,
+      originalQuery: currentResult.originalQuery ?? query, // Preserve or store original user query for Prashna
       timestamp: DateTime.now(),
       searchSessionId: sessionId, // ✅ FIX: Use session ID from current search
       splits: currentResult.splits,
       verses: transformedVerses,
       outputScript: currentResult.outputScript,
+      queryId: currentResult.queryId, // ✅ Preserve queryId for voting
+      itemId: currentResult.itemId, // ✅ Preserve itemId for voting
     );
     
     // Add verses to VerseService cache for interaction

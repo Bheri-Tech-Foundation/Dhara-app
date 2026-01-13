@@ -47,6 +47,7 @@ class QuerySplitsRM {
 /// Unified search result container
 class UnifiedSearchResult {
   final String query;
+  final String? originalQuery; // Original user query (for Prashna API)
   final DateTime timestamp;
   final int searchSessionId; // Track which search session this belongs to
   final QuerySplitsRM? splits;
@@ -54,9 +55,14 @@ class UnifiedSearchResult {
   final List<VerseRM>? verses;
   final List<BookChunkRM>? chunks;
   final String? outputScript; // Language script from unified API response
+  
+  // Voting/Testing fields
+  final int? queryId; // Query ID for voting (from API)
+  final String? itemId; // Item ID for this specific result (from API)
 
   UnifiedSearchResult({
     required this.query,
+    this.originalQuery, // Store the original user query
     required this.timestamp,
     required this.searchSessionId,
     this.splits,
@@ -64,10 +70,13 @@ class UnifiedSearchResult {
     this.verses,
     this.chunks,
     this.outputScript,
+    this.queryId,
+    this.itemId,
   });
 
   UnifiedSearchResult copyWith({
     String? query,
+    String? originalQuery,
     DateTime? timestamp,
     int? searchSessionId,
     QuerySplitsRM? splits,
@@ -75,9 +84,12 @@ class UnifiedSearchResult {
     List<VerseRM>? verses,
     List<BookChunkRM>? chunks,
     String? outputScript,
+    int? queryId,
+    String? itemId,
   }) {
     return UnifiedSearchResult(
       query: query ?? this.query,
+      originalQuery: originalQuery ?? this.originalQuery,
       timestamp: timestamp ?? this.timestamp,
       searchSessionId: searchSessionId ?? this.searchSessionId,
       splits: splits ?? this.splits,
@@ -85,6 +97,8 @@ class UnifiedSearchResult {
       verses: verses ?? this.verses,
       chunks: chunks ?? this.chunks,
       outputScript: outputScript ?? this.outputScript,
+      queryId: queryId ?? this.queryId,
+      itemId: itemId ?? this.itemId,
     );
   }
 

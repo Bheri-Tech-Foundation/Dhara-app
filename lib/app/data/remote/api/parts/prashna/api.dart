@@ -22,6 +22,7 @@ class PrashnaApiRepo extends ApiRequest<ErrorDto> {
     required String message,
     required String sessionId,
     required AiModel aiModel,
+    int? sodhQueryId, // Optional Shodh query_id (gets passed as sodh_query_id parameter)
   }) async* {
     try {
       final request = ChatRequestDto(
@@ -31,7 +32,7 @@ class PrashnaApiRepo extends ApiRequest<ErrorDto> {
 
 
       // Direct API call with proper error handling using unified endpoint
-      final response = await apiPoint.askWithModel(request, aiModel);
+      final response = await apiPoint.askWithModel(request, aiModel, sodhQueryId: sodhQueryId);
 
       if (response.statusCode == 200) {
         yield* _parseSSEStream(response.data!.stream, aiModel);
@@ -118,11 +119,33 @@ class PrashnaApiRepo extends ApiRequest<ErrorDto> {
       // Try to parse as JSON (supports both SSE and raw JSON formats)
       try {
         final json = jsonDecode(jsonStr) as Map<String, dynamic>;
+        
+        // Debug: Log ALL events to see the complete stream
+        final eventType = json['event'] as String?;
+        final content = json['content'];
+        
+        // Log every single event type we receive
+        print('📡 SSE EVENT: type="$eventType", content=${content is String ? (content.length > 50 ? content.substring(0, 50) + "..." : content) : content}');
+        
+        // Special attention to QueryID or anything with "query"
+        if (eventType != null && eventType.toLowerCase().contains('query')) {
+          print('🚨 ⚠️ FOUND QUERY EVENT! ⚠️');
+          print('   Event type: "$eventType"');
+          print('   Full JSON: $json');
+        }
+        
         final event = SseEvent.fromJson(json);
         
+        // Additional check after parsing
+        if (event.event.toLowerCase().contains('query')) {
+          print('🚨 PARSED SSE EVENT WITH "QUERY": ${event.event}');
+          print('   Runtime type: ${event.runtimeType}');
+          print('   Content: ${event.content}');
+        }
         
         return SseEventResult(event: event);
       } catch (e) {
+        print('❌ SSE Parse Error: $e for line: $jsonStr');
         return SseEventResult(error: 'Failed to parse response data');
       }
     } catch (e) {

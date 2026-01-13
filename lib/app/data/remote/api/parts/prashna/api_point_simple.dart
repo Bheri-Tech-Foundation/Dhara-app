@@ -19,14 +19,21 @@ class PrashnaApiPointSimple {
   }
 
   /// Unified chat endpoint - Returns SSE stream for any AI model
-  Future<Response<ResponseBody>> askWithModel(ChatRequestDto request, AiModel model) async {
+  Future<Response<ResponseBody>> askWithModel(ChatRequestDto request, AiModel model, {int? sodhQueryId}) async {
+    final queryParams = {
+      'model': model.modelParameter,
+      'query': request.message,
+      'session_id': request.sessionId,
+    };
+    
+    // Add sodh_query_id if provided (from Shodh search, for Scholar Mode)
+    if (sodhQueryId != null) {
+      queryParams['sodh_query_id'] = sodhQueryId.toString();
+    }
+    
     return await _dio.get<ResponseBody>(
       '$_baseUrl/prashna/ask/',
-      queryParameters: {
-        'model': model.modelParameter,
-        'query': request.message,
-        'session_id': request.sessionId,
-      },
+      queryParameters: queryParams,
       options: Options(
         headers: {
           'Accept': '*/*',

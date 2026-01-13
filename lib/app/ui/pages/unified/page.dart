@@ -1,10 +1,12 @@
 import 'package:flutter/foundation.dart';
 import 'package:dharak_flutter/app/data/services/supported_languages_service.dart';
+import 'package:dharak_flutter/app/data/services/tester_mode_service.dart';
 import 'package:dharak_flutter/app/domain/citation/repo.dart';
 import 'package:dharak_flutter/app/domain/share/repo.dart';
 import 'package:dharak_flutter/app/domain/verse/repo.dart';
 import 'package:dharak_flutter/app/domain/books/repo.dart';
 import 'package:dharak_flutter/app/domain/verse/constants.dart';
+import 'package:dharak_flutter/app/ui/widgets/feedback_modal.dart';
 import 'package:dharak_flutter/app/types/verse/language_pref.dart';
 import 'package:dharak_flutter/app/ui/pages/dashboard/controller.dart';
 import 'package:dharak_flutter/app/ui/pages/dashboard/cubit_states.dart';
@@ -956,8 +958,156 @@ class _UnifiedSearchPageState extends State<UnifiedSearchPage> {
               ),
               TdResGaps.v_16,
             ],
+            
+            // General feedback button at the end of all results
+            _buildGeneralFeedbackButton(result),
           ],
         ),
+    );
+  }
+  
+  Widget _buildGeneralFeedbackButton(UnifiedSearchResult result) {
+    final isScholarMode = TesterModeService.instance.isEnabled;
+    
+    print('═══════════════════════════════════════');
+    print('🔍 FEEDBACK BUTTON DEBUG:');
+    print('   Scholar Mode: $isScholarMode');
+    print('   Query ID: ${result.queryId}');
+    print('   Will show button: ${isScholarMode && result.queryId != null}');
+    print('═══════════════════════════════════════');
+    
+    // Only show in Scholar Mode
+    if (!isScholarMode) {
+      print('❌ Feedback button hidden: Scholar Mode is OFF');
+      return Container(
+        margin: const EdgeInsets.all(20),
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Colors.orange.withOpacity(0.1),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: Colors.orange, width: 1),
+        ),
+        child: Column(
+          children: [
+            Icon(Icons.info_outline, color: Colors.orange, size: 32),
+            SizedBox(height: 8),
+            Text(
+              'Scholar Mode is OFF',
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+            ),
+            SizedBox(height: 4),
+            Text(
+              'Enable Scholar Mode in the profile menu to see evaluation options',
+              textAlign: TextAlign.center,
+              style: TextStyle(fontSize: 12),
+            ),
+          ],
+        ),
+      );
+    }
+    
+    // Validate required data
+    if (result.queryId == null) {
+      print('❌ Feedback button hidden: No queryId available');
+      return Container(
+        margin: const EdgeInsets.all(20),
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Colors.red.withOpacity(0.1),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: Colors.red, width: 1),
+        ),
+        child: Text('Debug: No queryId available'),
+      );
+    }
+    
+    print('✅ SHOWING FEEDBACK BUTTON!');
+    
+    return Container(
+      margin: const EdgeInsets.only(top: 16, bottom: 16),
+      padding: const EdgeInsets.all(2),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [
+            themeColors.primary.withOpacity(0.3),
+            themeColors.secondaryColor.withOpacity(0.3),
+          ],
+        ),
+        borderRadius: BorderRadius.circular(14),
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: () {
+            showDialog(
+              context: context,
+              builder: (context) => FeedbackModal(
+                queryId: result.queryId,
+                itemId: null, // General feedback for entire search query
+              ),
+            );
+          },
+          borderRadius: BorderRadius.circular(12),
+          child: Container(
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              color: themeColors.surface,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [
+                        themeColors.primary.withOpacity(0.2),
+                        themeColors.secondaryColor.withOpacity(0.2),
+                      ],
+                    ),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Icon(
+                    Icons.chat_bubble_outline,
+                    size: 24,
+                    color: themeColors.primary,
+                  ),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Share Overall Feedback',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w700,
+                          color: themeColors.onSurface,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        'Tell us about your complete search experience',
+                        style: TextStyle(
+                          fontSize: 13,
+                          color: themeColors.onSurface.withOpacity(0.7),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Icon(
+                  Icons.arrow_forward_ios_rounded,
+                  size: 18,
+                  color: themeColors.primary,
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
     );
   }
 

@@ -1,0 +1,135 @@
+import 'dart:async';
+import 'package:logger/logger.dart';
+import 'package:rxdart/rxdart.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
+/// Tester Mode Service - Manages tester mode state for voting/feedback
+/// Allows users to provide testing feedback on search results
+class TesterModeService {
+  static final TesterModeService _instance = TesterModeService._internal();
+  static TesterModeService get instance => _instance;
+  
+  final Logger _logger = Logger();
+  
+  // Private constructor
+  TesterModeService._internal();
+  
+  // ===== STATE =====
+  bool _isEnabled = false;
+  bool get isEnabled => _isEnabled;
+  
+  final BehaviorSubject<bool> _testerModeSubject = BehaviorSubject.seeded(false);
+  Stream<bool> get testerModeStream => _testerModeSubject.stream;
+  
+  // ===== CONSTANTS =====
+  static const String _testerModeEnabledKey = 'tester_mode_enabled';
+  static const String _hasSeenOnboardingKey = 'scholar_mode_onboarding_shown';
+  
+  // ===== INITIALIZATION =====
+  
+  /// Initialize tester mode service
+  Future<void> initialize() async {
+    try {
+      await _loadSettings();
+      _logger.d('✅ TesterModeService initialized - enabled: $_isEnabled');
+    } catch (e) {
+      _logger.e('❌ Error initializing TesterModeService', error: e);
+    }
+  }
+  
+  /// Load settings from shared preferences
+  Future<void> _loadSettings() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      _isEnabled = prefs.getBool(_testerModeEnabledKey) ?? false;
+      _testerModeSubject.add(_isEnabled);
+    } catch (e) {
+      _logger.e('❌ Error loading tester mode settings', error: e);
+    }
+  }
+  
+  /// Save settings to shared preferences
+  Future<void> _saveSettings() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setBool(_testerModeEnabledKey, _isEnabled);
+      _logger.d('💾 Tester mode settings saved: $_isEnabled');
+    } catch (e) {
+      _logger.e('❌ Error saving tester mode settings', error: e);
+    }
+  }
+  
+  // ===== ONBOARDING =====
+  
+  /// Check if user has seen the onboarding
+  Future<bool> hasSeenOnboarding() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      return prefs.getBool(_hasSeenOnboardingKey) ?? false;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  /// Mark onboarding as seen
+  Future<void> markOnboardingAsSeen() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setBool(_hasSeenOnboardingKey, true);
+      _logger.d('✅ Onboarding marked as seen');
+    } catch (e) {
+      _logger.e('❌ Error marking onboarding as seen', error: e);
+    }
+  }
+  
+  // ===== TESTER MODE METHODS =====
+  
+  /// Enable tester mode
+  Future<void> enable() async {
+    _isEnabled = true;
+    _testerModeSubject.add(true);
+    await _saveSettings();
+    _logger.d('🧪 Tester mode enabled');
+  }
+  
+  /// Disable tester mode
+  Future<void> disable() async {
+    _isEnabled = false;
+    _testerModeSubject.add(false);
+    await _saveSettings();
+    _logger.d('🧪 Tester mode disabled');
+  }
+  
+  /// Toggle tester mode
+  Future<void> toggle() async {
+    if (_isEnabled) {
+      await disable();
+    } else {
+      await enable();
+    }
+  }
+  
+  /// Set tester mode to specific value
+  Future<void> setEnabled(bool enabled) async {
+    if (enabled) {
+      await enable();
+    } else {
+      await disable();
+    }
+  }
+  
+  // ===== UTILITY METHODS =====
+  
+  /// Get debug information
+  Map<String, dynamic> getDebugInfo() {
+    return {
+      'isEnabled': _isEnabled,
+    };
+  }
+  
+  /// Dispose resources
+  void dispose() {
+    _testerModeSubject.close();
+  }
+}
+
