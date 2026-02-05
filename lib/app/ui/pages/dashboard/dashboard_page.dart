@@ -39,6 +39,7 @@ import 'package:dharak_flutter/app/ui/widgets/scholar_mode_onboarding_dialog.dar
 import 'package:dharak_flutter/app/ui/widgets/developer_settings_modal.dart';
 import 'package:logger/logger.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter/foundation.dart';
 
 class DashboardPage extends StatefulWidget {
   final DashboardArgsRequest mRequestArgs;
@@ -930,64 +931,65 @@ class _AppRootState extends State<DashboardPage> {
                                 // Switch account logic
                               },
                             ),
-                            // Scholar Mode Toggle
-                            PopupMenuItem(
-                              child: StreamBuilder<bool>(
-                                stream: TesterModeService.instance.testerModeStream,
-                                initialData: TesterModeService.instance.isEnabled,
-                                builder: (context, snapshot) {
-                                  final isEnabled = snapshot.data ?? false;
-                                  return Row(
-                                    crossAxisAlignment: CrossAxisAlignment.center,
-                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                    children: [
-                                      Row(
-                                        spacing: TdResDimens.dp_12,
-                                        children: [
-                                          Icon(
-                                            Icons.star_outline,
-                                            color: isEnabled 
-                                                ? themeColors.primary 
-                                                : themeColors.onSurface,
-                                          ),
-                                          Text(
-                                            'Tester Mode',
-                                            style: TdResTextStyles.button.copyWith(
+                            // Scholar Mode Toggle (only show on web)
+                            if (kIsWeb)
+                              PopupMenuItem(
+                                child: StreamBuilder<bool>(
+                                  stream: TesterModeService.instance.testerModeStream,
+                                  initialData: TesterModeService.instance.isEnabled,
+                                  builder: (context, snapshot) {
+                                    final isEnabled = snapshot.data ?? false;
+                                    return Row(
+                                      crossAxisAlignment: CrossAxisAlignment.center,
+                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        Row(
+                                          spacing: TdResDimens.dp_12,
+                                          children: [
+                                            Icon(
+                                              Icons.star_outline,
                                               color: isEnabled 
                                                   ? themeColors.primary 
                                                   : themeColors.onSurface,
                                             ),
-                                          ),
-                                        ],
-                                      ),
-                                      Switch(
-                                        value: isEnabled,
-                                        onChanged: (value) async {
-                                          await TesterModeService.instance.setEnabled(value);
-                                          
-                                          // Show onboarding if enabling for first time
-                                          if (value && context.mounted) {
-                                            // Delay to allow menu to close first
-                                            Future.delayed(const Duration(milliseconds: 300), () {
-                                              if (context.mounted) {
-                                                showScholarModeOnboarding(context);
-                                              }
-                                            });
-                                          }
-                                          
-                                          // Close menu
-                                          Navigator.of(context).pop();
-                                        },
-                                        activeColor: themeColors.primary,
-                                      ),
-                                    ],
-                                  );
+                                            Text(
+                                              'Tester Mode',
+                                              style: TdResTextStyles.button.copyWith(
+                                                color: isEnabled 
+                                                    ? themeColors.primary 
+                                                    : themeColors.onSurface,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                        Switch(
+                                          value: isEnabled,
+                                          onChanged: (value) async {
+                                            await TesterModeService.instance.setEnabled(value);
+                                            
+                                            // Show onboarding if enabling for first time
+                                            if (value && context.mounted) {
+                                              // Delay to allow menu to close first
+                                              Future.delayed(const Duration(milliseconds: 300), () {
+                                                if (context.mounted) {
+                                                  showScholarModeOnboarding(context);
+                                                }
+                                              });
+                                            }
+                                            
+                                            // Close menu
+                                            Navigator.of(context).pop();
+                                          },
+                                          activeColor: themeColors.primary,
+                                        ),
+                                      ],
+                                    );
+                                  },
+                                ),
+                                onTap: () {
+                                  // Handle by switch, do nothing here
                                 },
                               ),
-                              onTap: () {
-                                // Handle by switch, do nothing here
-                              },
-                            ),
                           ],
                       child: Icon(
                         Icons.more_vert,
