@@ -212,7 +212,6 @@ class DashboardController extends Cubit<DashboardCubitState> {
       unifiedService.clearCache();
       
     } catch (e) {
-      print("⚠️ DashboardController: Error clearing caches - $e");
     }
   }
 

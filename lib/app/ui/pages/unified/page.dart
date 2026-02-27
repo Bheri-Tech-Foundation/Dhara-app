@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import 'package:dharak_flutter/app/data/services/supported_languages_service.dart';
 import 'package:dharak_flutter/app/data/services/tester_mode_service.dart';
 import 'package:dharak_flutter/app/domain/citation/repo.dart';
@@ -171,24 +170,19 @@ class _UnifiedSearchPageState extends State<UnifiedSearchPage> {
         // 🚀 Optimized: Only refresh if controller has actual content and query
         if (queryToUse.length > 3) {
           versesController.onSearchDirectQuery(queryToUse);
-          if (kDebugMode) print("✅ UNIFIED: Refresh triggered for controller");
         }
       }
     } catch (e) {
-      if (kDebugMode) print("❌ UNIFIED: Error refreshing controller: $e");
     }
   }
 
   /// Handle previous verse navigation in unified page
   Future<void> _handlePreviousVerse(String versePk) async {
     try {
-      if (kDebugMode) print("⬅️ UNIFIED: Previous verse requested for PK: $versePk");
-      
       // Find the verse index in current results
       final currentVerses = currentResults?.verses?.verses.verses ?? [];
       final verseIndex = currentVerses.indexWhere((v) => v.versePk.toString() == versePk);
       if (verseIndex == -1) {
-        if (kDebugMode) print("❌ UNIFIED: Verse not found in current list");
         return;
       }
       
@@ -203,18 +197,13 @@ class _UnifiedSearchPageState extends State<UnifiedSearchPage> {
           
           // Update the current results and trigger UI refresh
           _updateVerseInCurrentResults(verseIndex, newVerse);
-          
-          if (kDebugMode) print("✅ UNIFIED: Previous verse loaded successfully");
         } else {
-          if (kDebugMode) print("⚠️ UNIFIED: No previous verse available");
           _showSnackBar("No previous verse available");
         }
       } else {
-        if (kDebugMode) print("❌ UNIFIED: Failed to load previous verse");
         _showSnackBar("Failed to load previous verse");
       }
     } catch (e) {
-      if (kDebugMode) print("❌ UNIFIED: Error in previous verse: $e");
       _showSnackBar("Error loading previous verse");
     }
   }
@@ -222,13 +211,10 @@ class _UnifiedSearchPageState extends State<UnifiedSearchPage> {
   /// Handle next verse navigation in unified page
   Future<void> _handleNextVerse(String versePk) async {
     try {
-      if (kDebugMode) print("➡️ UNIFIED: Next verse requested for PK: $versePk");
-      
       // Find the verse index in current results
       final currentVerses = currentResults?.verses?.verses.verses ?? [];
       final verseIndex = currentVerses.indexWhere((v) => v.versePk.toString() == versePk);
       if (verseIndex == -1) {
-        if (kDebugMode) print("❌ UNIFIED: Verse not found in current list");
         return;
       }
       
@@ -243,18 +229,13 @@ class _UnifiedSearchPageState extends State<UnifiedSearchPage> {
           
           // Update the current results and trigger UI refresh
           _updateVerseInCurrentResults(verseIndex, newVerse);
-          
-          if (kDebugMode) print("✅ UNIFIED: Next verse loaded successfully");
         } else {
-          if (kDebugMode) print("⚠️ UNIFIED: No next verse available");
           _showSnackBar("No next verse available");
         }
       } else {
-        if (kDebugMode) print("❌ UNIFIED: Failed to load next verse");
         _showSnackBar("Failed to load next verse");
       }
     } catch (e) {
-      if (kDebugMode) print("❌ UNIFIED: Error in next verse: $e");
       _showSnackBar("Error loading next verse");
     }
   }
@@ -262,13 +243,10 @@ class _UnifiedSearchPageState extends State<UnifiedSearchPage> {
   /// Handle previous chunk navigation in unified page - SIMPLIFIED VERSION
   Future<void> _handlePreviousChunk(BookChunkRM chunk) async {
     try {
-      if (kDebugMode) print("⬅️ UNIFIED: Previous chunk requested for ID: ${chunk.chunkRefId}");
-      
       // Find the chunk index in current results
       final currentChunks = currentResults?.chunks?.chunks?.data ?? [];
       final chunkIndex = currentChunks.indexWhere((c) => c.chunkRefId == chunk.chunkRefId);
       if (chunkIndex == -1) {
-        if (kDebugMode) print("❌ UNIFIED: Chunk not found in current list");
         return;
       }
       
@@ -292,18 +270,13 @@ class _UnifiedSearchPageState extends State<UnifiedSearchPage> {
               currentResults!.chunks!.chunks!.data[chunkIndex] = convertedChunk;
             }
           });
-          
-          if (kDebugMode) print("✅ UNIFIED: Previous chunk loaded successfully - ID: ${newChunk.chunkRefId}");
         } else {
-          if (kDebugMode) print("⚠️ UNIFIED: No previous chunk available");
           _showSnackBar("No previous chunk available");
         }
       } else {
-        if (kDebugMode) print("❌ UNIFIED: Failed to load previous chunk: ${result.message}");
         _showSnackBar("Failed to load previous chunk");
       }
     } catch (e) {
-      if (kDebugMode) print("❌ UNIFIED: Error in previous chunk: $e");
       _showSnackBar("Error loading previous chunk");
     }
   }
@@ -311,13 +284,10 @@ class _UnifiedSearchPageState extends State<UnifiedSearchPage> {
   /// Handle next chunk navigation in unified page - SIMPLIFIED VERSION
   Future<void> _handleNextChunk(BookChunkRM chunk) async {
     try {
-      if (kDebugMode) print("➡️ UNIFIED: Next chunk requested for ID: ${chunk.chunkRefId}");
-      
       // Find the chunk index in current results
       final currentChunks = currentResults?.chunks?.chunks?.data ?? [];
       final chunkIndex = currentChunks.indexWhere((c) => c.chunkRefId == chunk.chunkRefId);
       if (chunkIndex == -1) {
-        if (kDebugMode) print("❌ UNIFIED: Chunk not found in current list");
         return;
       }
       
@@ -341,26 +311,19 @@ class _UnifiedSearchPageState extends State<UnifiedSearchPage> {
               currentResults!.chunks!.chunks!.data[chunkIndex] = convertedChunk;
             }
           });
-          
-          if (kDebugMode) print("✅ UNIFIED: Next chunk loaded successfully - ID: ${newChunk.chunkRefId}");
         } else {
-          if (kDebugMode) print("⚠️ UNIFIED: No next chunk available");
           _showSnackBar("No next chunk available");
         }
       } else {
-        if (kDebugMode) print("❌ UNIFIED: Failed to load next chunk: ${result.message}");
         _showSnackBar("Failed to load next chunk");
       }
     } catch (e) {
-      if (kDebugMode) print("❌ UNIFIED: Error in next chunk: $e");
       _showSnackBar("Error loading next chunk");
     }
   }
 
   /// Update a chunk in the current results and refresh the UI (similar to verse update)
   void _updateChunkInCurrentResults(int chunkIndex, BookChunkRM newChunk) {
-    if (kDebugMode) print("🔄 UNIFIED: _updateChunkInCurrentResults called for index $chunkIndex, new chunk ID: ${newChunk.chunkRefId}");
-    
     if (currentResults?.chunks?.chunks == null) {
       return;
     }
@@ -371,16 +334,7 @@ class _UnifiedSearchPageState extends State<UnifiedSearchPage> {
       final originalChunks = currentResults!.chunks!.chunks!.data;
       final updatedChunks = List<BookChunkRM>.from(originalChunks);
       
-      if (kDebugMode) {
-        print("🔄 UNIFIED: BEFORE update - chunk at index $chunkIndex: ID=${originalChunks[chunkIndex].chunkRefId}");
-        print("🔄 UNIFIED: NEW chunk to insert: ID=${newChunk.chunkRefId}");
-      }
-      
       updatedChunks[chunkIndex] = newChunk;
-      
-      if (kDebugMode) {
-        print("🔄 UNIFIED: AFTER update - chunk at index $chunkIndex: ID=${updatedChunks[chunkIndex].chunkRefId}");
-      }
       
       // Create updated chunks response
       final updatedChunksResult = BookChunksResponseRM(
@@ -391,34 +345,16 @@ class _UnifiedSearchPageState extends State<UnifiedSearchPage> {
       final updatedChunksResponse = UnifiedChunkResponse(chunks: updatedChunksResult);
       
       // Update current results
-      final oldResults = currentResults!;
       currentResults = currentResults!.copyWith(chunks: updatedChunksResponse);
       
-      if (kDebugMode) {
-        print("🔄 UNIFIED: OLD currentResults first chunk: ${oldResults.chunks?.chunks?.data.first.chunkRefId}");
-        print("🔄 UNIFIED: NEW currentResults first chunk: ${currentResults!.chunks!.chunks!.data.first.chunkRefId}");
-        print("🔄 UNIFIED: Object reference changed: ${oldResults.hashCode} → ${currentResults.hashCode}");
-      }
-      
       // Trigger UI rebuild
-      setState(() {
-        if (kDebugMode) print("🔄 UNIFIED: setState called - UI should rebuild now");
-      });
-      
-      if (kDebugMode) {
-        print("✅ UNIFIED: Chunk updated in results and UI refreshed");
-        print("✅ UNIFIED: Updated chunk list length: ${currentResults!.chunks!.chunks!.data.length}");
-        print("✅ UNIFIED: Updated chunk at index $chunkIndex has ID: ${currentResults!.chunks!.chunks!.data[chunkIndex].chunkRefId}");
-      }
+      setState(() {});
     }
   }
 
   /// Update a verse in the current results and refresh the UI
   void _updateVerseInCurrentResults(int verseIndex, VerseRM newVerse) {
-    if (kDebugMode) print("🔄 UNIFIED: _updateVerseInCurrentResults called for index $verseIndex, new verse PK: ${newVerse.versePk}");
-    
     if (currentResults == null) {
-      if (kDebugMode) print("❌ UNIFIED: currentResults is null");
       return;
     }
     
@@ -428,17 +364,7 @@ class _UnifiedSearchPageState extends State<UnifiedSearchPage> {
       final originalVerses = currentResults!.verses!.verses.verses;
       final updatedVerses = List<VerseRM>.from(originalVerses);
       
-      if (kDebugMode) {
-        print("🔄 UNIFIED: BEFORE update - verse at index $verseIndex: PK=${originalVerses[verseIndex].versePk}");
-        print("🔄 UNIFIED: NEW verse to insert: PK=${newVerse.versePk}");
-      }
-      
       updatedVerses[verseIndex] = newVerse;
-      
-      if (kDebugMode) {
-        print("🔄 UNIFIED: AFTER update - verse at index $verseIndex: PK=${updatedVerses[verseIndex].versePk}");
-        print("🔄 UNIFIED: Updated list first verse: PK=${updatedVerses.first.versePk}");
-      }
       
       // Create updated verses response
       final updatedVersesResult = VersesResultRM(
@@ -450,33 +376,16 @@ class _UnifiedSearchPageState extends State<UnifiedSearchPage> {
       final updatedVersesResponse = UnifiedVerseResponse(verses: updatedVersesResult);
       
       // Update current results
-      final oldResults = currentResults!;
       currentResults = currentResults!.copyWith(verses: updatedVersesResponse);
       
-      if (kDebugMode) {
-        print("🔄 UNIFIED: OLD currentResults first verse: ${oldResults.verses?.verses.verses.first.versePk}");
-        print("🔄 UNIFIED: NEW currentResults first verse: ${currentResults!.verses!.verses.verses.first.versePk}");
-        print("🔄 UNIFIED: Object reference changed: ${oldResults.hashCode} → ${currentResults.hashCode}");
-      }
-      
       // Trigger UI rebuild
-      setState(() {
-        if (kDebugMode) print("🔄 UNIFIED: setState called - UI should rebuild now");
-      });
-      
-      if (kDebugMode) {
-        print("✅ UNIFIED: Verse updated in results and UI refreshed");
-        print("✅ UNIFIED: Updated verse list length: ${currentResults!.verses!.verses.verses.length}");
-        print("✅ UNIFIED: Updated verse at index $verseIndex has PK: ${currentResults!.verses!.verses.verses[verseIndex].versePk}");
-      }
+      setState(() {});
     }
   }
 
   /// Handle book chunk bookmark toggle in unified page
   Future<void> _handleBookChunkBookmarkToggle(BookChunkRM chunk, bool isBookmarked) async {
     try {
-      if (kDebugMode) print("📖 UNIFIED: Book chunk bookmark toggle for chunk ${chunk.chunkRefId}: ${isBookmarked ? 'ADD' : 'REMOVE'}");
-      
       // Find the chunk in current results and update its bookmark status
       final chunkIndex = currentResults?.chunks?.chunks?.data.indexWhere((c) => c.chunkRefId == chunk.chunkRefId) ?? -1;
       if (chunkIndex != -1) {
@@ -489,11 +398,9 @@ class _UnifiedSearchPageState extends State<UnifiedSearchPage> {
           }
         });
         
-        if (kDebugMode) print("✅ UNIFIED: Book chunk bookmark updated successfully");
         _showSnackBar(isBookmarked ? "Added to bookmarks" : "Removed from bookmarks");
       }
     } catch (e) {
-      if (kDebugMode) print("❌ UNIFIED: Error in book chunk bookmark toggle: $e");
       _showSnackBar("Error updating bookmark");
     }
   }
@@ -501,8 +408,6 @@ class _UnifiedSearchPageState extends State<UnifiedSearchPage> {
   /// Handle bookmark toggle in unified page
   Future<void> _handleBookmarkToggle(VerseRM verse, bool isBookmarked) async {
     try {
-      if (kDebugMode) print("📖 UNIFIED: Bookmark toggle for verse ${verse.versePk}: ${isBookmarked ? 'ADD' : 'REMOVE'}");
-      
       // Get verses repository
       final versesRepo = Modular.get<VerseRepository>();
       
@@ -519,15 +424,12 @@ class _UnifiedSearchPageState extends State<UnifiedSearchPage> {
           final updatedVerse = verse.copyWith(isStarred: isBookmarked);
           _updateVerseInCurrentResults(verseIndex, updatedVerse);
           
-          if (kDebugMode) print("✅ UNIFIED: Bookmark updated successfully");
           _showSnackBar(isBookmarked ? "Added to bookmarks" : "Removed from bookmarks");
         }
       } else {
-        if (kDebugMode) print("❌ UNIFIED: Bookmark toggle failed");
         _showSnackBar("Bookmark action failed");
       }
     } catch (e) {
-      if (kDebugMode) print("❌ UNIFIED: Error in bookmark toggle: $e");
       _showSnackBar("Error updating bookmark");
     }
   }
@@ -551,7 +453,6 @@ class _UnifiedSearchPageState extends State<UnifiedSearchPage> {
       final languagePref = dashboardController.state.verseLanguagePref;
       return languagePref?.output ?? 'Devanagari';
     } catch (e) {
-      if (kDebugMode) print("⚠️ UNIFIED: Could not get language preference: $e");
       return 'Devanagari'; // fallback
     }
   }
@@ -714,13 +615,13 @@ class _UnifiedSearchPageState extends State<UnifiedSearchPage> {
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             Icon(
-              Icons.search_off,
+              Icons.cloud_off_rounded,
               size: 64,
-              color: themeColors.onSurface?.withOpacity(0.5),
+              color: Colors.orange.withOpacity(0.7),
             ),
             TdResGaps.v_16,
             Text(
-              'No results found',
+              'Couldn\'t load results',
               style: TdResTextStyles.h4.copyWith(
                 color: themeColors.onSurface,
               ),
@@ -728,7 +629,7 @@ class _UnifiedSearchPageState extends State<UnifiedSearchPage> {
             ),
             TdResGaps.v_8,
             Text(
-              'No results found for "$query" across any module.',
+              'Results for "$query" could not be loaded right now. This may be due to a connection issue or a temporary server problem.',
               textAlign: TextAlign.center,
               style: TdResTextStyles.h6.copyWith(
                 color: themeColors.onSurface?.withOpacity(0.7),
@@ -804,8 +705,6 @@ class _UnifiedSearchPageState extends State<UnifiedSearchPage> {
               final wordName = definition.definitions?.details.word ?? 'Unknown Word';
               final defCount = definition.definitions?.details.definitions?.length ?? 0;
               
-              print("📡 Streaming card $index for word: '$wordName' with $defCount definitions");
-              
               return Column(
                 children: [
                   _buildCollapsibleCard(
@@ -825,7 +724,6 @@ class _UnifiedSearchPageState extends State<UnifiedSearchPage> {
           ],
           
           if (partialResult.verses != null) ...[
-            if (kDebugMode) print("🟢 STREAMING: Building collapsible verse card with ${partialResult.verses!.verses.verses.length} verses"),
             _buildCollapsibleCard(
               partialResult.verses!.verses.head?.inputString ?? widget.query ?? 'Search',
               '[verse]',
@@ -887,7 +785,6 @@ class _UnifiedSearchPageState extends State<UnifiedSearchPage> {
                     size: 20,
                   ),
                   onPressed: () {
-                    print("🔄 MANUAL: Refresh button pressed - IMMEDIATE REFRESH");
                     _manualRefreshAllCards();
                   },
                   tooltip: 'Refresh all cards with current language',
@@ -903,13 +800,6 @@ class _UnifiedSearchPageState extends State<UnifiedSearchPage> {
                 final definition = entry.value;
                 final wordName = definition.definitions?.details.word ?? 'Unknown Word';
                 final defCount = definition.definitions?.details.definitions?.length ?? 0;
-                
-                if (kDebugMode) {
-                  print("🔍 Creating card $index for word: '$wordName' with $defCount definitions");
-                  print("🔍 Definition object hashCode: ${definition.hashCode}");
-                  print("🔍 Sample definition: ${definition.definitions?.details.definitions?.first.text}");
-                  print("🔍 All definitions for $wordName: ${definition.definitions?.details.definitions?.map((d) => '${d.text.length > 50 ? d.text.substring(0, 50) : d.text}...').join(' | ')}");
-                }
                 
                 return Column(
                   children: [
@@ -932,7 +822,6 @@ class _UnifiedSearchPageState extends State<UnifiedSearchPage> {
             // Individual verse cards - one for each verse found  
             // Single verses card containing all verses - like Prashna tools tab
             if (result.hasVerses) ...[
-              if (kDebugMode) print("🔵 FINAL: Building collapsible verse card with ${result.verses!.verses.verses.length} verses"),
               _buildCollapsibleCard(
                 result.verses!.verses.head?.inputString ?? widget.query ?? 'Search',
                 '[verse]',
@@ -969,16 +858,8 @@ class _UnifiedSearchPageState extends State<UnifiedSearchPage> {
   Widget _buildGeneralFeedbackButton(UnifiedSearchResult result) {
     final isScholarMode = TesterModeService.instance.isEnabled;
     
-    print('═══════════════════════════════════════');
-    print('🔍 FEEDBACK BUTTON DEBUG:');
-    print('   Scholar Mode: $isScholarMode');
-    print('   Query ID: ${result.queryId}');
-    print('   Will show button: ${isScholarMode && result.queryId != null}');
-    print('═══════════════════════════════════════');
-    
     // Only show in Scholar Mode
     if (!isScholarMode) {
-      print('❌ Feedback button hidden: Scholar Mode is OFF');
       return Container(
         margin: const EdgeInsets.all(20),
         padding: const EdgeInsets.all(16),
@@ -1008,7 +889,6 @@ class _UnifiedSearchPageState extends State<UnifiedSearchPage> {
     
     // Validate required data
     if (result.queryId == null) {
-      print('❌ Feedback button hidden: No queryId available');
       return Container(
         margin: const EdgeInsets.all(20),
         padding: const EdgeInsets.all(16),
@@ -1020,8 +900,6 @@ class _UnifiedSearchPageState extends State<UnifiedSearchPage> {
         child: Text('Debug: No queryId available'),
       );
     }
-    
-    print('✅ SHOWING FEEDBACK BUTTON!');
     
     return Container(
       margin: const EdgeInsets.only(top: 16, bottom: 16),
@@ -1326,11 +1204,6 @@ class _UnifiedSearchPageState extends State<UnifiedSearchPage> {
     }
     
     final word = definition.definitions!.details.word ?? 'unknown';
-    if (kDebugMode) {
-      print("🔍 Building EXACT WordDefine content for word: '$word'");
-      print("🔍 Just showing the original WordDefine page as-is");
-      print("🔍 Data hashCode: ${definition.definitions.hashCode}");
-    }
     
     // **SIMPLE: Just show the EXACT original WordDefine content**
     // No custom containers, no custom layouts, no modifications
@@ -1366,17 +1239,9 @@ class _UnifiedSearchPageState extends State<UnifiedSearchPage> {
     final List<VerseRM> verseList;
     if (currentResults?.verses?.verses.verses != null && currentResults!.verses!.verses.verses.isNotEmpty) {
       verseList = currentResults!.verses!.verses.verses;
-      if (kDebugMode) {
-        print("🚀 UNIFIED: Building VersesContentWidget with FRESH data (${verseList.length} verses)");
-        print("🔄 UNIFIED: CURRENT first verse PK: ${verseList.isNotEmpty ? verseList.first.versePk : 'N/A'}");
-        print("🔄 UNIFIED: currentResults reference: ${currentResults.hashCode}");
-      }
     } else {
       // Fallback - this should rarely happen
       verseList = [];
-      if (kDebugMode) {
-        print("❌ UNIFIED: No current results available, using empty list");
-      }
     }
     
     if (verseList.isEmpty) {
@@ -1387,7 +1252,6 @@ class _UnifiedSearchPageState extends State<UnifiedSearchPage> {
     // This ensures Flutter rebuilds the widget when verse content changes
     final contentHash = verseList.map((v) => '${v.versePk}_${v.verseText?.hashCode ?? 0}').join('_');
     final widgetKey = 'unified_verses_$contentHash';
-    if (kDebugMode) print("🔑 UNIFIED: Building VersesContentWidget with key: ${widgetKey.substring(0, 50)}...");
     
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -1488,11 +1352,6 @@ class _UnifiedSearchPageState extends State<UnifiedSearchPage> {
 
   Widget _buildChunksSection(UnifiedChunkResponse chunks) {
     if (chunks.chunks?.data.isEmpty != false) return const SizedBox.shrink();
-    
-    if (kDebugMode) {
-      print("🚀 PERFORMANCE: Building lightweight BookChunksContentWidget with ${chunks.chunks!.data.length} chunks");
-      print("🚀 PERFORMANCE: Using optimized content widget instead of full BooksPage");
-    }
     
     // 🚀 PERFORMANCE: Use lightweight content widget instead of full page
     return Container(
@@ -2007,7 +1866,6 @@ class _UnifiedSearchPageState extends State<UnifiedSearchPage> {
             ),
           ),
           onSelected: (String value) {
-            print("🎯 UNIFIED: User selected language '$value' from dropdown");
             dashboardController.onVerseLanguageChange(value);
           },
           itemBuilder: (context) => _getSupportedLanguages().entries.map<PopupMenuItem<String>>((entry) {

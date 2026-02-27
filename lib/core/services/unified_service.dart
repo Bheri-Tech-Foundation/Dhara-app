@@ -1,8 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:developer';
 
-import 'package:dharak_flutter/app/data/local/secure/secure_local_data.dart';
 import 'package:dharak_flutter/app/data/services/developer_mode_service.dart';
 import 'package:dharak_flutter/app/types/books/book_chunk.dart';
 import 'package:dharak_flutter/app/types/dictionary/word_definitions.dart';
@@ -12,7 +10,6 @@ import 'package:dharak_flutter/core/cache/smart_search_cache.dart';
 import 'package:dharak_flutter/core/services/verse_service.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter_modular/flutter_modular.dart';
-import 'package:dharak_flutter/app/ui/pages/dashboard/controller.dart';
 import 'package:rxdart/rxdart.dart';
 
 class UnifiedService {
@@ -69,22 +66,16 @@ class UnifiedService {
     // Reset verse counter for new search
     _verseResponseCounter = 0;
     
-    // ✅ FIX: Clear ALL previous results when starting a new search
-    final currentResults = _currentResults.value;
-    if (currentResults.isNotEmpty) {
-    }
     _currentResults.add([]);
 
     try {
       _isLoading.add(true);
-      print('🔄 Setting streaming to true');
       _isStreaming.add(true);
       
       // Check cache first (unless force refresh is requested)
       if (!forceRefresh) {
         final cachedResult = SmartSearchCache.instance.getUnifiedResult(query);
         if (cachedResult != null) {
-          print('🔄 Using cached unified result for: $query');
         
         // ✅ FIX: Decompose cached result into individual tool results
         // Instead of adding the combined result, recreate individual tool cards
@@ -102,7 +93,6 @@ class UnifiedService {
             itemId: cachedResult.itemId, // ✅ Preserve itemId from cache
           );
           _addOrUpdateResult(definitionResult);
-          print('📖 Recreated cached definition result for word: ${cachedResult.definition!.givenWord}');
         }
         
         // 2. Create verse result if exists  
@@ -124,7 +114,6 @@ class UnifiedService {
             itemId: cachedResult.itemId, // ✅ Preserve itemId from cache
           );
           _addOrUpdateResult(verseResult);
-          print('📜 Recreated cached verse result with ${cachedResult.verses!.length} verses');
           
           // Add verses to VerseService cache for interaction
           final verseService = VerseService.instance;
@@ -151,16 +140,12 @@ class UnifiedService {
             itemId: cachedResult.itemId, // ✅ Preserve itemId from cache
           );
           _addOrUpdateResult(chunkResult);
-          print('📚 Recreated cached chunk result with ${cachedResult.chunks!.length} book chunks');
         }
         
           _isLoading.add(false);
-          print('🔄 Setting streaming to false (cache hit)');
           _isStreaming.add(false);
           return;
         }
-      } else {
-        print('🔄 Force refresh requested - bypassing cache for query: $query');
       }
 
       // Prepare new result container
@@ -177,9 +162,6 @@ class UnifiedService {
       // Start streaming request - let auth interceptor handle authentication
       final encodedQuery = Uri.encodeComponent(query);
       final url = '$_baseUrl/quick_search/?query=$encodedQuery';
-      
-      print('🔍 Starting unified search: $url');
-      print('🔐 Using configured Dio with auth interceptors');
 
       // Use configured Dio instance which will automatically add auth headers via interceptor
       final response = await dio.get<ResponseBody>(
@@ -193,22 +175,15 @@ class UnifiedService {
         ),
       );
 
-      print('📡 API response received, status: ${response.statusCode}');
-
       if (response.data != null) {
         // ✅ FIX: Only process response if it's still from the current session
         if (currentSessionId == _currentSearchSessionId) {
-          print('✅ Processing API response for current session $currentSessionId');
           await _handleStreamingResponse(response.data!, query, newResult, currentSessionId);
-        } else {
-          print('⏰ Ignoring stale API response from session $currentSessionId (current: $_currentSearchSessionId)');
         }
       }
 
     } catch (e) {
-      print('❌ Unified search error: $e');
       _isLoading.add(false);
-      print('🔄 Setting streaming to false (error)');
       _isStreaming.add(false);
       rethrow;
     }
@@ -280,14 +255,11 @@ class UnifiedService {
         
         if (endIndex == -1) {
           // Incomplete JSON, wait for more data
-          print('🔄 Incomplete JSON, waiting for more data. Buffer length: ${buffer.length}');
           break;
         }
         
         final jsonString = buffer.substring(0, endIndex + 1);
         buffer = buffer.substring(endIndex + 1);
-        
-        print('🎯 Extracted complete JSON: ${jsonString.length} chars');
         
             try {
               // Fix Python-style single-quoted JSON to valid JSON with double quotes
@@ -300,7 +272,6 @@ class UnifiedService {
                     .replaceAll('True', 'true')  // Python True -> JSON true
                     .replaceAll('False', 'false')  // Python False -> JSON false
                     .replaceAll('None', 'null');  // Python None -> JSON null
-                print('🔧 Normalized Python-style JSON to valid JSON');
               }
               
               final jsonMap = jsonDecode(normalizedJson) as Map<String, dynamic>;
@@ -309,8 +280,6 @@ class UnifiedService {
               final itemId = jsonMap['item_id']?.toString(); // Parse item_id
 
               if (type == null || data == null) continue;
-
-              print('📦 Received unified data type: $type, item_id: $itemId');
               
               // Parse query_id if this is the query_id response
               if (type == 'query_id') {
@@ -322,7 +291,6 @@ class UnifiedService {
                     queryId: parsedQueryId,
                     searchSessionId: currentSessionId
                   );
-                  print('🎯 VOTING: Received query_id: $parsedQueryId');
                   
                   // ✅ CRITICAL FIX: Update ALL existing results for this search with the queryId
                   final updatedResults = _currentResults.value.map((result) {
@@ -333,26 +301,26 @@ class UnifiedService {
                   }).toList();
                   
                   _currentResults.add(updatedResults);
-                  print('✅ Updated ${updatedResults.where((r) => r.searchSessionId == currentSessionId).length} results with query_id: $parsedQueryId');
                 }
                 continue;
               }
 
-              // Fix null word_hyplinks issue and other null fields
+              // Normalize verse data before parsing to prevent type cast failures
               if (type == 'verse' && data is List) {
                 for (var verse in data) {
                   if (verse is Map<String, dynamic>) {
-                    // Fix null word_hyplinks
                     if (verse['word_hyplinks'] == null) {
                       verse['word_hyplinks'] = <Map<String, dynamic>>[];
                     }
-                    // Fix null other_fields
                     if (verse['other_fields'] == null) {
                       verse['other_fields'] = <Map<String, dynamic>>[];
                     }
-                    // Ensure numeric fields are not null
                     if (verse['verse_pk'] == null) {
-                      verse['verse_pk'] = 0; // Default value
+                      verse['verse_pk'] = 0;
+                    }
+                    // API may send similarity as number or string — ensure it's always a string
+                    if (verse['similarity'] != null && verse['similarity'] is! String) {
+                      verse['similarity'] = verse['similarity'].toString();
                     }
                   }
                 }
@@ -360,175 +328,218 @@ class UnifiedService {
 
               switch (type) {
             case 'info':
-              // Handle language info from unified response
-              final infoData = data as Map<String, dynamic>;
-              final outputScript = infoData['output_script'] as String?;
-              print('🌍 UNIFIED: Received output_script: $outputScript');
-              
-              // Store the output script and reprocess any existing verses
-              currentResult = currentResult.copyWith(
-                outputScript: outputScript,
-                searchSessionId: currentSessionId
-              );
-              
-              // If we already have verses, reprocess them with the new language info
-              if (currentResult.verses != null && currentResult.verses!.isNotEmpty) {
-                print('🔄 UNIFIED: Found existing verses, reprocessing with language: $outputScript');
-                _reprocessVersesWithLanguage(currentResult, currentSessionId, query);
-              }
+              try {
+                if (data is! Map<String, dynamic>) continue;
+                final outputScript = data['output_script'] as String?;
+                
+                currentResult = currentResult.copyWith(
+                  outputScript: outputScript,
+                  searchSessionId: currentSessionId
+                );
+                
+                if (currentResult.verses != null && currentResult.verses!.isNotEmpty) {
+                  _reprocessVersesWithLanguage(currentResult, currentSessionId, query);
+                }
+              } catch (_) {}
               break;
 
             case 'splits':
-              final splits = QuerySplitsRM.fromJson(data as Map<String, dynamic>);
-              currentResult = currentResult.copyWith(
-                splits: splits,
-                searchSessionId: currentSessionId
-              );
+              try {
+                if (data is! Map<String, dynamic>) continue;
+                final splits = QuerySplitsRM.fromJson(data);
+                currentResult = currentResult.copyWith(
+                  splits: splits,
+                  searchSessionId: currentSessionId
+                );
+              } catch (_) {}
               break;
 
             case 'definition':
-              final definition = DictWordDefinitionsRM.fromJson(data as Map<String, dynamic>);
-              
-              // Create a separate result for each definition response
-              final definitionResult = UnifiedSearchResult(
-                query: definition.givenWord ?? query, // Use the specific word
-                timestamp: DateTime.now(),
-                searchSessionId: currentSessionId, // ✅ FIX: Use session ID from current search
-                splits: currentResult.splits, // Share the splits
-                definition: definition,
-                queryId: currentResult.queryId, // Pass query_id from parent
-                itemId: itemId, // Use item_id from this response
-              );
-              
-              if (definition.details.definitions.isNotEmpty) {
-                final firstDefText = definition.details.definitions.first.text;
-                final preview = firstDefText.length > 50 ? firstDefText.substring(0, 50) : firstDefText;
-                print('🔍 FIRST DEFINITION: $preview');
-              }
-              _addOrUpdateResult(definitionResult);
-              print('📖 Created separate definition result for word: ${definition.givenWord}');
+              try {
+                if (data is! Map<String, dynamic>) continue;
+                final definition = DictWordDefinitionsRM.fromJson(data);
+                
+                final definitionResult = UnifiedSearchResult(
+                  query: definition.givenWord ?? query,
+                  timestamp: DateTime.now(),
+                  searchSessionId: currentSessionId,
+                  splits: currentResult.splits,
+                  definition: definition,
+                  queryId: currentResult.queryId,
+                  itemId: itemId,
+                );
+                
+                _addOrUpdateResult(definitionResult);
+              } catch (_) {}
               break;
 
             case 'verse':
-              final versesData = data as List<dynamic>;
-              print('🔍 RAW VERSE API RESPONSE: ${versesData.length} items received');
-              print('🔍 QUOTED TEXTS: ${currentResult.splits?.quotedTexts ?? 'None'}');
-              
-              final verses = <VerseRM>[];
-              for (int i = 0; i < versesData.length; i++) {
-                var v = versesData[i];
-                try {
-                  // Skip info objects (metadata) - only parse actual verses
-                  if (v is Map<String, dynamic> && v['data_type'] == 'info') {
-                    print('🔍 Skipping info object at index $i: ${v.toString().substring(0, 100)}...');
-                    continue;
+              try {
+                if (data is! List<dynamic>) continue;
+                
+                final verses = <VerseRM>[];
+                for (int i = 0; i < data.length; i++) {
+                  var v = data[i];
+                  try {
+                    if (v is Map<String, dynamic> && v['data_type'] == 'info') {
+                      continue;
+                    }
+                    
+                    final verse = VerseRM.fromJson(v as Map<String, dynamic>);
+                    verses.add(verse);
+                  } catch (_) {
+                    // Skip this individual verse and continue with the rest
                   }
-                  
-                  final verse = VerseRM.fromJson(v as Map<String, dynamic>);
-                  verses.add(verse); // Store original verses first
-                  print('🔍 VERSE $i: PK=${verse.versePk}, Text="${verse.verseText?.substring(0, 100) ?? 'N/A'}...", LetText="${verse.verseLetText?.substring(0, 100) ?? 'N/A'}...", Source="${verse.sourceTitle ?? 'N/A'}"');
-                } catch (e) {
-                  print('❌ Error parsing individual verse at index $i: $e');
-                  print('📄 Problematic verse data: $v');
-                  // Skip this verse and continue
                 }
-              }
-              
-              print('✅ Successfully parsed ${verses.length} actual verses (filtered out info objects)');
-              
-              // ✅ CORRECT APPROACH: Each verse response creates ONE card
-              // The API sends 3 separate verse responses, so we create one card per response
-              
-              _verseResponseCounter++;
-              
-              // Determine which quoted text this verse response corresponds to
-              String cardQuery;
-              if (currentResult.splits?.quotedTexts != null && currentResult.splits!.quotedTexts!.isNotEmpty) {
-                final quotedTexts = currentResult.splits!.quotedTexts!;
-                // Use the verse response counter to map to the correct quoted text
-                final quotedTextIndex = (_verseResponseCounter - 1) % quotedTexts.length;
-                cardQuery = quotedTexts[quotedTextIndex];
-                print('🎯 UNIFIED: Verse response #$_verseResponseCounter maps to quoted text: "$cardQuery"');
-              } else {
-                cardQuery = query;
-                print('🎯 UNIFIED: No quoted texts, using main query: "$cardQuery"');
-              }
-              
-              // Create ONE verse result for this specific response
-              final verseResult = UnifiedSearchResult(
-                query: cardQuery,
-                originalQuery: query, // Store original user query for Prashna
-                timestamp: DateTime.now(),
-                searchSessionId: currentSessionId,
-                splits: currentResult.splits,
-                verses: verses, // These verses are specifically for this quoted text
-                outputScript: currentResult.outputScript,
-                queryId: currentResult.queryId, // Pass query_id from parent
-                itemId: itemId, // Use item_id from this response
-              );
-              
-              print('🔍 VERSE DEBUG: Creating verse result for "$cardQuery" with ${verses.length} verses (response #$_verseResponseCounter)');
-              
-              // Apply language transformation immediately if needed
-              if (currentResult.outputScript == null) {
-                print('🌍 UNIFIED: No output script, applying language transformation for "$cardQuery"');
-                final tempResult = verseResult.copyWith(outputScript: 'Devanagari');
-                _reprocessVersesWithLanguage(tempResult, currentSessionId, cardQuery);
-              } else {
-                print('🌍 UNIFIED: Output script available, adding result directly for "$cardQuery"');
-                _addOrUpdateResult(verseResult);
-              }
-              
-              // Continue processing - don't break, as more verse responses may come
+                
+                if (verses.isEmpty) break;
+                
+                _verseResponseCounter++;
+                
+                String cardQuery;
+                if (currentResult.splits?.quotedTexts != null && currentResult.splits!.quotedTexts!.isNotEmpty) {
+                  final quotedTexts = currentResult.splits!.quotedTexts!;
+                  final quotedTextIndex = (_verseResponseCounter - 1) % quotedTexts.length;
+                  cardQuery = quotedTexts[quotedTextIndex];
+                } else {
+                  cardQuery = query;
+                }
+                
+                final verseResult = UnifiedSearchResult(
+                  query: cardQuery,
+                  originalQuery: query,
+                  timestamp: DateTime.now(),
+                  searchSessionId: currentSessionId,
+                  splits: currentResult.splits,
+                  verses: verses,
+                  outputScript: currentResult.outputScript,
+                  queryId: currentResult.queryId,
+                  itemId: itemId,
+                );
+                
+                if (currentResult.outputScript == null) {
+                  final tempResult = verseResult.copyWith(outputScript: 'Devanagari');
+                  _reprocessVersesWithLanguage(tempResult, currentSessionId, cardQuery);
+                } else {
+                  _addOrUpdateResult(verseResult);
+                }
+              } catch (_) {}
               break;
 
             case 'chunk':
-              final chunksData = data as List<dynamic>;
-              final chunks = chunksData
-                  .map((c) => BookChunkRM.fromJson(c as Map<String, dynamic>))
-                  .toList();
-              
-              // Create chunk result with heritage query
-              String chunkQuery = query;
-              if (currentResult.splits != null && currentResult.splits!.heritageQuery.isNotEmpty) {
-                chunkQuery = currentResult.splits!.heritageQuery;
-              }
-              
-              final chunkResult = UnifiedSearchResult(
-                query: chunkQuery,
-                originalQuery: query, // Store original user query for Prashna
-                timestamp: DateTime.now(),
-                searchSessionId: currentSessionId, // ✅ FIX: Use session ID from current search
-                splits: currentResult.splits,
-                chunks: chunks,
-                queryId: currentResult.queryId, // Pass query_id from parent
-                itemId: itemId, // Use item_id from this response
-              );
-              
-              _addOrUpdateResult(chunkResult);
-              print('📚 Created chunk result with ${chunks.length} book chunks');
+              try {
+                if (data is! List<dynamic>) continue;
+                final chunks = <BookChunkRM>[];
+                for (var c in data) {
+                  try {
+                    chunks.add(BookChunkRM.fromJson(c as Map<String, dynamic>));
+                  } catch (_) {
+                    // Skip this individual chunk and continue with the rest
+                  }
+                }
+                
+                if (chunks.isEmpty) break;
+                
+                String chunkQuery = query;
+                if (currentResult.splits != null && currentResult.splits!.heritageQuery.isNotEmpty) {
+                  chunkQuery = currentResult.splits!.heritageQuery;
+                }
+                
+                final chunkResult = UnifiedSearchResult(
+                  query: chunkQuery,
+                  originalQuery: query,
+                  timestamp: DateTime.now(),
+                  searchSessionId: currentSessionId,
+                  splits: currentResult.splits,
+                  chunks: chunks,
+                  queryId: currentResult.queryId,
+                  itemId: itemId,
+                );
+                
+                _addOrUpdateResult(chunkResult);
+              } catch (_) {}
               break;
-
-            default:
-              print('⚠️ Unknown unified data type: $type');
-          }
+            }
 
         } catch (e) {
-          print('❌ JSON parsing error in unified response: $e');
-          print('📄 Problematic JSON: ${jsonString.length > 200 ? '${jsonString.substring(0, 200)}...' : jsonString}');
+          // JSON structure-level parse error — skip to next JSON object in buffer
         }
       }
     }
 
-    // Cache the final result
-    SmartSearchCache.instance.setUnifiedResult(query, currentResult);
+    // Remove the initial empty placeholder if real results were added
+    _removeEmptyPlaceholder(currentSessionId);
+
+    // Cache the composite result for this search
+    _cacheCurrentSessionResults(query, currentSessionId);
     _isLoading.add(false);
-    print('🔄 Setting streaming to false (API complete)');
     _isStreaming.add(false);
   }
 
 
 
+
+  /// Remove empty placeholder results that have no actual content
+  void _removeEmptyPlaceholder(int sessionId) {
+    final currentResults = List<UnifiedSearchResult>.from(_currentResults.value);
+    final hasRealContent = currentResults.any(
+      (r) => r.searchSessionId == sessionId && r.hasAnyResults,
+    );
+    if (hasRealContent) {
+      currentResults.removeWhere(
+        (r) => r.searchSessionId == sessionId && !r.hasAnyResults,
+      );
+      _currentResults.add(currentResults);
+    }
+  }
+
+  /// Cache composite result from all results in this session
+  void _cacheCurrentSessionResults(String query, int sessionId) {
+    final sessionResults = _currentResults.value
+        .where((r) => r.searchSessionId == sessionId)
+        .toList();
+    if (sessionResults.isEmpty) return;
+
+    // Build a merged result for the cache
+    DictWordDefinitionsRM? definition;
+    List<VerseRM>? allVerses;
+    List<BookChunkRM>? allChunks;
+    QuerySplitsRM? splits;
+    String? outputScript;
+    int? queryId;
+    String? itemId;
+
+    for (final r in sessionResults) {
+      splits ??= r.splits;
+      queryId ??= r.queryId;
+      itemId ??= r.itemId;
+      outputScript ??= r.outputScript;
+      if (r.definition != null) definition = r.definition;
+      if (r.verses != null && r.verses!.isNotEmpty) {
+        allVerses ??= [];
+        allVerses.addAll(r.verses!);
+      }
+      if (r.chunks != null && r.chunks!.isNotEmpty) {
+        allChunks ??= [];
+        allChunks.addAll(r.chunks!);
+      }
+    }
+
+    final cacheResult = UnifiedSearchResult(
+      query: query,
+      originalQuery: query,
+      timestamp: DateTime.now(),
+      searchSessionId: sessionId,
+      splits: splits,
+      definition: definition,
+      verses: allVerses,
+      chunks: allChunks,
+      outputScript: outputScript,
+      queryId: queryId,
+      itemId: itemId,
+    );
+    SmartSearchCache.instance.setUnifiedResult(query, cacheResult);
+  }
 
   /// Add or update a search result
   void _addOrUpdateResult(UnifiedSearchResult newResult) {
@@ -548,20 +559,11 @@ class UnifiedService {
     if (existingIndex != -1) {
       // Update existing result (prevent duplicates)
       currentResults[existingIndex] = correctedResult;
-      print('🔄 UnifiedService: Updated existing result for "${correctedResult.query}" (session $_currentSearchSessionId)');
     } else {
       // Add new result at the beginning
       currentResults.insert(0, correctedResult);
-      print('🔄 UnifiedService: Added NEW result for current session $_currentSearchSessionId: "${correctedResult.query}"');
-      print('📊 Total results after addition: ${currentResults.length}');
     }
 
-    // Debug: Print details of all results being broadcasted
-    print('🔄 UnifiedService: Broadcasting ${currentResults.length} results to stream');
-    for (int i = 0; i < currentResults.length; i++) {
-      final result = currentResults[i];
-      print('   $i: "${result.query}" (session ${result.searchSessionId}) - hasDefinition: ${result.hasDefinition}, hasVerses: ${result.hasVerses}, hasChunks: ${result.hasChunks}');
-    }
     _currentResults.add(currentResults);
   }
 
@@ -570,24 +572,23 @@ class UnifiedService {
       return;
     }
 
-    print('🌍 UNIFIED: Reprocessing ${currentResult.verses!.length} verses with language: ${currentResult.outputScript}');
-    
     final transformedVerses = <VerseRM>[];
     for (var verse in currentResult.verses!) {
-      final processedVerse = verse.copyWith(
-        verseText: verse.verseOtherScripts?[currentResult.outputScript] ?? verse.verseText,
-        verseLetText: verse.verseLetOtherScripts?[currentResult.outputScript] ?? verse.verseLetText,
-      );
-      
-      print('🔄 UNIFIED: Transformed verse ${verse.versePk}: ${verse.verseText?.substring(0, 20)}... -> ${processedVerse.verseText?.substring(0, 20)}...');
-      transformedVerses.add(processedVerse);
+      try {
+        final processedVerse = verse.copyWith(
+          verseText: verse.verseOtherScripts?[currentResult.outputScript] ?? verse.verseText,
+          verseLetText: verse.verseLetOtherScripts?[currentResult.outputScript] ?? verse.verseLetText,
+        );
+        transformedVerses.add(processedVerse);
+      } catch (e) {
+        transformedVerses.add(verse);
+      }
     }
 
     // Create verse result with transformed verses
     // ✅ FIX: Use the passed query parameter directly instead of combining all quoted texts
     String verseQuery = query;
     
-    print('🔍 REPROCESS DEBUG: Creating transformed verse result for "${verseQuery}" with session $sessionId (original query: "$query")');
     final verseResult = UnifiedSearchResult(
       query: verseQuery,
       originalQuery: currentResult.originalQuery ?? query, // Preserve or store original user query for Prashna
@@ -607,7 +608,6 @@ class UnifiedService {
     }
     
     _addOrUpdateResult(verseResult);
-    print('✅ UNIFIED: Reprocessed and updated verse result with language transformation');
   }
 
   /// Clear all results
@@ -620,7 +620,6 @@ class UnifiedService {
   /// Clear cache to force fresh results (for language changes)
   void clearCache() {
     SmartSearchCache.instance.clearUnifiedCache();
-    print('🗑️ UNIFIED: Cache cleared for language change');
   }
 
   /// Remove a specific result
@@ -639,11 +638,8 @@ class UnifiedService {
   /// This fetches fresh verse data from the API using verse PKs and applies the new language preference
   Future<void> refreshVersesForLanguageChange() async {
     try {
-      print('🔄 UNIFIED: Starting silent refresh for language change');
-      
       final currentResults = _currentResults.value;
       if (currentResults.isEmpty) {
-        print('🔄 UNIFIED: No results to refresh');
         return;
       }
       
@@ -658,18 +654,13 @@ class UnifiedService {
       }
       
       if (allVersePks.isEmpty) {
-        print('🔄 UNIFIED: No verses found to refresh');
         return;
       }
-      
-      print('🔄 UNIFIED: Refreshing ${allVersePks.length} verses: ${allVersePks.toList()}');
       
       // Create search query with all verse PKs
       final versePksString = allVersePks.join(' ');
       final url = '$_baseUrl/verse/v2/find/?input_string=${Uri.encodeComponent(versePksString)}';
-      
-      print('🔄 UNIFIED: Fetching verses from: $url');
-      
+
       // Use configured Dio instance with auth interceptors
       final response = await dio.get(url, options: Options(headers: {
         'accept': '*/*',
@@ -678,7 +669,6 @@ class UnifiedService {
       
       if (response.statusCode == 200) {
         final responseData = response.data;
-        print('🔄 UNIFIED: Received verse refresh response: ${responseData.toString().substring(0, 100)}...');
         
         if (responseData is Map<String, dynamic> && responseData['verses'] != null) {
           final versesData = responseData['verses'] as List<dynamic>;
@@ -686,14 +676,16 @@ class UnifiedService {
           
           for (var v in versesData) {
             try {
-              final verse = VerseRM.fromJson(v as Map<String, dynamic>);
-              refreshedVerses.add(verse);
-            } catch (e) {
-              print('❌ UNIFIED: Error parsing refreshed verse: $e');
+              if (v is Map<String, dynamic>) {
+                if (v['similarity'] != null && v['similarity'] is! String) {
+                  v['similarity'] = v['similarity'].toString();
+                }
+                refreshedVerses.add(VerseRM.fromJson(v));
+              }
+            } catch (_) {
+              // Skip invalid verse
             }
           }
-          
-          print('🔄 UNIFIED: Successfully parsed ${refreshedVerses.length} refreshed verses');
           
           // Update all results with new verse data
           final updatedResults = <UnifiedSearchResult>[];
@@ -719,13 +711,10 @@ class UnifiedService {
           
           // Emit the updated results
           _currentResults.add(updatedResults);
-          print('✅ UNIFIED: Silent refresh completed successfully');
         }
-      } else {
-        print('❌ UNIFIED: Silent refresh failed with status: ${response.statusCode}');
       }
     } catch (e) {
-      print('❌ UNIFIED: Silent refresh error: $e');
+      // Silent refresh error - fail silently
     }
   }
 

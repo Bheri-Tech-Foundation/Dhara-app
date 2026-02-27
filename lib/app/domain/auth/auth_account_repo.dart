@@ -60,8 +60,7 @@ class AuthAccountRepository extends Disposable {
       _mGoogleLoginSubscription?.cancel();
       _mGoogleLoginSubscription = null;
     } catch (e) {
-      print("AuthAccountRepository dispose error: ");
-      print(e);
+      // Dispose error handling
     }
   }
 
@@ -86,10 +85,7 @@ class AuthAccountRepository extends Disposable {
   }
 
   Future<DomainResult<bool>> login({String? googleIdToken}) async {
-    print('🔐 Attempting login...');
     var result = await _attemptLogin(googleIdToken);
-    
-    print('🔍 Login result status: ${result.status}, message: ${result.message}');
     
     // With backend clock skew tolerance added, retries should rarely be needed
     // But keep them as a fallback safety net
@@ -134,8 +130,6 @@ class AuthAccountRepository extends Disposable {
   Future<DomainResult<bool>> _attemptLogin(String? googleIdToken) async {
     return await domainCallBeforeSave<bool, AuthLoginRM, ErrorDto, UserRM>(
       networkCall: () async {
-        print("auth_repo login 0:");
-
         // Detect token type: JWT (ID token) has 2 dots, OAuth access token doesn't
         bool isJWT = googleIdToken?.contains('.') == true && 
                      googleIdToken!.split('.').length == 3;
@@ -146,11 +140,9 @@ class AuthAccountRepository extends Disposable {
         if (isJWT) {
           // Mobile sends ID token
           idToken = googleIdToken;
-          print("auth_repo: Sending ID token (mobile)");
         } else {
           // Web sends access token
           accessToken = googleIdToken;
-          print("auth_repo: Sending access token (web)");
         }
 
         return await mAuthApiRepo.login(
@@ -186,7 +178,6 @@ class AuthAccountRepository extends Disposable {
       return cred;
     } catch (e) {
       inspect(e);
-      print(e);
       throw e;
     }
   }
@@ -199,8 +190,6 @@ class AuthAccountRepository extends Disposable {
     var idTOken = await mGoogleAuthService.getIdToken();
     int tokenLength = idTOken.length;
     int tokenL2 = (tokenLength / 2).ceil();
-    print("getIdToken: token obtained");
-
     debugPrint(idTOken.substring(0, tokenL2));
     debugPrint(idTOken.substring(tokenL2, tokenLength));
     return idTOken;
@@ -211,7 +200,6 @@ class AuthAccountRepository extends Disposable {
     var idTOken = await mGoogleAuthService.getIdTokenWithAccountPicker();
     int tokenLength = idTOken.length;
     int tokenL2 = (tokenLength / 2).ceil();
-    print("getIdTokenWithAccountPicker: token obtained");
 
     debugPrint(idTOken.substring(0, tokenL2));
     debugPrint(idTOken.substring(tokenL2, tokenLength));
@@ -223,7 +211,6 @@ class AuthAccountRepository extends Disposable {
     var idTOken = await mGoogleAuthService.getIdTokenSilent();
     int tokenLength = idTOken.length;
     int tokenL2 = (tokenLength / 2).ceil();
-    print("getIdTokenSilent: token obtained");
 
     debugPrint(idTOken.substring(0, tokenL2));
     debugPrint(idTOken.substring(tokenL2, tokenLength));

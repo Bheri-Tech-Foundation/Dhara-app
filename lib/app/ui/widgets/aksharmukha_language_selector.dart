@@ -31,12 +31,9 @@ class AksharmukhaLanguageSelector extends StatelessWidget {
     return BlocBuilder<DashboardController, DashboardCubitState>(
       bloc: Modular.get<DashboardController>(),
       buildWhen: (previous, current) {
-        print("🔄 AksharmukhaSelector: buildWhen - prev: ${previous.verseLanguagePref?.output}, curr: ${current.verseLanguagePref?.output}");
         return current.verseLanguagePref != previous.verseLanguagePref;
       },
       builder: (context, state) {
-        print("🔄 AksharmukhaSelector: Building with language: ${state.verseLanguagePref?.output}");
-        
         if (isCompact) {
           return _buildCompactSelector(state.verseLanguagePref);
         } else {
@@ -49,7 +46,6 @@ class AksharmukhaLanguageSelector extends StatelessWidget {
   /// Compact version - small "Powered by Aksharmukha" + language dropdown
   Widget _buildCompactSelector(VersesLanguagePrefRM? currentLanguagePref) {
     final currentLanguage = currentLanguagePref?.output ?? VersesConstants.LANGUAGE_DEFAULT;
-    print("🎯 LanguageSelector: _buildCompactSelector - currentLanguagePref: ${currentLanguagePref?.output}, using: '$currentLanguage'");
     
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
@@ -176,7 +172,6 @@ class AksharmukhaLanguageSelector extends StatelessWidget {
         padding: EdgeInsets.symmetric(horizontal: isCompact ? 6 : 8),
         onChanged: (String? value) {
           if (value != null) {
-            print("🎯 AKSHARMUKHA: User selected language '$value' from dropdown");
             dashboardController.onVerseLanguageChange(value);
           }
         },
@@ -237,9 +232,6 @@ class AksharmukhaLanguageSelector extends StatelessWidget {
 
   /// Get compact language label for display
   String _getLanguageLabel(String languageId) {
-    // Add debug logging to see what language is being displayed
-    print("🎯 LanguageSelector: _getLanguageLabel called with: '$languageId'");
-    
     // Map all 15 supported languages to short labels
     switch (languageId) {
       case VersesConstants.LANGUAGE_DEVANAGARI:
@@ -299,7 +291,6 @@ class AksharmukhaLanguageSelector extends StatelessWidget {
       case 'Assamese':
         return 'অসমীয়া';
       default:
-        print("⚠️ LanguageSelector: Unknown language ID '$languageId', using fallback");
         // For unknown languages, try to get a short version
         final fullName = VersesConstants.LANGUAGE_LABELS_MAP[languageId] ?? languageId;
         if (fullName.length <= 4) return fullName;
@@ -309,8 +300,6 @@ class AksharmukhaLanguageSelector extends StatelessWidget {
 
   /// Get compact script name for display in dropdown - Working implementation from QuickVerse
   String _getCompactScriptName(String language) {
-    print("🎯 LanguageSelector: _getCompactScriptName called with: '$language'");
-    
     switch (language) {
       case VersesConstants.LANGUAGE_DEVANAGARI:
         return 'देव';
@@ -381,7 +370,6 @@ class AksharmukhaLanguageSelector extends StatelessWidget {
       case 'WX':
         return 'WX';
       default:
-        print("⚠️ LanguageSelector: Unknown language '$language', using fallback");
         // For unknown languages, try to get a short version from the full name
         final fullName = VersesConstants.LANGUAGE_LABELS_MAP[language] ?? language;
         if (fullName.length <= 4) return fullName.toUpperCase();

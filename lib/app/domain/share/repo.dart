@@ -90,7 +90,6 @@ class ShareRepository {
     GlobalKey? repaintBoundaryKey, // Optional RepaintBoundary key for better capture
   }) async {
     // TODO: Implement screen capture sharing when ShareService supports it
-    print('Screen capture sharing not yet implemented');
     return false;
     // return await _shareService.shareScreenCapture(
     //   screenTitle: screenTitle,
@@ -145,7 +144,6 @@ class ShareRepository {
       final shareContent = await getChunkShareContent(chunkId, type: 'text');
       
       if (shareContent == null || shareContent.isEmpty) {
-        print('No share content available for chunk: $chunkId');
         return false;
       }
       
@@ -158,7 +156,6 @@ class ShareRepository {
         searchTerm: searchTerm,
       );
     } catch (e) {
-      print('Error sharing chunk as text: $e');
       return false;
     }
   }
@@ -166,22 +163,17 @@ class ShareRepository {
   /// Copy book chunk content to clipboard using the share API
   Future<bool> copyChunkToClipboard(String chunkId) async {
     try {
-      print('Copying chunk with ID: $chunkId');
-      
       // Get the formatted share content from the API
       final shareContent = await getChunkShareContent(chunkId, type: 'text');
       
       if (shareContent != null && shareContent.isNotEmpty) {
         // Copy to clipboard using Flutter's Clipboard API
         await Clipboard.setData(ClipboardData(text: shareContent));
-        print('Successfully copied chunk content to clipboard');
         return true;
       } else {
-        print('No content available to copy for chunk: $chunkId');
         return false;
       }
     } catch (e) {
-      print('Error copying chunk: $e');
       return false;
     }
   }
@@ -190,12 +182,8 @@ class ShareRepository {
   Future<bool> copyAllChunksToClipboard(String query) async {
     try {
       // TODO: Implement proper Books API endpoint for copying all chunks
-      // For now, this is a placeholder that returns success
-      // In a real implementation, this would call a specific Books API endpoint
-      print('Copying all chunks for query: $query');
       return true;
     } catch (e) {
-      print('Error copying all chunks: $e');
       return false;
     }
   }
@@ -213,8 +201,6 @@ class ShareRepository {
   /// Get chunk content from backend API for sharing (like verse sharing)
   Future<String?> getChunkShareContent(String chunkId, {String type = 'text'}) async {
     try {
-      print('Getting chunk share content for ID: $chunkId, type: $type');
-      
       // Get BooksRepository from dependency injection
       final booksRepo = Modular.get<BooksRepository>();
       
@@ -226,11 +212,9 @@ class ShareRepository {
       if (result.status == DomainResultStatus.SUCCESS && result.data != null) {
         return result.data!;
       } else {
-        print('Failed to get chunk share content: ${result.message}');
         return null;
       }
     } catch (e) {
-      print('Error getting chunk share content: $e');
       return null;
     }
   }

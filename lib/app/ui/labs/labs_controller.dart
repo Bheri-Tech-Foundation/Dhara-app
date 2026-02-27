@@ -37,7 +37,6 @@ class LabsController extends Cubit<LabsCubitState> {
       _mLoginSubscription?.cancel();
       _mLoginSubscription = null;
     } catch (e) {
-      print(e);
     }
     
     return super.close();
@@ -72,8 +71,7 @@ class LabsController extends Cubit<LabsCubitState> {
       emit(state.copyWith(idToken: null));
       var result = await mAuthAccountRepository.signInWithGoogle();
 
-      print("googleLogin: $result");
-      print(result.accessToken);
+    
 
       // var token = await mAuthAccountRepository.getIdToken();
 
@@ -91,9 +89,7 @@ class LabsController extends Cubit<LabsCubitState> {
        var token = await mAuthAccountRepository.getIdToken();
       //  emit(state)
 
-      print("labs _getGoogleIdToken: idtoken");
-
-      print(token);
+    
       emit(state.copyWith(idToken: token));
       
       
@@ -103,7 +99,6 @@ class LabsController extends Cubit<LabsCubitState> {
     var result = await mDictionaryRepository.getDefinition(word: "nad");
 
     if (result.status == DomainResultStatus.SUCCESS && result.data != null) {
-      print("getDefinitions: ${result}");
       // emit(state.copyWith(order: result.data));
       return true;
     }
@@ -115,7 +110,6 @@ class LabsController extends Cubit<LabsCubitState> {
     var result = await mVerseRepository.getVerses(inputStr: "agnimeele");
 
     if (result.status == DomainResultStatus.SUCCESS && result.data != null) {
-      print("getVerses: ${result.status}");
       inspect(result.data);
       // emit(state.copyWith(order: result.data));
       return true;
@@ -126,11 +120,9 @@ class LabsController extends Cubit<LabsCubitState> {
 
   getVerseStreams() async {
     var result = await mVerseRepository.getVersesStream(inputStr: "agnimeele", onItem:({footer, header, item}) => {
-      print("${new DateTime.now().millisecondsSinceEpoch} : ${item}")
     },);
 
     if (result.status == DomainResultStatus.SUCCESS && result.data != null) {
-      print("getVerses: ${result.status}");
       inspect(result.data);
       // emit(state.copyWith(order: result.data));
       return true;

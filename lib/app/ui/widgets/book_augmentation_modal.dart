@@ -562,20 +562,13 @@ class _AugmentationExpandableCardState extends State<_AugmentationExpandableCard
     if (currentChunk.chunkRefId == null) return;
     
     try {
-      print('🔀 Expandable Navigation: ${isNext ? 'next' : 'previous'} from ${currentChunk.chunkRefId}');
-      
-      // Use BooksService to get the new chunk
       final newChunk = await BooksService.instance.navigateChunk(currentChunk.chunkRefId!, isNext);
       
       if (newChunk != null) {
-        // Update the original chunk state with the new chunk
         setState(() {
           _originalChunk = newChunk;
         });
-        print('🔀 Expandable Navigation successful: ${currentChunk.chunkRefId} -> ${newChunk.chunkRefId}');
       } else {
-        print('🔀 Expandable Navigation failed: No new chunk returned');
-        // Show error via snackbar (if context allows)
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('No ${isNext ? 'next' : 'previous'} chunk available'),
@@ -584,7 +577,6 @@ class _AugmentationExpandableCardState extends State<_AugmentationExpandableCard
         );
       }
     } catch (e) {
-      print('🔀 Expandable Navigation error: $e');
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Navigation failed: $e'),

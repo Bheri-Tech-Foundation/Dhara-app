@@ -1065,8 +1065,6 @@ class _BookChunkItemLightweightWidgetState extends State<BookChunkItemLightweigh
   }
 
 
-
-
   void _toggleExpansion() {
     setState(() {
       _isExpanded = !_isExpanded;
@@ -1084,7 +1082,6 @@ class _BookChunkItemLightweightWidgetState extends State<BookChunkItemLightweigh
       final uri = Uri.parse(url);
       await launchUrl(uri, mode: LaunchMode.externalApplication);
     } catch (e) {
-      print('Error launching URL: $e');
       // Show user-friendly error message
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -1124,7 +1121,6 @@ class _BookChunkItemLightweightWidgetState extends State<BookChunkItemLightweigh
     if (widget.chunk.chunkRefId == null) return;
     
     try {
-      print('📤 Opening share modal for chunk: ${widget.chunk.chunkRefId}');
       
       // Show share modal with options for copy text and share image
       showModalBottomSheet(
@@ -1145,7 +1141,6 @@ class _BookChunkItemLightweightWidgetState extends State<BookChunkItemLightweigh
         ),
       );
     } catch (e) {
-      print('📤 Share modal error: $e');
       
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -1164,7 +1159,6 @@ class _BookChunkItemLightweightWidgetState extends State<BookChunkItemLightweigh
     if (widget.chunk.chunkRefId == null) return;
     
     try {
-      print('📋 Copying chunk text: ${widget.chunk.chunkRefId}');
       
       // Get share repository and copy content to clipboard
       final shareRepo = Modular.get<ShareRepository>();
@@ -1180,7 +1174,6 @@ class _BookChunkItemLightweightWidgetState extends State<BookChunkItemLightweigh
             duration: const Duration(seconds: 2),
           ),
         );
-        print('📋 Copy successful for chunk: ${widget.chunk.chunkRefId}');
       } else if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -1192,7 +1185,6 @@ class _BookChunkItemLightweightWidgetState extends State<BookChunkItemLightweigh
         );
       }
     } catch (e) {
-      print('📋 Copy error: $e');
       
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -1211,7 +1203,6 @@ class _BookChunkItemLightweightWidgetState extends State<BookChunkItemLightweigh
     if (widget.chunk.chunkRefId == null) return;
     
     try {
-      print('🖼️ Sharing chunk as image: ${widget.chunk.chunkRefId}');
       
       // Show loading indicator
       if (mounted) {
@@ -1252,7 +1243,6 @@ class _BookChunkItemLightweightWidgetState extends State<BookChunkItemLightweigh
               duration: const Duration(seconds: 2),
             ),
           );
-          print('🖼️ Image share successful for chunk: ${widget.chunk.chunkRefId}');
         } else if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
@@ -1272,10 +1262,8 @@ class _BookChunkItemLightweightWidgetState extends State<BookChunkItemLightweigh
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
           ),
         );
-        print('🖼️ No formatted share content available for chunk: ${widget.chunk.chunkRefId}');
       }
     } catch (e) {
-      print('🖼️ Image share error: $e');
       
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -1294,7 +1282,6 @@ class _BookChunkItemLightweightWidgetState extends State<BookChunkItemLightweigh
     if (widget.chunk.chunkRefId == null) return;
     
     try {
-      print('🔖 Getting citation for chunk: ${widget.chunk.chunkRefId}');
       
       // Show loading indicator
       if (mounted) {
@@ -1331,7 +1318,6 @@ class _BookChunkItemLightweightWidgetState extends State<BookChunkItemLightweigh
             contentType: 'chunk',
           ),
         );
-        print('🔖 Citation modal displayed for chunk: ${widget.chunk.chunkRefId}');
       } else if (mounted) {
         // Show error message
         ScaffoldMessenger.of(context).showSnackBar(
@@ -1342,10 +1328,8 @@ class _BookChunkItemLightweightWidgetState extends State<BookChunkItemLightweigh
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
           ),
         );
-        print('🔖 No citation available for chunk: ${widget.chunk.chunkRefId}');
       }
     } catch (e) {
-      print('🔖 Citation error: $e');
       
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -1365,7 +1349,6 @@ class _BookChunkItemLightweightWidgetState extends State<BookChunkItemLightweigh
     
     try {
       final isCurrentlyBookmarked = _isBookmarked; // Use local state
-      print('🔖 ${isCurrentlyBookmarked ? 'Removing' : 'Adding'} bookmark for chunk: ${widget.chunk.chunkRefId}');
       
       // Optimistically update UI immediately for better user experience
       setState(() {
@@ -1396,9 +1379,7 @@ class _BookChunkItemLightweightWidgetState extends State<BookChunkItemLightweigh
         );
       }
       
-      print('🔖 Bookmark toggle successful');
     } catch (e) {
-      print('🔖 Bookmark toggle error: $e');
       
       // Revert the optimistic update on error
       setState(() {
@@ -1423,7 +1404,6 @@ class _BookChunkItemLightweightWidgetState extends State<BookChunkItemLightweigh
     if (widget.chunk.chunkRefId == null) return;
     
     try {
-      print('Navigate to ${isNext ? 'next' : 'previous'} chunk from ${widget.chunk.chunkRefId}');
       
       // Call BooksService navigation - now returns the new chunk
       final newChunk = await BooksService.instance.navigateChunk(widget.chunk.chunkRefId!, isNext);
@@ -1435,12 +1415,9 @@ class _BookChunkItemLightweightWidgetState extends State<BookChunkItemLightweigh
         } else if (!isNext && widget.onNavigatePrevious != null) {
           widget.onNavigatePrevious!();
         }
-        print('Navigation successful: ${widget.chunk.chunkRefId} -> ${newChunk.chunkRefId}');
       } else {
-        print('Navigation failed: No new chunk returned');
       }
     } catch (e) {
-      print('Navigation failed: $e');
     }
   }
 
@@ -1449,8 +1426,6 @@ class _BookChunkItemLightweightWidgetState extends State<BookChunkItemLightweigh
     if (widget.chunk.chunkRefId == null) return;
     
     try {
-      print('🔶 Loading augmentations for chunk: ${widget.chunk.chunkRefId}');
-      print('🔶 Source type: ${widget.chunk.sourceType}');
       
       // Show loading indicator
       ScaffoldMessenger.of(context).showSnackBar(
@@ -1478,7 +1453,6 @@ class _BookChunkItemLightweightWidgetState extends State<BookChunkItemLightweigh
       // Use developer mode service to get effective URL
       final baseUrl = DeveloperModeService.instance.getEffectiveApiUrl();
       final testUrl = '$baseUrl/chunk/auglist/${widget.chunk.chunkRefId}/';
-      print('🔶 Testing API URL: $testUrl');
       
       // Get repository and make API call
       final booksRepo = Modular.get<BooksRepository>();
@@ -1486,13 +1460,10 @@ class _BookChunkItemLightweightWidgetState extends State<BookChunkItemLightweigh
         chunkRefId: widget.chunk.chunkRefId.toString(),
       );
       
-      print('🔶 API Result status: ${result.status}');
-      print('🔶 API Result message: ${result.message}');
       
       if (result.status == DomainResultStatus.SUCCESS && result.data != null) {
         final augmentations = result.data!.augmentations;
         
-        print('🔶 Successfully loaded ${augmentations.length} augmentations');
         
         // Show beautiful modal with augmentations
         if (!mounted) return;
@@ -1505,12 +1476,10 @@ class _BookChunkItemLightweightWidgetState extends State<BookChunkItemLightweigh
         );
         
       } else {
-        print('🔶 API call failed with: ${result.message}');
         if (!mounted) return;
         _showErrorSnackBar('Debug: ${result.message}');
       }
     } catch (e) {
-      print('🔶 Exception in _handleSeeAugmentations: $e');
       if (!mounted) return;
       _showErrorSnackBar('Debug Error: $e');
     }
@@ -1521,7 +1490,6 @@ class _BookChunkItemLightweightWidgetState extends State<BookChunkItemLightweigh
     if (widget.chunk.chunkRefId == null) return;
     
     try {
-      print('🔸 Loading original for augmented chunk: ${widget.chunk.chunkRefId}');
       
       // Show loading indicator
       ScaffoldMessenger.of(context).showSnackBar(
@@ -1555,7 +1523,6 @@ class _BookChunkItemLightweightWidgetState extends State<BookChunkItemLightweigh
       if (result.status == DomainResultStatus.SUCCESS && result.data != null) {
         final originalChunk = result.data!.chunk;
         
-        print('🔸 Successfully loaded original chunk: ${originalChunk.chunkRefId}');
         
         // Show original chunk using our existing card widget in a simple modal
         if (!mounted) return;
@@ -1565,7 +1532,6 @@ class _BookChunkItemLightweightWidgetState extends State<BookChunkItemLightweigh
         _showErrorSnackBar('Failed to load original: ${result.message}');
       }
     } catch (e) {
-      print('🔸 Error loading original: $e');
       _showErrorSnackBar('Error loading original source');
     }
   }
@@ -1593,7 +1559,6 @@ class _BookChunkItemLightweightWidgetState extends State<BookChunkItemLightweigh
     if (currentChunk.chunkRefId == null) return;
     
     try {
-      print('🔀 Modal Navigation: ${isNext ? 'next' : 'previous'} from ${currentChunk.chunkRefId}');
       
       // Use BooksService to get the new chunk
       final newChunk = await BooksService.instance.navigateChunk(currentChunk.chunkRefId!, isNext);
@@ -1603,14 +1568,11 @@ class _BookChunkItemLightweightWidgetState extends State<BookChunkItemLightweigh
         Navigator.of(context).pop();
         await Future.delayed(const Duration(milliseconds: 100)); // Small delay for smooth transition
         _showOriginalChunkModal(newChunk);
-        print('🔀 Modal Navigation successful: ${currentChunk.chunkRefId} -> ${newChunk.chunkRefId}');
       } else {
-        print('🔀 Modal Navigation failed: No new chunk returned');
         // Show error message but don't close modal
         _showErrorSnackBar('No ${isNext ? 'next' : 'previous'} chunk available');
       }
     } catch (e) {
-      print('🔀 Modal Navigation error: $e');
       _showErrorSnackBar('Navigation failed');
     }
   }

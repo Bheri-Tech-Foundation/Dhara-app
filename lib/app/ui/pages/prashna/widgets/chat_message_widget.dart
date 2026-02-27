@@ -136,10 +136,6 @@ class _ChatMessageWidgetState extends State<ChatMessageWidget> {
     
     // Detect queryId changes for voting widget
     if (oldWidget.message.queryId != widget.message.queryId) {
-      print('🔄 QueryID CHANGED in ChatMessageWidget!');
-      print('   Old queryId: ${oldWidget.message.queryId}');
-      print('   New queryId: ${widget.message.queryId}');
-      print('   Triggering rebuild...');
       setState(() {
         // Force rebuild to show voting widget
       });
@@ -565,19 +561,6 @@ class _ChatMessageWidgetState extends State<ChatMessageWidget> {
                     
                     // Prashna Voting Widget (only for completed AI messages)
                     if (!message.isUser && message.isCompleted) ...[
-                      Builder(
-                        builder: (context) {
-                          print('═══════════════════════════════════════');
-                          print('🔍 CHAT MESSAGE DEBUG (Prashna Voting):');
-                          print('   Message ID: ${message.id}');
-                          print('   Is User: ${message.isUser}');
-                          print('   Is Completed: ${message.isCompleted}');
-                          print('   Query ID: ${message.queryId}');
-                          print('   Rendering PrashnaVotingWidget...');
-                          print('═══════════════════════════════════════');
-                          return const SizedBox.shrink();
-                        },
-                      ),
                       PrashnaVotingWidget(
                         key: ValueKey('voting_${message.id}_${message.queryId}'),
                         queryId: message.queryId,

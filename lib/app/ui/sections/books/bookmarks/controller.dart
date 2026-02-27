@@ -1,5 +1,3 @@
-import 'dart:developer';
-
 import 'package:dharak_flutter/app/domain/base/domain_result.dart';
 import 'package:dharak_flutter/app/domain/books/repo.dart';
 import 'package:dharak_flutter/app/types/books/book_chunk.dart';
@@ -40,7 +38,6 @@ class BookChunkBookmarksController extends Cubit<BookChunkBookmarksCubitState> {
       growable: true,
     );
     var index = removedChunkIds.indexWhere((e) => e == entity.chunkRefId);
-    print("onBookmarkToggle: 1. ${index} ${isToRemove}");
 
     if (index < 0 && isToRemove) {
       // print("onUpdatedCustomization index: ${index} qunatity:  ${addonsSelections[index].quantity} ${entity.quantity}");
@@ -52,8 +49,6 @@ class BookChunkBookmarksController extends Cubit<BookChunkBookmarksCubitState> {
 
       if (isUpdated) {
         removedChunkIds.add(entity.chunkRefId!);
-        print("onBookmarkToggle: 2");
-
         emit(state.copyWith(removedChunkIds: removedChunkIds));
       }
     } else if (index >= 0 && !isToRemove) {
@@ -65,8 +60,6 @@ class BookChunkBookmarksController extends Cubit<BookChunkBookmarksCubitState> {
         removedChunkIds.removeAt(index);
         emit(state.copyWith(removedChunkIds: removedChunkIds));
       }
-
-      print("onBookmarkToggle: 3");
     }
 
     // print("onBookmarkToggle: ")

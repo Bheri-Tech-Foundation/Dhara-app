@@ -8,14 +8,10 @@ class UtilColor {
    */
   static Color colorFor(String text) {
     var hash = 0;
-    print("colorFor $text");
     for (var i = 0; i < text.length; i++) {
-      print("colorFor ${text.codeUnitAt(i)} ${text.codeUnitAt(i) ~/ 2}");
       hash = text.codeUnitAt(i) ~/ 2 + ((hash << 5) - hash);
     }
-    print("colorFor: $hash ");
     final finalHash = hash.abs() % (256 * 256 * 256);
-    print("colorFor: $finalHash");
     final red = ((finalHash & 0xFF0000) >> 16);
     final blue = ((finalHash & 0xFF00) >> 8);
     final green = ((finalHash & 0xFF));

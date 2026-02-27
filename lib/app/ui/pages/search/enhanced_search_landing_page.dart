@@ -64,7 +64,6 @@ class _EnhancedSearchLandingPageState extends State<EnhancedSearchLandingPage>
     try {
       // Plugin setup check
     } catch (e) {
-      print('Plugin setup not yet complete, will retry...');
     }
     
     // Initialize controllers for each tab
@@ -371,7 +370,6 @@ class _EnhancedSearchLandingPageState extends State<EnhancedSearchLandingPage>
       // Use the plugin's search method (which calls your existing controller logic)
       await plugin.performSearch(query);
     } catch (e) {
-      print('Search error: $e');
     } finally {
       setState(() {
         _isSearching = false;

@@ -202,8 +202,6 @@ class BookChunkBookmarksModalState extends State<BookChunkBookmarksModal> {
               current.bookmarkedChunks != previous.bookmarkedChunks ||
               current.removedChunkIds != previous.removedChunkIds,
       builder: (context, state) {
-        print('🔖 BookChunkList: State - bookmarkedChunks: ${state.bookmarkedChunks?.length ?? 0}, isLoading: ${state.isLoading}, isInitialized: ${state.isInitialized}');
-        
         if (state.bookmarkedChunks == null || state.bookmarkedChunks!.isEmpty) {
           return Container(
             constraints: const BoxConstraints(minHeight: 220),

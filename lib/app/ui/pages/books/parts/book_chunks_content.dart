@@ -83,12 +83,7 @@ class _BookChunksContentWidgetState extends State<BookChunksContentWidget> {
       );
     }
 
-    // 🚀 PERFORMANCE: Use same pattern as WordDefine - simple Column for immediate display
-    // Unified tab should be instant like WordDefine, not progressive
-    final startTime = DateTime.now().millisecondsSinceEpoch;
-    print("🚀 UNIFIED BOOKS: Building ${widget.chunks.length} chunks instantly (like WordDefine) at ${startTime}ms");
-    
-    final result = SingleChildScrollView(
+    return SingleChildScrollView(
       physics: const NeverScrollableScrollPhysics(),
       child: Column(
         children: widget.chunks.map((chunk) {
@@ -116,11 +111,6 @@ class _BookChunksContentWidgetState extends State<BookChunksContentWidget> {
         }).toList(),
       ),
     );
-    
-    final endTime = DateTime.now().millisecondsSinceEpoch;
-    print("🚀 UNIFIED BOOKS: Completed building in ${endTime - startTime}ms");
-    
-    return result;
   }
 
   void _copyChunkToClipboard(BookChunkRM chunk) {
@@ -210,7 +200,6 @@ class _BookChunksContentWidgetState extends State<BookChunksContentWidget> {
         );
       }
     } catch (e) {
-      print('Error sharing chunk image: $e');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -223,8 +212,5 @@ class _BookChunksContentWidgetState extends State<BookChunksContentWidget> {
   }
 
   void _launchExternalUrl(String urlLink) async {
-    // Implementation depends on your URL launcher setup
-    // This is a placeholder - adjust based on your existing implementation
-    print('🔗 Launching external URL: $urlLink');
   }
 }

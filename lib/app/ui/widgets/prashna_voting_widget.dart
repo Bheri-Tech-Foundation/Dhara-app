@@ -63,7 +63,6 @@ class _PrashnaVotingWidgetState extends State<PrashnaVotingWidget> {
     });
 
     if (faithfulnessCache != null || relevanceCache != null || correctnessCache != null) {
-      print('✅ Restored Prashna vote states: F=$_faithfulnessVote, R=$_relevanceVote, C=$_correctnessVote');
     }
   }
 
@@ -97,27 +96,17 @@ class _PrashnaVotingWidgetState extends State<PrashnaVotingWidget> {
     final isScholarMode = TesterModeService.instance.isEnabled;
     final queryId = widget.queryId;
     
-    print('═══════════════════════════════════════');
-    print('🔍 PRASHNA VOTING WIDGET DEBUG:');
-    print('   Scholar Mode: $isScholarMode');
-    print('   Query ID: $queryId');
-    print('   Will show: ${isScholarMode && queryId != null}');
-    print('═══════════════════════════════════════');
     
     // Only show in Scholar Mode
     if (!isScholarMode) {
-      print('⚠️ Prashna voting hidden: Scholar Mode OFF');
       return const SizedBox.shrink();
     }
 
     // Must have queryId
     if (queryId == null) {
-      print('⚠️ Prashna voting hidden: No queryId');
       return const SizedBox.shrink();
     }
     
-    print('✅ Showing Prashna voting widget!');
-
 
     return Container(
       margin: const EdgeInsets.only(top: 12),
@@ -459,16 +448,13 @@ class _PrashnaVotingWidgetState extends State<PrashnaVotingWidget> {
         voteValue: voteValue,
       );
 
-      print('⭐ Submitting PRASHNA RATING: ${voteType.displayName} = ${voteValue.labelForType(voteType)} (${voteValue.numericValue})');
       final success = await _votingRepository.submitVote(voteRequest);
       
       // Visual feedback is handled by the colored border state
       // No toast needed - user can see their vote from the button color
       if (success) {
-        print('✅ ${voteType.displayName} rating submitted successfully');
       }
     } catch (e) {
-      print('❌ Failed to submit ${voteType.displayName} rating: $e');
       // Show error toast only for failures
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -494,9 +480,6 @@ class _PrashnaVotingWidgetState extends State<PrashnaVotingWidget> {
     
     if (widget.queryId == null) return;
 
-    print('🔵 STARTING PRASHNA FEEDBACK SUBMISSION...');
-    print('   QueryID: ${widget.queryId}');
-    print('   Feedback length: ${feedback.length} chars');
     
     setState(() {
       _isSubmittingFeedback = true;
@@ -508,17 +491,14 @@ class _PrashnaVotingWidgetState extends State<PrashnaVotingWidget> {
         feedbackText: feedback,
       );
 
-      print('💬 Calling API with: queryId=${widget.queryId}, v_type=feedback, vote="$feedback"');
       
       final success = await _votingRepository.submitVote(voteRequest).timeout(
         const Duration(seconds: 10),
         onTimeout: () {
-          print('⏱️ PRASHNA FEEDBACK TIMEOUT after 10 seconds!');
           throw TimeoutException('Request timed out');
         },
       );
       
-      print('🔵 API call completed. Success: $success');
       
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -538,7 +518,6 @@ class _PrashnaVotingWidgetState extends State<PrashnaVotingWidget> {
         }
       }
     } on TimeoutException catch (e) {
-      print('❌ TIMEOUT ERROR: $e');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -549,8 +528,6 @@ class _PrashnaVotingWidgetState extends State<PrashnaVotingWidget> {
         );
       }
     } catch (e, stackTrace) {
-      print('❌ PRASHNA FEEDBACK ERROR: $e');
-      print('📍 Stack trace: $stackTrace');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -561,7 +538,6 @@ class _PrashnaVotingWidgetState extends State<PrashnaVotingWidget> {
         );
       }
     } finally {
-      print('🔵 FINALLY block - resetting loading state');
       if (mounted) {
         setState(() {
           _isSubmittingFeedback = false;

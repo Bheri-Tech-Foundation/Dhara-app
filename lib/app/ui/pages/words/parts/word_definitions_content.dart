@@ -479,7 +479,6 @@ class _WordDefinitionsContentState extends State<WordDefinitionsContent> {
                   }
                 },
                 onClickShare: (widgetKey) {
-                  print('📤 WordDefine Share clicked: defId=${definitions[index].dictRefId}, text=${definitions[index].text.substring(0, 30)}...');
                   _showShareModal(
                     definitions[index].text,
                     definitions[index].dictRefId?.toString() ?? definitions[index].text.hashCode.toString(),
@@ -540,14 +539,12 @@ class _WordDefinitionsContentState extends State<WordDefinitionsContent> {
   }
 
   void _showShareModal(String text, String definitionId, [GlobalKey? widgetKey, dynamic definition]) {
-    print('📤 WordDefine _showShareModal called: defId=$definitionId, hasWidgetKey=${widgetKey != null}');
     try {
       ShareModal.show(
         context: context,
         themeColors: widget.themeColors,
         textToShare: text,
         onCopyText: () {
-          print('📤 WordDefine ShareModal onCopyText called');
           final dictRefId = int.tryParse(definitionId);
           if (dictRefId != null) {
             _copyDefinitionToClipboard(dictRefId);
@@ -556,14 +553,12 @@ class _WordDefinitionsContentState extends State<WordDefinitionsContent> {
           }
         },
         onShareImage: widgetKey != null && definition != null ? () {
-          print('📤 WordDefine ShareModal onShareImage called');
           _shareImage(widgetKey, definition);
         } : null,
         contentType: 'definition',
       );
-      print('📤 WordDefine ShareModal.show completed successfully');
     } catch (e) {
-      print('📤 WordDefine Error showing ShareModal: $e');
+      // ShareModal error handling
     }
   }
 
@@ -584,7 +579,6 @@ class _WordDefinitionsContentState extends State<WordDefinitionsContent> {
   }
 
   Future<void> _shareScreenContent() async {
-    print('📤 _shareScreenContent called for word definitions');
     try {
       final shareRepo = Modular.get<ShareRepository>();
       
@@ -602,7 +596,6 @@ class _WordDefinitionsContentState extends State<WordDefinitionsContent> {
       // Use the repaint boundary key for full screen capture
       final renderObject = _repaintBoundaryKey.currentContext?.findRenderObject();
       if (renderObject == null) {
-        print('📤 WordDefine Error: Could not find render object for screen content');
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text('Failed to capture screen for sharing')),
@@ -611,7 +604,6 @@ class _WordDefinitionsContentState extends State<WordDefinitionsContent> {
         return;
       }
 
-      print('📤 WordDefine Calling shareDefinitionAsImage for screen capture (including top overview)');
       final success = await shareRepo.shareDefinitionAsImage(
         widgetKey: _repaintBoundaryKey,
         definitionId: 'all_definitions',
@@ -620,14 +612,12 @@ class _WordDefinitionsContentState extends State<WordDefinitionsContent> {
       );
       
       if (success) {
-        print('📤 WordDefine Screen sharing successful (with word overview)');
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text('Screen shared successfully!')),
           );
         }
       } else {
-        print('📤 WordDefine Screen sharing failed');
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text('Failed to share screen image')),
@@ -635,7 +625,6 @@ class _WordDefinitionsContentState extends State<WordDefinitionsContent> {
         }
       }
     } catch (e) {
-      print('📤 WordDefine Error in _shareScreenContent: $e');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Failed to share screen image')),
@@ -645,14 +634,12 @@ class _WordDefinitionsContentState extends State<WordDefinitionsContent> {
   }
 
   Future<void> _shareImage(GlobalKey widgetKey, dynamic definition) async {
-    print('📤 WordDefine _shareImage called with widgetKey and definition');
     try {
       final shareRepo = Modular.get<ShareRepository>();
       
       // Get definition details from the definition object
       final renderObject = widgetKey.currentContext?.findRenderObject();
       if (renderObject == null) {
-        print('📤 WordDefine Error: Could not find render object for widget');
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text('Failed to capture definition for sharing')),
@@ -665,7 +652,6 @@ class _WordDefinitionsContentState extends State<WordDefinitionsContent> {
       final definitionId = definition.dictRefId?.toString() ?? definition.text.hashCode.toString();
       final definitionText = definition.text ?? '';
 
-      print('📤 WordDefine Calling shareDefinitionAsImage with ID: $definitionId');
       final success = await shareRepo.shareDefinitionAsImage(
         widgetKey: widgetKey,
         definitionId: definitionId,
@@ -674,14 +660,12 @@ class _WordDefinitionsContentState extends State<WordDefinitionsContent> {
       );
       
       if (success) {
-        print('📤 WordDefine Image sharing successful');
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text('Definition shared successfully!')),
           );
         }
       } else {
-        print('📤 WordDefine Image sharing failed');
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text('Failed to share definition image')),
@@ -689,7 +673,6 @@ class _WordDefinitionsContentState extends State<WordDefinitionsContent> {
         }
       }
     } catch (e) {
-      print('📤 WordDefine Error in _shareImage: $e');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Failed to share definition image')),

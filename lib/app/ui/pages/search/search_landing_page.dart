@@ -75,12 +75,10 @@ class SearchNavigationContext {
   static void setFromSearch(String route, String query) {
     _fromSearchFlags[route] = true;
     _searchQueries[route] = query;
-    print("🏷️ Set navigation context: $route from search with query: '$query'");
   }
   
   static bool isFromSearch(String route) {
     final result = _fromSearchFlags[route] ?? false;
-    print("🔍 Checking if $route is from search: $result");
     return result;
   }
   
@@ -91,20 +89,17 @@ class SearchNavigationContext {
   static void clearRoute(String route) {
     _fromSearchFlags.remove(route);
     _searchQueries.remove(route);
-    print("🧹 Cleared navigation context for: $route");
   }
   
   static void clearAll() {
     _fromSearchFlags.clear();
     _searchQueries.clear();
-    print("🧹 Cleared all navigation contexts");
   }
   
   // New methods for tracking active search module
   static void setActiveSearchModule(int moduleIndex) {
     _activeSearchModule = moduleIndex;
     _activeModuleColorNotifier.value = getActiveSearchModuleColor();
-    print("🎨 Set active search module: $moduleIndex with color: ${getActiveSearchModuleColor()}");
   }
   
   static int getActiveSearchModule() {
@@ -262,15 +257,12 @@ class _SearchLandingPageState extends State<SearchLandingPage>
         if (currentLanguage != null && currentLanguage != _lastLanguage) {
           _lastLanguage = currentLanguage;
           
-          print("🌐 VERSES CONTROLLER LISTENER: Language changed to '$currentLanguage'");
-          print("🌐 VERSES CONTROLLER LISTENER: Current tab: $_selectedTabIndex");
           
           // Check if we have QuickVerse results to refresh
           final quickVerseQuery = _tabSearchControllers[1]?.text.trim() ?? '';
           final hasQuickVerseResults = (_tabHasSearched[1] ?? false) && quickVerseQuery.isNotEmpty;
           
           if (hasQuickVerseResults) {
-            print("🔄 VERSES CONTROLLER LISTENER: Refreshing QuickVerse for query: '$quickVerseQuery'");
             
             // Show loading if currently on QuickVerse tab
             if (_selectedTabIndex == 1 && mounted) {
@@ -284,9 +276,7 @@ class _SearchLandingPageState extends State<SearchLandingPage>
             Future.delayed(const Duration(milliseconds: 500), () async {
               try {
                 await _searchInQuickVerse(quickVerseQuery);
-                print("✅ VERSES CONTROLLER LISTENER: QuickVerse refresh completed");
               } catch (e) {
-                print("❌ VERSES CONTROLLER LISTENER: Error refreshing QuickVerse: $e");
               } finally {
                 if (_selectedTabIndex == 1 && mounted) {
                   setState(() {
@@ -297,14 +287,11 @@ class _SearchLandingPageState extends State<SearchLandingPage>
               }
             });
           } else {
-            print("🔄 VERSES CONTROLLER LISTENER: No QuickVerse results to refresh");
           }
         }
       });
       
-      print("✅ Language change listener setup successfully");
     } catch (e) {
-      print("❌ Error setting up language change listener: $e");
     }
   }
 
@@ -397,30 +384,18 @@ class _SearchLandingPageState extends State<SearchLandingPage>
 
   Future<void> _searchInWordDefine(String query) async {
     try {
-      print("🔍 WordDefine: Starting search for '$query'");
-      print("🔍 WordDefine: Controller instance: ${wordDefineController.hashCode}, current state: ${wordDefineController.state}");
       
       // Sync the search text with the module controller
       wordDefineController.mSearchController.text = query;
       wordDefineController.onFormSearchTextChanged(query);
       
       await wordDefineController.onSearchDirectQuery(query);
-      print("🔍 WordDefine: Search completed, new state: ${wordDefineController.state}");
     } catch (e) {
-      print("❌ Error searching in WordDefine: $e");
     }
   }
 
   Future<void> _searchInQuickVerse(String query) async {
     try {
-      print("🔍 QuickVerse: Starting search for '$query'");
-      print("🔍 QuickVerse: Controller instance: ${versesController.hashCode}");
-      print("🔍 QuickVerse: Current state before search:");
-      print("  - isLoading: ${versesController.state.isLoading}");
-      print("  - formSearchText: '${versesController.state.formSearchText}'");
-      print("  - searchQuery: '${versesController.state.searchQuery}'");
-      print("  - verseList.length: ${versesController.state.verseList.length}");
-      print("  - searchSequestCounter: ${versesController.state.searchSequestCounter}");
       
       // Sync the search text with the module controller (but skip the debounced search)
       versesController.mSearchController.text = query;
@@ -429,48 +404,30 @@ class _SearchLandingPageState extends State<SearchLandingPage>
       versesController.onFormSearchTextChanged(query);
       
       // Only use direct query to avoid conflicts with debounced search
-      print("🔄 QuickVerse: Calling onSearchDirectQuery...");
       await versesController.onSearchDirectQuery(query);
       
-      print("✅ QuickVerse: Search completed!");
-      print("🔍 QuickVerse: Final state after search:");
-      print("  - isLoading: ${versesController.state.isLoading}");
-      print("  - formSearchText: '${versesController.state.formSearchText}'");
-      print("  - searchQuery: '${versesController.state.searchQuery}'");
-      print("  - verseList.length: ${versesController.state.verseList.length}");
-      print("  - searchSequestCounter: ${versesController.state.searchSequestCounter}");
     } catch (e) {
-      print("❌ Error searching in QuickVerse: $e");
-      print("❌ Stack trace: ${StackTrace.current}");
     }
   }
 
   Future<void> _searchInBooks(String query) async {
     try {
-      print("🔍 Books: Starting search for '$query'");
-      print("🔍 Books: Controller instance: ${booksController.hashCode}, current state: ${booksController.state}");
       
       // Sync the search text with the module controller
       booksController.mSearchController.text = query;
       booksController.onFormSearchTextChanged(query);
       
       await booksController.onSearchDirectQuery(query);
-      print("🔍 Books: Search completed, new state: ${booksController.state}");
     } catch (e) {
-      print("❌ Error searching in Books: $e");
     }
   }
 
   Future<void> _searchInUnified(String query) async {
     try {
-      print("🔍 Unified: Starting search for '$query'");
-      print("🔍 Unified: Controller instance: ${unifiedSearchController.hashCode}");
       
       // Use streaming search for instant results - no more duplicate calls!
       await unifiedSearchController.searchStreaming(query);
-      print("🔍 Unified: Search completed");
     } catch (e) {
-      print("❌ Error searching in Unified: $e");
     }
   }
 
@@ -659,7 +616,6 @@ class _SearchLandingPageState extends State<SearchLandingPage>
       ],
     );
   }
-
 
 
   Widget _buildWelcomeSection() {
@@ -1082,13 +1038,11 @@ class _SearchLandingPageState extends State<SearchLandingPage>
   
   void _switchToChatTab() {
     // Navigate to Chat tab for more AI tools
-    print("🔄 Switching to Chat tab for more AI tools");
     Modular.to.navigate('/chat');
   }
 
   void _navigateToAITool(String tool, String query) {
     // Navigate to specific AI tool
-    print("🤖 Navigating to AI tool: $tool with query: $query");
     
     if (context.mounted) {
       switch (tool) {
@@ -1333,7 +1287,6 @@ class _SearchLandingPageState extends State<SearchLandingPage>
             const SizedBox(height: TdResDimens.dp_50),
             
 
-            
             const SizedBox(height: TdResDimens.dp_50),
           ],
         ),
@@ -1368,11 +1321,6 @@ class _SearchLandingPageState extends State<SearchLandingPage>
   }
 
 
-
-
-
-
-
   void _navigateToFeature(String route, {String? query}) async {
     // Navigate to feature with query context
     final fullRoute = UiConstants.Routes.getRoutePath(route);
@@ -1389,40 +1337,30 @@ class _SearchLandingPageState extends State<SearchLandingPage>
         try {
           switch (route) {
             case '/word-define':
-              print("🔍 Executing WordDefine search for: '$query'");
               final wordDefineController = Modular.get<WordDefineController>();
               await wordDefineController.onSearchDirectQuery(query);
-              print("✅ WordDefine search completed");
               break;
               
             case '/verses':
-              print("🔍 Executing Verses search for: '$query'");
               final versesController = Modular.get<VersesController>();
               await versesController.onSearchDirectQuery(query);
-              print("✅ Verses search completed");
               break;
               
             case '/prashna':
-              print("🔍 Executing Prashna search for: '$query'");
               final prashnaController = Modular.get<PrashnaController>();
               prashnaController.messageController.text = query;
               prashnaController.onMessageChanged(query);
               await prashnaController.sendMessage();
-              print("✅ Prashna search completed");
               break;
               
             case '/books':
-              print("🔍 Executing Books search for: '$query'");
               final booksController = Modular.get<BooksController>();
               await booksController.onSearchDirectQuery(query);
-              print("✅ Books search completed");
               break;
               
             default:
-              print("❌ No search handler for route: $route");
           }
         } catch (e) {
-          print("Error executing search for $route: $e");
         }
       });
     } else {
@@ -1754,9 +1692,6 @@ class _SearchLandingPageState extends State<SearchLandingPage>
 
   Widget _buildContent() {
     final currentQuery = _tabSearchControllers[_selectedTabIndex]?.text ?? '';
-    if (kDebugMode) {
-      print("📱 _buildContent called: _isSearching=$_isSearching, _hasSearched=$_hasSearched, query='$currentQuery'");
-    }
     
     if (_isSearching) {
       return Center(
@@ -1779,11 +1714,9 @@ class _SearchLandingPageState extends State<SearchLandingPage>
     }
 
          if (!_hasSearched || currentQuery.isEmpty) {
-      if (kDebugMode) print("📱 _buildContent: Showing empty state");
        return _buildEmptyState();
      }
 
-    if (kDebugMode) print("📱 _buildContent: Showing embedded page for tab $_selectedTabIndex");
     return _buildEmbeddedPage();
   }
 
@@ -1878,12 +1811,10 @@ class _SearchLandingPageState extends State<SearchLandingPage>
   }
 
   Widget _buildEmbeddedPage() {
-    print("📱 _buildEmbeddedPage called for tab index: $_selectedTabIndex");
     
     // After search is performed, show the embedded page component with hidden search bar and welcome message
     switch (_selectedTabIndex) {
       case 0: // WordDefine
-        print("📱 Building embedded WordDefinePage");
         return WordDefinePage(
           mRequestArgs: WordDefineArgsRequest(
             default1: "embedded_search",
@@ -1892,7 +1823,6 @@ class _SearchLandingPageState extends State<SearchLandingPage>
           ),
         );
       case 1: // QuickVerse
-        print("📱 Building embedded VersesPage");
         return VersesPage(
           mRequestArgs: VersesArgsRequest(
             default1: "embedded_search",
@@ -1901,7 +1831,6 @@ class _SearchLandingPageState extends State<SearchLandingPage>
           ),
         );
       case 2: // Books
-        print("📱 Building embedded BooksPage");
         return BooksPage(
           mRequestArgs: BooksArgsRequest(
             default1: "embedded_search",
@@ -1910,10 +1839,8 @@ class _SearchLandingPageState extends State<SearchLandingPage>
           ),
         );
       case 3: // Unified
-        print("📱 Building embedded Unified Page");
         return _buildUnifiedPage();
       default:
-        print("📱 Building default module message");
         return Center(
           child: Text(
             'Select a module to search',
@@ -1926,23 +1853,17 @@ class _SearchLandingPageState extends State<SearchLandingPage>
   }
 
   Widget _buildModuleResults() {
-    print("📱 _buildModuleResults called for tab index: $_selectedTabIndex");
     
     switch (_selectedTabIndex) {
       case 0: // WordDefine
-        print("📱 Building WordDefine results");
         return _buildWordDefineResults();
       case 1: // QuickVerse
-        if (kDebugMode) print("📱 Building QuickVerse results");  
         return _buildQuickVerseResults();
       case 2: // Books
-        print("📱 Building Books results");
         return _buildBooksResults();
       case 3: // Unified
-        print("📱 Building Unified results");
         return _buildUnifiedResults();
       default:
-        print("📱 Building default module message");
         return Center(
           child: Text(
             'Select a module to search',
@@ -1957,12 +1878,6 @@ class _SearchLandingPageState extends State<SearchLandingPage>
   Widget _buildWordDefineResults() {
     try {
       // 🚀 PERFORMANCE FIX: Debug logging only in debug mode
-      if (kDebugMode) {
-        print("📱 _buildWordDefineResults called");
-        print("📱 WordDefine Controller Instance: ${wordDefineController.hashCode}");
-        print("📱 WordDefine Controller State: isLoading=${wordDefineController.state.isLoading}");
-        print("📱 WordDefine Controller State: definitions count=${wordDefineController.state.dictWordDefinitions?.details.definitions?.length ?? 0}");
-      }
       
       return BlocBuilder<WordDefineController, WordDefineCubitState>(
         bloc: wordDefineController,
@@ -1972,16 +1887,10 @@ class _SearchLandingPageState extends State<SearchLandingPage>
                  previous.dictWordDefinitions != current.dictWordDefinitions ||
                  previous.searchCounter != current.searchCounter;
           
-          if (kDebugMode && shouldRebuild) {
-            print("📱 WordDefine BlocBuilder rebuilding: loading=${current.isLoading}, defs=${current.dictWordDefinitions?.details.definitions?.length}");
-          }
           
           return shouldRebuild;
         },
         builder: (context, state) {
-          if (kDebugMode) {
-            print("📱 WordDefine BlocBuilder: isLoading=${state.isLoading}, definitions=${state.dictWordDefinitions?.details.definitions?.length ?? 0}");
-          }
           
           if (state.isLoading == true) {
             return Center(
@@ -1992,10 +1901,8 @@ class _SearchLandingPageState extends State<SearchLandingPage>
           }
 
           final definitions = state.dictWordDefinitions?.details.definitions ?? [];
-          print("📱 WordDefine: Found ${definitions.length} definitions");
           
           if (definitions.isEmpty) {
-            print("📱 WordDefine: Showing empty state");
             return Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -2024,7 +1931,6 @@ class _SearchLandingPageState extends State<SearchLandingPage>
             );
           }
           
-          print("📱 WordDefine: Building results list with ${definitions.length} items");
 
           return ListView.builder(
             padding: const EdgeInsets.all(16),
@@ -2083,16 +1989,10 @@ class _SearchLandingPageState extends State<SearchLandingPage>
                  previous.verseLanguagePref != current.verseLanguagePref ||
                  previous.searchSequestCounter != current.searchSequestCounter;
           
-          if (kDebugMode && shouldRebuild) {
-            print("📱 QuickVerse rebuilding: loading=${current.isLoading}, verses=${current.verseList.length}, lang=${current.verseLanguagePref?.output}");
-          }
           
           return shouldRebuild;
         },
         builder: (context, state) {
-          if (kDebugMode) {
-            print("📱 QuickVerse BlocBuilder: isLoading=${state.isLoading}, verses=${state.verseList.length}, lang=${state.verseLanguagePref?.output}");
-          }
           
           if (state.isLoading == true || (_selectedTabIndex == 1 && _isSearching)) {
             return Center(
@@ -2124,7 +2024,6 @@ class _SearchLandingPageState extends State<SearchLandingPage>
             );
           }
 
-          if (kDebugMode) print("🟢 QUICKVERSE: Building QuickVerse results with ${state.verseList.length} verses");
           return Column(
             children: [
               // Verses list
@@ -2368,10 +2267,6 @@ class _SearchLandingPageState extends State<SearchLandingPage>
             ),
           ),
           onSelected: (String value) async {
-            print("🌐 LANGUAGE SELECTOR: User selected language '$value'");
-            print("🌐 LANGUAGE SELECTOR: Current tab index: $_selectedTabIndex");
-            print("🌐 LANGUAGE SELECTOR: Tab search states: $_tabHasSearched");
-            print("🌐 LANGUAGE SELECTOR: Tab search queries: ${_tabSearchControllers.map((k, v) => MapEntry(k, v.text))}");
             
             // If we have verse results cached (regardless of current tab),
             // silently refresh the search with the new language BEFORE dashboard change
@@ -2379,8 +2274,6 @@ class _SearchLandingPageState extends State<SearchLandingPage>
             final hasQuickVerseResults = (_tabHasSearched[1] ?? false) && quickVerseQuery.isNotEmpty;
             
             if (hasQuickVerseResults) {
-              print("🔄 Language changing to '$value', refreshing verse search silently");
-              print("🔄 QuickVerse query: '$quickVerseQuery', isOnQuickVerseTab: ${_selectedTabIndex == 1}");
               
               // Show loading state only if currently on QuickVerse tab
               if (_selectedTabIndex == 1) {
@@ -2393,17 +2286,13 @@ class _SearchLandingPageState extends State<SearchLandingPage>
               try {
                 // First trigger the language change
                 dashboardController.onVerseLanguageChange(value);
-                print("🌐 LANGUAGE SELECTOR: Dashboard language change triggered");
                 
                 // Wait for language change to propagate
                 await Future.delayed(const Duration(milliseconds: 500));
                 
                 // Perform silent search in background with updated language
-                print("🔄 Performing silent verse search for query: '$quickVerseQuery'");
                 await _searchInQuickVerse(quickVerseQuery);
-                print("✅ Verse search refreshed for new language: $value");
               } catch (e) {
-                print("❌ Error refreshing verse search: $e");
               } finally {
                 // Reset searching state only if currently on QuickVerse tab
                 if (_selectedTabIndex == 1 && mounted) {
@@ -2419,7 +2308,6 @@ class _SearchLandingPageState extends State<SearchLandingPage>
             } else {
               // No cached results, just change language normally
               dashboardController.onVerseLanguageChange(value);
-              print("🌐 LANGUAGE SELECTOR: Dashboard language change triggered (no cached results)");
             }
           },
           itemBuilder: (context) => _getSupportedLanguages().entries.map<PopupMenuItem<String>>((entry) {
@@ -2519,7 +2407,6 @@ class _SearchLandingPageState extends State<SearchLandingPage>
   void _handlePreviousChunk(book) {
     if (book.chunkRefId == null) return;
     
-    print('🔍 Search: Navigate to previous chunk from: ${book.chunkRefId}');
     
     // Use BooksService to handle navigation
     final booksService = BooksService.instance;
@@ -2530,7 +2417,6 @@ class _SearchLandingPageState extends State<SearchLandingPage>
   void _handleNextChunk(book) {
     if (book.chunkRefId == null) return;
     
-    print('🔍 Search: Navigate to next chunk from: ${book.chunkRefId}');
     
     // Use BooksService to handle navigation
     final booksService = BooksService.instance;

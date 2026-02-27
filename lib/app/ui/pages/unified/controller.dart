@@ -5,7 +5,6 @@ import 'package:dharak_flutter/app/types/unified/unified_search_response.dart';
 import 'package:dharak_flutter/app/types/verse/language_pref.dart';
 import 'package:dharak_flutter/app/ui/pages/unified/cubit_states.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter/foundation.dart'; // 🚀 PERFORMANCE: Import for kDebugMode
 import 'package:flutter_modular/flutter_modular.dart';
 
 class UnifiedSearchController extends Cubit<UnifiedSearchCubitState> {
@@ -78,7 +77,7 @@ class UnifiedSearchController extends Cubit<UnifiedSearchCubitState> {
         
       }
     } catch (e) {
-      if (kDebugMode) print("💥 UNIFIED: Error refreshing verses with new language: $e");
+    
     }
   }
 
@@ -108,13 +107,9 @@ class UnifiedSearchController extends Cubit<UnifiedSearchCubitState> {
     UnifiedSplitsResponse? splits;
 
     try {
-      print("🔍 Starting real-time streaming search for: '$query'");
-      
       _streamSubscription = _apiRepo.searchStream(query).listen(
         (response) {
           try {
-            if (kDebugMode) print("📡 Received streaming data: type=${response.type}");
-            
             // Process each streaming response type
             switch (response.type) {
               case 'splits':
@@ -122,7 +117,7 @@ class UnifiedSearchController extends Cubit<UnifiedSearchCubitState> {
                   splits = UnifiedSplitsResponse.fromJson(
                     response.data as Map<String, dynamic>
                   );
-                  if (kDebugMode) print("✅ Splits received");
+                
                 }
                 break;
               
@@ -132,7 +127,7 @@ class UnifiedSearchController extends Cubit<UnifiedSearchCubitState> {
                     response.data as Map<String, dynamic>
                   );
                   definitions.add(newDef);
-                  if (kDebugMode) print("✅ Definition received for word: ${newDef.definitions?.details.word}");
+                
                 }
                 break;
               
@@ -141,27 +136,22 @@ class UnifiedSearchController extends Cubit<UnifiedSearchCubitState> {
                   verses = UnifiedVerseResponse.fromJson(
                     response.data as Map<String, dynamic>
                   );
-                  if (kDebugMode) print("✅ Verses received: ${verses?.verses.verses.length} verses");
                 } else if (response.data is List) {
                   verses = UnifiedVerseResponse.fromList(
                     response.data as List<dynamic>
                   );
-                  if (kDebugMode) print("✅ Verses received: ${verses?.verses.verses.length} verses");
                 }
                 break;
               
               case 'chunk':
-                final chunkReceiveTime = DateTime.now().millisecondsSinceEpoch;
                 if (response.data is Map<String, dynamic>) {
                   chunks = UnifiedChunkResponse.fromJson(
                     response.data as Map<String, dynamic>
                   );
-                  if (kDebugMode) print("✅ Chunks received: ${chunks?.chunks?.data.length} chunks at ${chunkReceiveTime}ms");
                 } else if (response.data is List) {
                   chunks = UnifiedChunkResponse.fromList(
                     response.data as List<dynamic>
                   );
-                  if (kDebugMode) print("✅ Chunks received: ${chunks?.chunks?.data.length} chunks at ${chunkReceiveTime}ms");
                 }
                 break;
             }
@@ -174,16 +164,12 @@ class UnifiedSearchController extends Cubit<UnifiedSearchCubitState> {
               chunks: chunks,
             );
 
-            final emitTime = DateTime.now().millisecondsSinceEpoch;
-            if (kDebugMode && chunks != null) print("📡 Emitting state with chunks at ${emitTime}ms");
-            
             emit(UnifiedSearchStreaming(
               query: query,
               partialResult: partialResult,
             ));
 
           } catch (e) {
-            print("❌ Error processing streaming response: $e");
           }
         },
         onDone: () {
@@ -195,11 +181,6 @@ class UnifiedSearchController extends Cubit<UnifiedSearchCubitState> {
             chunks: chunks,
           );
 
-          print("🔍 Streaming completed for '$query'");
-          print("   - Final definitions: ${definitions.length}");
-          print("   - Final verses: ${verses?.verses.verses.length ?? 0}");
-          print("   - Final chunks: ${chunks?.chunks?.data.length ?? 0}");
-
           if (finalResult.hasResults) {
             emit(UnifiedSearchSuccess(
               query: query,
@@ -210,7 +191,6 @@ class UnifiedSearchController extends Cubit<UnifiedSearchCubitState> {
           }
         },
         onError: (error) {
-          print("❌ Streaming search error: $error");
           emit(UnifiedSearchError(
             query: query,
             error: error.toString(),
@@ -219,7 +199,6 @@ class UnifiedSearchController extends Cubit<UnifiedSearchCubitState> {
       );
 
     } catch (e) {
-      print("❌ Unified streaming search controller error: $e");
       emit(UnifiedSearchError(
         query: query,
         error: e.toString(),

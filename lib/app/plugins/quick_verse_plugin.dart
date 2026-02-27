@@ -285,9 +285,6 @@ class QuickVersePlugin implements DharaPlugin {
             ),
           ),
           onSelected: (String value) async {
-            // Your existing language change logic would go here
-            // This would typically call your dashboard controller
-            print("Language changed to: $value");
           },
           itemBuilder: (context) => _getSupportedLanguages().entries.map<PopupMenuItem<String>>((entry) {
             return PopupMenuItem<String>(

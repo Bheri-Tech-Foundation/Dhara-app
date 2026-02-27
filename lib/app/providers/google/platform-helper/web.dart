@@ -19,7 +19,6 @@ class GoogleSignInPlatformHelper {
         // event.idToken
 
         inspect(event);
-        print("_googleSignInPlugin: $event");
 
         if (event != null && event.idToken != null) {
           onLoggedIn?.call(true);

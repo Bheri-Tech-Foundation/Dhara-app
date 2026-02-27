@@ -96,7 +96,6 @@ class AppModule extends Module {
       r.module('/', module: LabsModule());
     }
 
-    print("dashboardPath:  ${dashboardPath}");
     // r.child('/', child: (context) => AppDefaultPage());
 
     r.child(

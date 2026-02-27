@@ -53,7 +53,6 @@ class AuthApiRepo extends ApiRequest<ErrorDto> {
         success: false,
       );
     } catch (e) {
-      print('AuthApiRepo: Token refresh failed - $e');
       return RefreshTokenResponse(
         accessToken: null,
         success: false,

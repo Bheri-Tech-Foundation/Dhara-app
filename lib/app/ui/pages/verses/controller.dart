@@ -98,7 +98,6 @@ class VersesController extends Cubit<VersesCubitState> {
 
 
         if (index >= 0) {
-          print("mEventVerseBookmarkStarred: 2");
           var verses = List<VerseRM>.from(state.verseList);
           verses[index] = verses[index].copyWith(isStarred: value.$2);
 
@@ -128,16 +127,12 @@ class VersesController extends Cubit<VersesCubitState> {
 
     _mVerseLanguagePrefSubscription = mVersesRepo.mLanguagePrefObservable
         .listen((value) async {
-          print("🌐 VersesController LANGUAGE CHANGE: ${value?.output}");
-          print("🌐 Current state - formSearchText: '${state.formSearchText}', searchQuery: '${state.searchQuery}', verseList.length: ${state.verseList.length}");
           emit(state.copyWith(verseLanguagePref: value));
           
           // If we have verses displayed, refresh them with new language
           if (state.verseList.isNotEmpty) {
-            print("🔄 VersesController: Refreshing ${state.verseList.length} verses for language: ${value?.output}");
             await _refreshAllVersesForLanguageChange();
           } else {
-            print("⚠️ VersesController: Skipping refresh - no verses in list");
           }
         });
   }
@@ -153,14 +148,12 @@ class VersesController extends Cubit<VersesCubitState> {
 
     if (_searchPollingTimer != null) return;
 
-        print("startPolling -----: ");
 
     _searchPollingTimer ??= Timer.periodic(Duration(milliseconds: 1200), (_) {
       if (_latestText == null || _latestText!.length <= 3) return;
 
       if (_latestText != _lastSearchedText) {
         _lastSearchedText = _latestText;
-        print('Polling with: $_latestText');
         _loadListLineByLine(); // Your API call
       }
     });
@@ -168,7 +161,6 @@ class VersesController extends Cubit<VersesCubitState> {
 
   void stopPolling() {
 
-    print("stopPolling -----: ");
     _searchPollingTimer?.cancel();
     _searchPollingTimer = null;
   }
@@ -181,7 +173,6 @@ class VersesController extends Cubit<VersesCubitState> {
       if (_latestText != _lastSearchedText) {
         _lastSearchedText = _latestText;
       }
-      print('_loadListLineByLine after login: $_latestText');
       await _loadListLineByLine(); // Your API call
     }
   }
@@ -196,7 +187,6 @@ class VersesController extends Cubit<VersesCubitState> {
       // Set up a new timer
       _mSearchDebounce = Timer(const Duration(milliseconds: 500), () {
         // Perform your action here, e.g., API call
-        print('Debounced Input: $text');
         // TODO call api;
 
         _loadListLineByLine();
@@ -235,13 +225,10 @@ class VersesController extends Cubit<VersesCubitState> {
   }
 
   onFormSubmit() async {
-    print("🎯 QUICKVERSE: onFormSubmit called - current text: '${state.formSearchText}'");
     // Reset the last searched text to allow repeated searches of the same query
     _lastSearchedText = null;
-    print("🎯 QUICKVERSE: Reset _lastSearchedText, now calling _loadListLineByLine");
     // emit(state.copyWith(f))
     await _loadListLineByLine();
-    print("🎯 QUICKVERSE: _loadListLineByLine completed");
     // formValidate();
   }
 
@@ -250,7 +237,6 @@ class VersesController extends Cubit<VersesCubitState> {
    */
 
   _formCreate() {
-    print("_formCreate ....");
 
     stream.listen((value) {
       formValidate();
@@ -305,7 +291,6 @@ class VersesController extends Cubit<VersesCubitState> {
     //   growable: true,
     // );
     // var index = removedVersesIds.indexWhere((e) => e == entity.pk);
-    print("onBookmarkToggle: 1. ${entity.isStarred} ${isToRemove}");
 
     if ((entity.isStarred ?? false) && isToRemove) {
       // print("onUpdatedCustomization index: ${index} qunatity:  ${addonsSelections[index].quantity} ${entity.quantity}");
@@ -316,7 +301,6 @@ class VersesController extends Cubit<VersesCubitState> {
       );
 
       if (isUpdated) {
-        print("onBookmarkToggle: 2");
       }
     } else if (!(entity.isStarred ?? false) && !isToRemove) {
       var isUpdated = await _toggleBookmark(
@@ -328,7 +312,6 @@ class VersesController extends Cubit<VersesCubitState> {
       //   emit(state.copyWith(removedVersesIds: removedVersesIds));
       // }
 
-      print("onBookmarkToggle: 3");
     }
 
     // print("onBookmarkToggle: ")
@@ -365,7 +348,6 @@ class VersesController extends Cubit<VersesCubitState> {
 
     emit(state.copyWith(isLoading: false));
     if (result.status == DomainResultStatus.SUCCESS && result.data != null) {
-      print("getVerses: ${result}");
       // emit(state.copyWith(order: result.data));
       // ;
 
@@ -391,17 +373,14 @@ class VersesController extends Cubit<VersesCubitState> {
       );
       // print("getVerses 3: ${result.message}");
     }
-    print("getVerses 4: ${result}");
 
     return false;
   }
 
   Future<bool> _loadListLineByLine() async {
     var searchQuery = state.formSearchText;
-    print("🎯 QUICKVERSE: _loadListLineByLine called with searchQuery: '$searchQuery'");
 
     if (searchQuery == null) {
-      print("🎯 QUICKVERSE: searchQuery is null, returning false");
       return false;
     }
 
@@ -434,7 +413,6 @@ class VersesController extends Cubit<VersesCubitState> {
           return;
         }
         if (header != null) {
-          print("🎯 QUICKVERSE: _loadListLineByLine: header received ======================");
           emit(
             state.copyWith(
               verseList: [],
@@ -447,7 +425,6 @@ class VersesController extends Cubit<VersesCubitState> {
             ),
           );
         } else if (item != null) {
-          print("🎯 QUICKVERSE: _loadListLineByLine: item received, adding to list");
           var list = List<VerseRM>.from(state.verseList, growable: true);
           list.add(
             item.copyWith(
@@ -478,7 +455,6 @@ class VersesController extends Cubit<VersesCubitState> {
 
     emit(state.copyWith(isLoading: false));
     if (result.status == DomainResultStatus.SUCCESS && result.data != null) {
-      print("getVerses: ${result.status}");
       // emit(state.copyWith(order: result.data));
       // ;
 
@@ -497,7 +473,6 @@ class VersesController extends Cubit<VersesCubitState> {
     } else if (result.status == DomainResultStatus.ERROR) {
       // result.message
       // _lastSearchedText = null;
-      print("_loadListLineByLine error: ");
       // print("Error: ${}")
       emit(
         state.copyWith(
@@ -508,7 +483,6 @@ class VersesController extends Cubit<VersesCubitState> {
       );
       // print("getVerses 3: ${result.message}");
     }
-    print("getVerses 4: ${result}");
 
     return false;
   }
@@ -636,8 +610,6 @@ class VersesController extends Cubit<VersesCubitState> {
   /// Simply reapplies the current language preference to existing verses
   Future<void> _refreshAllVersesForLanguageChange() async {
     try {
-      print("🔄 _refreshAllVersesForLanguageChange: Applying new language to ${state.verseList.length} verses");
-      print("🔄 _refreshAllVersesForLanguageChange: Target language: ${state.verseLanguagePref?.output}");
       
       // Create a copy of the current verse list and apply new language
       var updatedVerses = <VerseRM>[];
@@ -657,7 +629,6 @@ class VersesController extends Cubit<VersesCubitState> {
         updatedVerses.add(updatedVerse);
       }
       
-      print("✅ _refreshAllVersesForLanguageChange: Applied new language to all ${updatedVerses.length} verses");
       
       // Update the state with refreshed verses
       emit(state.copyWith(
@@ -666,7 +637,6 @@ class VersesController extends Cubit<VersesCubitState> {
       ));
       
     } catch (e) {
-      print("💥 _refreshAllVersesForLanguageChange: Exception occurred: $e");
     }
   }
 

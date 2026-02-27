@@ -149,7 +149,5 @@ class _VersesContentWidgetState extends State<VersesContentWidget> {
   }
 
   void _handleShareImage(VerseRM verse, GlobalKey widgetKey) {
-    // Handle image sharing - implementation can be simple for now
-    print('🖼️ Share image for verse: ${verse.versePk}');
   }
 }

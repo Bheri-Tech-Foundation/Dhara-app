@@ -1112,22 +1112,17 @@ class _EnhancedQuickSearchPageState extends State<EnhancedQuickSearchPage>
 
   Widget _buildGeneralFeedbackButton(UnifiedSearchResult result, AppThemeColors themeColors) {
     final isScholarMode = TesterModeService.instance.isEnabled;
-    print('🔍 Scholar Mode enabled: $isScholarMode, queryId: ${result.queryId}');
-    
+
     // Only show in Scholar Mode
     if (!isScholarMode) {
-      print('⚠️ General feedback button hidden: Scholar Mode not enabled');
       return const SizedBox.shrink();
     }
     
     // Validate required data
     if (result.queryId == null) {
-      print('⚠️ General feedback button hidden: No queryId');
       return const SizedBox.shrink();
     }
-    
-    print('✅ Showing general feedback button for queryId: ${result.queryId}');
-    
+
     return Container(
       margin: const EdgeInsets.only(top: 24, bottom: 16),
       padding: const EdgeInsets.all(2),
@@ -1144,7 +1139,6 @@ class _EnhancedQuickSearchPageState extends State<EnhancedQuickSearchPage>
         color: Colors.transparent,
         child: InkWell(
           onTap: () {
-            print('📝 Opening general feedback modal for queryId: ${result.queryId}');
             _showGeneralFeedbackModal(result.queryId!);
           },
           borderRadius: BorderRadius.circular(12),
@@ -1696,7 +1690,6 @@ class _EnhancedQuickSearchContentState extends State<_EnhancedQuickSearchContent
           return state.bookResults.isNotEmpty;
       }
     } catch (e) {
-      print('⚠️ Error checking search history: $e');
       return false;
     }
   }
@@ -1713,10 +1706,8 @@ class _EnhancedQuickSearchContentState extends State<_EnhancedQuickSearchContent
       // If text is empty, check if we've performed searches in this mode before
       final hasPerformedSearches = _hasPerformedSearchInCurrentMode();
       if (hasPerformedSearches) {
-        print('🔍 Text cleared but keeping results state');
         return true; // Keep showing results state, not welcome
       } else {
-        print('🔍 No search query and no previous searches, showing welcome state');
         return false;
       }
     }
@@ -1725,37 +1716,34 @@ class _EnhancedQuickSearchContentState extends State<_EnhancedQuickSearchContent
     try {
       switch (widget.currentSearchMode) {
         case QuickSearchMode.unified:
-          // CRITICAL FIX: Check if we're inside a BlocBuilder and can access the current state
           if (_currentUnifiedState != null) {
-            final hasResults = _currentUnifiedState!.searchResults.isNotEmpty;
-            print('🔍 Unified mode - query: "$query", hasResults: $hasResults, resultsCount: ${_currentUnifiedState!.searchResults.length}');
-            print('🔍 UnifiedState searchCounter: ${_currentUnifiedState!.searchCounter}');
-            return hasResults;
+            final s = _currentUnifiedState!;
+            if (s.isLoading || s.isStreaming || s.error != null || s.searchResults.isNotEmpty) {
+              return true;
+            }
+            return false;
           } else {
-            // Fallback to Modular.get
             final unifiedController = Modular.get<UnifiedController>();
-            final hasResults = unifiedController.state.searchResults.isNotEmpty;
-            print('🔍 Unified mode (fallback) - query: "$query", hasResults: $hasResults, resultsCount: ${unifiedController.state.searchResults.length}');
-            return hasResults;
+            final s = unifiedController.state;
+            if (s.isLoading || s.isStreaming || s.error != null || s.searchResults.isNotEmpty) {
+              return true;
+            }
+            return false;
           }
         case QuickSearchMode.dictionary:
           final quickSearchController = Modular.get<QuickSearchController>();
           final hasResults = quickSearchController.state.wordDefineResult != null;
-          print('🔍 Dictionary mode - query: "$query", hasResults: $hasResults');
           return hasResults;
         case QuickSearchMode.verse:
           final quickSearchController = Modular.get<QuickSearchController>();
           final hasResults = quickSearchController.state.verseResults.isNotEmpty;
-          print('🔍 Verse mode - query: "$query", hasResults: $hasResults');
           return hasResults;
         case QuickSearchMode.books:
           final quickSearchController = Modular.get<QuickSearchController>();
           final hasResults = quickSearchController.state.bookResults.isNotEmpty;
-          print('🔍 Books mode - query: "$query", hasResults: $hasResults');
           return hasResults;
       }
     } catch (e) {
-      print('🔍 Error checking results: $e');
       // If controllers aren't available yet, default to false
       return false;
     }
@@ -2791,13 +2779,21 @@ class _EnhancedQuickSearchContentState extends State<_EnhancedQuickSearchContent
   Widget _buildUnifiedContent() {
     return BlocBuilder<UnifiedController, UnifiedState>(
       builder: (context, state) {
+        final themeColors = Theme.of(context).extension<AppThemeColors>()!;
+
+        // Loading state (no results yet at all)
+        if (state.isLoading && state.searchResults.isEmpty) {
+          return _buildSearchLoadingState(themeColors);
+        }
+
+        // Error state (no results to fall back on)
+        if (state.error != null && state.searchResults.isEmpty) {
+          return _buildSearchErrorState(state.error!, state.currentQuery, themeColors);
+        }
+
+        // No results after search completed
         if (state.searchResults.isEmpty && !state.isLoading) {
-          return const Center(
-            child: Text(
-              'Start your unified search above',
-              style: TextStyle(fontSize: 16, color: Colors.grey),
-            ),
-          );
+          return _buildNoResultsState(state.currentQuery, themeColors);
         }
 
         // Separate current and previous results
@@ -2814,9 +2810,26 @@ class _EnhancedQuickSearchContentState extends State<_EnhancedQuickSearchContent
             .where((result) => result.searchSessionId < mostRecentSessionId)
             .toList();
 
+        // Check if current results have any actual displayable content
+        final currentHasContent = currentResults.any((r) => r.hasAnyResults);
+
+        // Results exist but have no displayable content yet — still streaming
+        if (!currentHasContent && (state.isLoading || state.isStreaming)) {
+          return _buildSearchLoadingState(themeColors);
+        }
+
+        // Streaming finished but no actual content found
+        if (!currentHasContent && !state.isLoading && !state.isStreaming) {
+          return _buildNoResultsState(state.currentQuery, themeColors);
+        }
+
         return ListView(
           padding: const EdgeInsets.all(16),
           children: [
+            // Show error banner at top if error occurred but previous results exist
+            if (state.error != null)
+              _buildErrorBanner(state.error!, themeColors),
+
             // Current Search Results Section
             if (currentResults.isNotEmpty) ...[
               _buildUnifiedSectionHeader('Current Search', Icons.search, currentResults.length),
@@ -2825,7 +2838,7 @@ class _EnhancedQuickSearchContentState extends State<_EnhancedQuickSearchContent
               
               // General feedback button after all current search results
               if (currentResults.isNotEmpty)
-                _buildGeneralFeedbackButton(currentResults.first, Theme.of(context).extension<AppThemeColors>()!),
+                _buildGeneralFeedbackButton(currentResults.first, themeColors),
             ],
             
             // Previous Searches Section (Expandable)
@@ -2836,6 +2849,202 @@ class _EnhancedQuickSearchContentState extends State<_EnhancedQuickSearchContent
           ],
         );
       },
+    );
+  }
+
+  Widget _buildSearchLoadingState(AppThemeColors themeColors) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(48),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            SizedBox(
+              width: 48,
+              height: 48,
+              child: CircularProgressIndicator(
+                strokeWidth: 3,
+                color: widget.currentSearchMode.color,
+              ),
+            ),
+            const SizedBox(height: 24),
+            Text(
+              'Searching...',
+              style: TdResTextStyles.h4.copyWith(
+                color: themeColors.onSurface,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Looking across definitions, verses, and books',
+              style: TextStyle(
+                fontSize: 14,
+                color: themeColors.onSurface.withOpacity(0.6),
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSearchErrorState(String error, String query, AppThemeColors themeColors) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(48),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.red.withOpacity(0.1),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                Icons.error_outline_rounded,
+                size: 48,
+                color: Colors.red.shade400,
+              ),
+            ),
+            const SizedBox(height: 24),
+            Text(
+              'Something went wrong',
+              style: TdResTextStyles.h4.copyWith(
+                color: themeColors.onSurface,
+                fontWeight: FontWeight.w600,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 8),
+            Text(
+              query.isNotEmpty
+                  ? 'Could not complete the search for "$query". Please check your connection and try again.'
+                  : 'An unexpected error occurred. Please try again.',
+              style: TextStyle(
+                fontSize: 14,
+                color: themeColors.onSurface.withOpacity(0.7),
+                height: 1.5,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 24),
+            OutlinedButton.icon(
+              onPressed: () {
+                if (query.isNotEmpty) {
+                  Modular.get<UnifiedController>().searchUnified(query, forceRefresh: true);
+                }
+              },
+              icon: const Icon(Icons.refresh, size: 18),
+              label: const Text('Retry'),
+              style: OutlinedButton.styleFrom(
+                foregroundColor: widget.currentSearchMode.color,
+                side: BorderSide(color: widget.currentSearchMode.color),
+                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildNoResultsState(String query, AppThemeColors themeColors) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(48),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.orange.withOpacity(0.1),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                Icons.cloud_off_rounded,
+                size: 48,
+                color: Colors.orange.shade400,
+              ),
+            ),
+            const SizedBox(height: 24),
+            Text(
+              'Couldn\'t load results',
+              style: TdResTextStyles.h4.copyWith(
+                color: themeColors.onSurface,
+                fontWeight: FontWeight.w600,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 8),
+            Text(
+              query.isNotEmpty
+                  ? 'Results for "$query" could not be loaded right now. This may be due to a connection issue or a temporary server problem.'
+                  : 'Something went wrong while loading. Please try again.',
+              style: TextStyle(
+                fontSize: 14,
+                color: themeColors.onSurface.withOpacity(0.7),
+                height: 1.5,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 24),
+            OutlinedButton.icon(
+              onPressed: () {
+                if (query.isNotEmpty) {
+                  Modular.get<UnifiedController>().searchUnified(query, forceRefresh: true);
+                }
+              },
+              icon: const Icon(Icons.refresh, size: 18),
+              label: const Text('Try Again'),
+              style: OutlinedButton.styleFrom(
+                foregroundColor: widget.currentSearchMode.color,
+                side: BorderSide(color: widget.currentSearchMode.color),
+                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildErrorBanner(String error, AppThemeColors themeColors) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      decoration: BoxDecoration(
+        color: Colors.red.withOpacity(0.08),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.red.withOpacity(0.2)),
+      ),
+      child: Row(
+        children: [
+          Icon(Icons.warning_amber_rounded, color: Colors.red.shade400, size: 20),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              'Latest search encountered an error. Showing previous results.',
+              style: TextStyle(
+                fontSize: 13,
+                color: themeColors.onSurface.withOpacity(0.8),
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -2963,14 +3172,7 @@ class _EnhancedQuickSearchContentState extends State<_EnhancedQuickSearchContent
 
   Widget _buildGeneralFeedbackButton(UnifiedSearchResult result, AppThemeColors themeColors) {
     final isScholarMode = TesterModeService.instance.isEnabled;
-    
-    print('═══════════════════════════════════════');
-    print('🔍 FEEDBACK SECTION DEBUG (Shodh Screen):');
-    print('   Scholar Mode: $isScholarMode');
-    print('   Query ID: ${result.queryId}');
-    print('   Will show section: ${isScholarMode && result.queryId != null}');
-    print('═══════════════════════════════════════');
-    
+
     // Only show in Scholar Mode
     if (!isScholarMode) {
       return const SizedBox.shrink();
@@ -3560,16 +3762,11 @@ class _EnhancedQuickSearchContentState extends State<_EnhancedQuickSearchContent
               BlocBuilder<DashboardController, DashboardCubitState>(
                 bloc: Modular.get<DashboardController>(),
                 buildWhen: (previous, current) {
-                  print("🔄 QUICKVERSE: buildWhen - prev: ${previous.verseLanguagePref?.output}, curr: ${current.verseLanguagePref?.output}");
                   return current.verseLanguagePref != previous.verseLanguagePref;
                 },
                 builder: (context, state) {
                   final currentLanguage = state.verseLanguagePref?.output ?? VersesConstants.LANGUAGE_DEFAULT;
-                  print("🔄 QUICKVERSE: BlocBuilder rebuilding - currentLanguage: $currentLanguage");
-                  print("🔄 QUICKVERSE: Raw state.verseLanguagePref: ${state.verseLanguagePref}");
-                  print("🔄 QUICKVERSE: State verseLanguagePref output: ${state.verseLanguagePref?.output}");
-                  print("🔄 QUICKVERSE: Using fallback to default: ${state.verseLanguagePref?.output == null}");
-                  
+
                   final themeColors = AppThemeColors.seedColor(
                     seedColor: Theme.of(context).colorScheme.primary,
                     isDark: Theme.of(context).brightness == Brightness.dark,
@@ -3604,7 +3801,6 @@ class _EnhancedQuickSearchContentState extends State<_EnhancedQuickSearchContent
                       ),
                     ),
                     onSelected: (String value) {
-                      print("🎯 QUICKVERSE: User selected language '$value' from dropdown");
                       Modular.get<DashboardController>().onVerseLanguageChange(value);
                     },
                     itemBuilder: (context) {
@@ -4070,9 +4266,7 @@ class _EnhancedQuickSearchContentState extends State<_EnhancedQuickSearchContent
   /// 🔄 Handle previous chunk navigation
   void _handlePreviousChunk(bookChunk) {
     if (bookChunk.chunkRefId == null) return;
-    
-    print('⚡ Enhanced QuickSearch: Navigate to previous chunk from: ${bookChunk.chunkRefId}');
-    
+
     // Use BooksService to handle navigation
     final booksService = BooksService.instance;
     booksService.navigateChunk(bookChunk.chunkRefId!, false);
@@ -4081,9 +4275,7 @@ class _EnhancedQuickSearchContentState extends State<_EnhancedQuickSearchContent
   /// ⏭️ Handle next chunk navigation  
   void _handleNextChunk(bookChunk) {
     if (bookChunk.chunkRefId == null) return;
-    
-    print('⚡ Enhanced QuickSearch: Navigate to next chunk from: ${bookChunk.chunkRefId}');
-    
+
     // Use BooksService to handle navigation
     final booksService = BooksService.instance;
     booksService.navigateChunk(bookChunk.chunkRefId!, true);
@@ -4134,7 +4326,6 @@ class _FeedbackSectionState extends State<_FeedbackSection> {
         value: 'general_feedback', // Distinguish from missing resources using value
       );
 
-      print('💬 Submitting GENERAL FEEDBACK: queryId=${widget.queryId}, itemId=feed_back, value=general_feedback');
       await votingRepository.submitVote(voteRequest);
 
       if (mounted) {

@@ -51,7 +51,6 @@ class CitationShareService {
         _showErrorSnackbar(context, 'Citation not available for this definition');
       }
     } catch (e) {
-      print('Citation error: $e'); // Debug log
       _showErrorSnackbar(context, 'Citation service temporarily unavailable');
     }
   }
@@ -112,7 +111,6 @@ class CitationShareService {
         ),
       );
     } catch (e) {
-      print('Verse citation error: $e'); // Debug log
       _showErrorSnackbar(context, 'Citation service temporarily unavailable');
     }
   }

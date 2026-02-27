@@ -1,10 +1,11 @@
 import 'dart:async';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:logger/logger.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-/// Tester Mode Service - Manages tester mode state for voting/feedback
-/// Allows users to provide testing feedback on search results
+/// Tester Mode Service - Manages tester mode state for voting/feedback.
+/// Only available on the web platform; always disabled on mobile.
 class TesterModeService {
   static final TesterModeService _instance = TesterModeService._internal();
   static TesterModeService get instance => _instance;
@@ -16,10 +17,10 @@ class TesterModeService {
   
   // ===== STATE =====
   bool _isEnabled = false;
-  bool get isEnabled => _isEnabled;
+  bool get isEnabled => kIsWeb && _isEnabled;
   
   final BehaviorSubject<bool> _testerModeSubject = BehaviorSubject.seeded(false);
-  Stream<bool> get testerModeStream => _testerModeSubject.stream;
+  Stream<bool> get testerModeStream => _testerModeSubject.stream.map((v) => kIsWeb && v);
   
   // ===== CONSTANTS =====
   static const String _testerModeEnabledKey = 'tester_mode_enabled';
@@ -27,8 +28,12 @@ class TesterModeService {
   
   // ===== INITIALIZATION =====
   
-  /// Initialize tester mode service
+  /// Initialize tester mode service (web only)
   Future<void> initialize() async {
+    if (!kIsWeb) {
+      _logger.d('⏭️ TesterModeService skipped - not on web platform');
+      return;
+    }
     try {
       await _loadSettings();
       _logger.d('✅ TesterModeService initialized - enabled: $_isEnabled');
@@ -84,8 +89,9 @@ class TesterModeService {
   
   // ===== TESTER MODE METHODS =====
   
-  /// Enable tester mode
+  /// Enable tester mode (web only)
   Future<void> enable() async {
+    if (!kIsWeb) return;
     _isEnabled = true;
     _testerModeSubject.add(true);
     await _saveSettings();
@@ -94,14 +100,16 @@ class TesterModeService {
   
   /// Disable tester mode
   Future<void> disable() async {
+    if (!kIsWeb) return;
     _isEnabled = false;
     _testerModeSubject.add(false);
     await _saveSettings();
     _logger.d('🧪 Tester mode disabled');
   }
   
-  /// Toggle tester mode
+  /// Toggle tester mode (web only)
   Future<void> toggle() async {
+    if (!kIsWeb) return;
     if (_isEnabled) {
       await disable();
     } else {
@@ -109,8 +117,9 @@ class TesterModeService {
     }
   }
   
-  /// Set tester mode to specific value
+  /// Set tester mode to specific value (web only)
   Future<void> setEnabled(bool enabled) async {
+    if (!kIsWeb) return;
     if (enabled) {
       await enable();
     } else {

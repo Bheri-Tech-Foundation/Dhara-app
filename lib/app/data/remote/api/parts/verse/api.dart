@@ -1,5 +1,3 @@
-import 'dart:developer';
-
 import 'package:dharak_flutter/app/data/remote/api/base/api_request.dart';
 import 'package:dharak_flutter/app/data/remote/api/base/api_response.dart';
 import 'package:dharak_flutter/app/data/remote/api/base/dto/error_dto.dart';
@@ -47,7 +45,6 @@ class VerseApiRepo extends ApiRequest<ErrorDto> {
       // inspect(result2);
       return ApiResponse.success(data: result2);
     } else if (result.error != null) {
-      inspect(result);
       return ApiResponse.error(
         data: null,
 
@@ -172,32 +169,27 @@ class VerseApiRepo extends ApiRequest<ErrorDto> {
         if (jsonMap != null && jsonMap.isNotEmpty) {
           try {
             final dataType = jsonMap["data_type"];
-            print("line: ${dataType}");
 
             if (dataType == null || dataType is! String) return;
 
-            switch (dataType as String) {
+            switch (dataType) {
               case "head":
-                inspect(jsonMap);
                 onItem.call(header: VerseHeadRM.fromJson(jsonMap));
                 break;
               case "verse":
+                VerseDtoConverter.normalizeVerseJson(jsonMap);
                 onItem.call(item: VerseRM.fromJson(jsonMap));
                 break;
               case "foot":
                 onItem.call(footer: VerseFootRM.fromJson(jsonMap));
                 break;
               case "info":
-                // Handle new info type from v2 API - just log it for now
-                print("Info data type received: $jsonMap");
                 break;
               default:
-                print("Unknown data type: $dataType");
+                break;
             }
-          } catch (e) {
-            inspect(jsonMap);
-            print("JSON Parsing Error: ${e}");
-            // print("${jsonMap}")
+          } catch (_) {
+            // Skip malformed entries
           }
         }
       },

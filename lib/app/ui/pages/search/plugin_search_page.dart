@@ -276,7 +276,6 @@ class _PluginSearchPageState extends State<PluginSearchPage>
       // Use the plugin's search method (which calls your existing controller logic)
       await plugin.performSearch(query);
     } catch (e) {
-      print('Search error: $e');
     } finally {
       setState(() {
         _isSearching = false;

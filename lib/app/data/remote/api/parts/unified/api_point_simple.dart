@@ -18,8 +18,6 @@ class UnifiedSearchApiPointSimple {
     final uri = Uri.parse('$_baseUrl/quick_search/');
     final url = uri.replace(queryParameters: {'query': query}).toString();
 
-    print("🔍 Unified search URL: $url");
-
     try {
       final response = await _dio.get(
         url,
@@ -49,8 +47,7 @@ class UnifiedSearchApiPointSimple {
               final json = jsonDecode(trimmedLine) as Map<String, dynamic>;
               yield UnifiedSearchResponse.fromJson(json);
             } catch (e) {
-              print("❌ Error parsing unified search line: $e");
-              print("❌ Problematic line: $trimmedLine");
+              // Skip unparseable lines
             }
           }
         }
@@ -62,11 +59,10 @@ class UnifiedSearchApiPointSimple {
           final json = jsonDecode(buffer.trim()) as Map<String, dynamic>;
           yield UnifiedSearchResponse.fromJson(json);
         } catch (e) {
-          print("❌ Error parsing final unified search buffer: $e");
+          // Skip unparseable final buffer
         }
       }
     } catch (e) {
-      print("❌ Unified search error: $e");
       rethrow;
     }
   }
@@ -87,8 +83,6 @@ class UnifiedSearchApiPointSimple {
                 splits = UnifiedSplitsResponse.fromJson(
                   response.data as Map<String, dynamic>
                 );
-              } else {
-                print("⚠️ Splits data is not a Map: ${response.data.runtimeType}");
               }
               break;
             
@@ -97,13 +91,10 @@ class UnifiedSearchApiPointSimple {
                 definitions.add(UnifiedDefinitionResponse.fromJson(
                   response.data as Map<String, dynamic>
                 ));
-              } else {
-                print("⚠️ Definition data is not a Map: ${response.data.runtimeType}");
               }
               break;
             
             case 'verse':
-            print("🔍 Found verse data: ${response.data}");
               try {
                 if (response.data is Map<String, dynamic>) {
                   verses = UnifiedVerseResponse.fromJson(
@@ -114,13 +105,9 @@ class UnifiedSearchApiPointSimple {
                   verses = UnifiedVerseResponse.fromList(
                     response.data as List<dynamic>
                   );
-                } else {
-                  print("⚠️ Verse data is not a Map or List: ${response.data.runtimeType}");
                 }
               } catch (e, stackTrace) {
-                print("❌ Detailed verse processing error: $e");
-                print("📍 Stack trace: $stackTrace");
-                print("📄 Raw verse data: ${response.data}");
+                // Verse processing error
               }
               break;
             
@@ -134,22 +121,17 @@ class UnifiedSearchApiPointSimple {
                 chunks = UnifiedChunkResponse.fromList(
                   response.data as List<dynamic>
                 );
-              } else {
-                print("⚠️ Chunk data is not a Map or List: ${response.data.runtimeType}");
               }
               break;
             
             default:
-              print("⚠️ Unknown unified response type: ${response.type}");
               break;
           }
         } catch (e) {
-          print("❌ Error processing response type ${response.type}: $e");
-          print("❌ Response data: ${response.data}");
+          // Error processing response
         }
       }
     } catch (e) {
-      print("❌ Error processing unified search: $e");
       rethrow;
     }
 

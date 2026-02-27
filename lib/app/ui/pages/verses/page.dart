@@ -171,8 +171,6 @@ class VersesPageState extends State<VersesPage> {
               (previous, current) =>
                   previous.loginCounter != current.loginCounter,
           listener: (context, state) {
-            print("operate====================");
-            print("loginCounter: ${state.loginCounter}");
             // _showToast(state.message ?? "");
           },
         ),
@@ -186,10 +184,6 @@ class VersesPageState extends State<VersesPage> {
           listener: (context, state) {
             if (state.verseList != null && state.listReplacedCounter > 0) {
               _mVerseList = state.verseList;
-              print(
-                "mEventVerseBookmarkStarred: listener, ${state.verseList.firstOrNull?.isStarred}",
-              );
-
               // if(_mVerseList.length)
               listKey.currentState?.removeAllItems((
                 BuildContext context,
@@ -243,10 +237,6 @@ class VersesPageState extends State<VersesPage> {
                       current.listIndexUpdatedCounter),
           listener: (context, state) {
             if (state.verseList != null) {
-              print(
-                "mEventVerseBookmarkStarred: listener, ${state.verseList.firstOrNull?.isStarred}",
-              );
-
               if (state.listIndexUpdatedCounter.$1 >= 0) {
                 listKey.currentState?.setState(() {
                   _mVerseList[state.listIndexUpdatedCounter.$1] =
@@ -292,7 +282,6 @@ class VersesPageState extends State<VersesPage> {
   }
 
   void launchExternalUrl(String? urlLink) {
-    print("canLaunchUrl 1: ${urlLink}");
     if (urlLink != null) {
       var uriLinkUri = Uri.parse(urlLink!);
       launchUrl(uriLinkUri);
@@ -766,7 +755,6 @@ class VersesPageState extends State<VersesPage> {
   }
 
   void _showToast(String message) {
-    print("_showToast : verses ${message}");
     if (message.isEmpty) {
       return;
     }

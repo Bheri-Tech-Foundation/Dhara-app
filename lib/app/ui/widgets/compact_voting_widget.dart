@@ -52,9 +52,7 @@ class _CompactVotingWidgetState extends State<CompactVotingWidget> {
     );
 
     if (cachedVote != null) {
-      // Convert cached vote string to VoteValue
       _selectedVote = _voteStringToVoteValue(cachedVote);
-      print('✅ Restored vote state for ${widget.contentType.name}: $_selectedVote');
     }
   }
 
@@ -83,7 +81,6 @@ class _CompactVotingWidgetState extends State<CompactVotingWidget> {
 
     // Validate required data
     if (widget.queryId == null || widget.itemId == null || widget.refId == null) {
-      print('⚠️ CompactVotingWidget: Missing required data - queryId: ${widget.queryId}, itemId: ${widget.itemId}, refId: ${widget.refId}');
       return const SizedBox.shrink();
     }
 
@@ -279,17 +276,9 @@ class _CompactVotingWidgetState extends State<CompactVotingWidget> {
         vote: voteValue.numericValue.toString(),
       );
 
-      print('✅ Submitting vote: itemId=${widget.itemId}, queryId=${widget.queryId}, value=${widget.refId}, vote=${voteValue.numericValue}');
-
       final success = await _votingRepository.submitVote(voteRequest);
 
-      // Visual feedback is handled by the colored border state
-      // No toast needed - user can see their vote from the button color
-      if (success) {
-        print('✅ Vote submitted successfully');
-      }
     } catch (e) {
-      print('❌ Vote submission error: $e');
       // Show error toast only for failures
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(

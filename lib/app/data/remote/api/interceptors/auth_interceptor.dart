@@ -174,7 +174,6 @@ class AuthInterceptor extends InterceptorsWrapper {
       final refreshToken = await storage.getRefreshToken();
 
       if (refreshToken == null || refreshToken.isEmpty) {
-        print("🔴 No refresh token found - clearing auth data");
         await _clearAuthData();
         return false;
       }
@@ -190,41 +189,29 @@ class AuthInterceptor extends InterceptorsWrapper {
       );
 
       if (res.statusCode == 200) {
-        print("✅ Refresh token success");
         // Handle the actual response format from the server
         final responseData = res.data as Map<String, dynamic>;
         final newAccessToken = responseData['access'] as String?;
         
         if (newAccessToken != null) {
           await storage.saveAccessToken(newAccessToken);
-          print("✅ New access token saved successfully");
           return true;
         } else {
-          print("🔴 Refresh token fail: no access token in response");
-          // Don't clear auth data - might be temporary server issue
           return false;
         }
       } else if (res.statusCode == 401 || res.statusCode == 403) {
         // Only clear auth data for 401/403 (expired/invalid refresh token)
-        print("🔴 Refresh token expired/invalid (${res.statusCode}) - clearing all auth data");
         await _clearAuthData();
         return false;
       } else {
         // Other error codes (500, 503, etc.) - don't clear auth data
-        print("🔴 Refresh token fail: ${res.statusCode} ${res.statusMessage ?? res.toString()}");
-        print("⚠️ Keeping auth data - might be temporary server issue");
         return false;
       }
     } catch (error) {
-      print("🔴 Refresh token exception: $error");
       // Only clear auth data for 401/403 (refresh token expired/invalid)
       if (error is DioException && 
           (error.response?.statusCode == 401 || error.response?.statusCode == 403)) {
-        print("🔴 Refresh token expired/invalid (after ~1 month) - clearing all auth data");
         await _clearAuthData();
-      } else {
-        // Network error or other temporary issue - keep auth data
-        print("⚠️ Keeping auth data - might be temporary network issue");
       }
       return false;
     }
@@ -233,12 +220,10 @@ class AuthInterceptor extends InterceptorsWrapper {
   /// Clear all auth data when refresh token expires
   Future<void> _clearAuthData() async {
     try {
-      print("🧹 Clearing all auth tokens due to refresh token expiry");
       await storage.saveAccessToken(null);
       await storage.saveRefreshToken(null);
-      // Note: We don't clear user info (email, name, picture) to allow smooth re-login
     } catch (e) {
-      print("❌ Error clearing auth data: $e");
+      // Error clearing auth data
     }
   }
 }

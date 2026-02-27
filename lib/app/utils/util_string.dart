@@ -102,7 +102,6 @@ class UtilString {
       now = (now / 64).floor();
     }
     if (now != 0) {
-      print("Id should be unique");
     }
     String uniqueId = timeStampChars.join('');
     if (!duplicateTime) {

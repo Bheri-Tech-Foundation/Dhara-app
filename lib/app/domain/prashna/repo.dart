@@ -150,11 +150,6 @@ class PrashnaRepository {
     final model = aiModel ?? AiModel.qwen;
     final sessionId = 'standalone_${DateTime.now().millisecondsSinceEpoch}';
     
-    print('🔵 Sending standalone Prashna query for Shodh:');
-    print('   Query: "$query"');
-    print('   Shodh QueryID: $sodhQueryId');
-    print('   Model: ${model.displayName}');
-    
     return _prashnaApiRepo.sendChatMessage(
       message: query,
       sessionId: sessionId,
@@ -284,14 +279,6 @@ class PrashnaRepository {
       // Debug: Log what events we're actually receiving
       _logger.d('🔧 SSE EVENT DEBUG: Received ${event.runtimeType} with content: "${event.content ?? "null"}"');
       
-      // Extra logging for QueryID detection
-      if (event.runtimeType.toString().contains('QueryId') || event.event.toLowerCase() == 'queryid') {
-        print('🚨 QueryID EVENT DETECTED IN SSE STREAM! 🚨');
-        print('   Event type: ${event.runtimeType}');
-        print('   Event.event: ${event.event}');
-        print('   Content: ${event.content}');
-      }
-
       final currentSession = _currentSessionSubject.value;
       if (currentSession == null) return;
 
@@ -334,13 +321,6 @@ class PrashnaRepository {
         updatedMessage = currentMessage.copyWith(sessionId: event.content ?? "");
       } else if (event is QueryIdEvent) {
         // Capture Query ID for voting - comes AFTER message completion
-        print('═══════════════════════════════════════');
-        print('📊 VOTING: QueryID EVENT RECEIVED!');
-        print('   Content: ${event.content}');
-        print('   Parsed Query ID: ${event.queryId}');
-        print('   Message ID: ${currentMessage.id}');
-        print('   Current message status: ${currentMessage.status}');
-        print('═══════════════════════════════════════');
         _logger.d('📊 VOTING: QueryID received = ${event.content}');
         
         // Update message with QueryID - CRITICAL for voting widget

@@ -136,19 +136,14 @@ class BugReportService {
   /// Report bug via WhatsApp
   Future<void> reportBugWhatsApp() async {
     try {
-      print('📱 BugReportService: Starting WhatsApp bug report...');
-      
       // Create simple message
       final message = '''🐛 Dhārā App Bug Report \n\nWhat happened ?  [Describe the problem here]\n\n\n\n📸 Please attach a screenshot if possible\n\nThanks for helping us improve Dhārā! 🙏''';
       ;
       
       // Open WhatsApp
       final whatsappUrl = 'https://wa.me/$whatsappNumber?text=${Uri.encodeComponent(message)}';
-      print('📱 BugReportService: Opening WhatsApp...');
-      
       try {
         await launchUrl(Uri.parse(whatsappUrl), mode: LaunchMode.externalApplication);
-        print('📱 BugReportService: WhatsApp opened successfully');
       } catch (e) {
         // Fallback: Try alternative WhatsApp URL format
         try {
@@ -160,15 +155,12 @@ class BugReportService {
         }
       }
     } catch (e) {
-      print('Error reporting bug via WhatsApp: $e');
     }
   }
 
   /// Report bug via Email
   Future<void> reportBugEmail() async {
     try {
-      print('📧 BugReportService: Starting email bug report...');
-      
       // Create simple email
       final subject = 'Dhārā App Bug Report';
       
@@ -203,7 +195,6 @@ Thanks!''';
       
       try {
         await launchUrl(Uri.parse(emailUrl), mode: LaunchMode.externalApplication);
-        print('📧 BugReportService: Email app opened successfully');
       } catch (e) {
         // Fallback: Generic sharing
         final shareText = '''Bug Report for Dhārā App
@@ -214,7 +205,6 @@ Please send this to: $email''';
         Share.share(shareText);
       }
     } catch (e) {
-      print('Error reporting bug via email: $e');
     }
   }
 }

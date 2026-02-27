@@ -123,9 +123,6 @@ class UnifiedVerseResponse {
       'foot': null,  // VersesResultRM expects head, verses, foot structure
     };
     
-    print("🔧 Creating VersesResultRM with data: $jsonData");
-    print("🔧 Verses data preview: ${versesData.take(1).toList()}");
-    
     return UnifiedVerseResponse(
       verses: VersesResultRM.fromJson(jsonData),
     );

@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -58,11 +57,7 @@ class _VerseToolCardState extends State<VerseToolCard> {
         // Check if language changed and we have searched before
         final currentLanguage = dashboardState.verseLanguagePref?.output;
         if (_hasSearched && currentLanguage != _previousLanguage && _previousLanguage != null) {
-          if (kDebugMode) {
-            print("🔄 PRASHNA VerseToolCard: Language changed from $_previousLanguage to $currentLanguage - refreshing verses");
-          }
-          
-          // Language changed after initial search - refresh the results
+            // Language changed after initial search - refresh the results
           WidgetsBinding.instance.addPostFrameCallback((_) {
             SearchOrchestrator.searchVerses(widget.toolCall.query, forceRefresh: true);
           });
@@ -283,19 +278,10 @@ class _VerseToolCardState extends State<VerseToolCard> {
       bloc: dashboardController,
       buildWhen: (previous, current) {
         final shouldRebuild = current.verseLanguagePref?.output != previous.verseLanguagePref?.output;
-        if (kDebugMode) {
-          print("🔄 PRASHNA VerseToolCard: buildWhen - shouldRebuild: $shouldRebuild");
-          print("🔄 PRASHNA VerseToolCard: buildWhen - previous: ${previous.verseLanguagePref?.output}, current: ${current.verseLanguagePref?.output}");
-        }
         return shouldRebuild;
       },
       builder: (context, state) {
         final currentLanguage = state.verseLanguagePref?.output ?? VersesConstants.LANGUAGE_DEFAULT;
-        if (kDebugMode) {
-          print("🔄 PRASHNA VerseToolCard: BlocBuilder rebuilding - currentLanguage: $currentLanguage");
-          print("🔄 PRASHNA VerseToolCard: Language label: ${_getLanguageLabel(currentLanguage)}");
-        }
-        
         return PopupMenuButton<String>(
           key: ValueKey('prashna_language_dropdown_$currentLanguage'), // Force rebuild on language change
           icon: Container(
@@ -325,7 +311,6 @@ class _VerseToolCardState extends State<VerseToolCard> {
             ),
           ),
           onSelected: (String value) {
-            print("🎯 PRASHNA: User selected language '$value' from dropdown");
             dashboardController.onVerseLanguageChange(value);
           },
           itemBuilder: (context) => _getSupportedLanguages().entries.map<PopupMenuItem<String>>((entry) {

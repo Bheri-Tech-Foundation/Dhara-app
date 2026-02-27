@@ -106,10 +106,6 @@ class PrashnaController extends Cubit<PrashnaCubitState> {
         final lastMessage = session!.messages.last;
         if (!lastMessage.isUser && _lastResponseStartTime == null) {
           _lastResponseStartTime = DateTime.now();
-          final responseLatency = _lastResponseStartTime!.difference(_lastMessageSentTime!).inMilliseconds;
-          // Show performance logs in both debug and release mode for testing
-          // Keep performance logs visible in release mode for monitoring
-          print('📥 First response received (${responseLatency}ms latency)');
         }
       }
       
@@ -143,13 +139,6 @@ class PrashnaController extends Cubit<PrashnaCubitState> {
         // 📊 TIMING: Record when streaming completes and UI is ready
         _lastResponseCompleteTime = DateTime.now();
         if (_lastMessageSentTime != null && _lastResponseStartTime != null) {
-          final totalLatency = _lastResponseCompleteTime!.difference(_lastMessageSentTime!).inMilliseconds;
-          final renderingTime = _lastResponseCompleteTime!.difference(_lastResponseStartTime!).inMilliseconds;
-          // Show performance logs in both debug and release mode for testing
-          // Keep performance summary visible for monitoring
-          print('✅ Response complete: ${totalLatency}ms total (${renderingTime}ms render)');
-          
-          // Reset timers for next message
           _lastMessageSentTime = null;
           _lastResponseStartTime = null;
           _lastResponseCompleteTime = null;
@@ -197,12 +186,7 @@ class PrashnaController extends Cubit<PrashnaCubitState> {
       return;
     }
 
-    // 📊 TIMING: Record when message is sent
     _lastMessageSentTime = DateTime.now();
-    // Show performance logs in both debug and release mode for testing
-    // Keep send timing visible for monitoring
-    print('🚀 Message sent');
-
 
     try {
       // Update navbar title immediately with the new question and timestamp

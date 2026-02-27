@@ -129,11 +129,8 @@ class VerseService extends Disposable {
       // Get the original search query instead of verse PKs
       final originalQuery = _currentSearchQuery.value;
       if (originalQuery.isEmpty) {
-        print("🔄 PRASHNA TOOLS: No original query found, cannot refresh");
         return;
       }
-      
-      print("🔄 PRASHNA TOOLS: Re-running original query: '$originalQuery' with language: ${languagePref.output}");
       
       // Re-run the original search with new language preference
       // This will automatically use the current language preference from the repository

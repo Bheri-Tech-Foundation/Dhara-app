@@ -142,14 +142,11 @@ class DashboardSideNavigationState
       //   hasError = false;
       // });
 
-      print("called 1 . . . . . . . . . . .  . . . . . . . . . . .");
-
       setState(() {
         mainDestinations = widget.mainDestinations ?? defaultMainDestinations;
       });
     } else if (mainDestinations.isEmpty &&
         (widget.mainDestinations?.length ?? 0) > 0) {
-      print("called 2. . . . . . . . . . .  . . . . . . . . . . .");
       setState(() {
         mainDestinations = widget.mainDestinations ?? defaultMainDestinations;
       });
@@ -169,14 +166,13 @@ class DashboardSideNavigationState
   @override
   void dispose() {
     // Remove the listener when the widget is disposed
-    print("#duplicate dispose() key check:");
     // Provider.of<RouteChangeNotifier>(context, listen: false)
     //     .removeListener(_onRouteChanged);
 
     try {
       _mRouteChangeNotifier?.removeListener(_onRouteChanged);
     } catch (e) {
-      print("dashboard side nav state _mRouteChangeNotifier: remove err");
+    
     }
     // _mRouteChangeNotifier?.removeListener(_onRouteChanged);
     super.dispose();
@@ -222,9 +218,6 @@ class DashboardSideNavigationState
     var currentTab =
         Provider.of<RouteChangeNotifier>(context, listen: false).currentTab;
 
-    print(
-      "#duplicate _onRouteChanged key check: ${currentTab} ${selectedNavigation}",
-    );
     // selectedNavigation
     var index =
         currentTab != null
@@ -237,8 +230,6 @@ class DashboardSideNavigationState
   }
 
   void _onDestinationSelected(int index) {
-    print("_onDestinationSelected index: ${index}");
-
     // Let the parent handle navigation - don't do it here!
     widget.onDestinationSelected(index);
     
@@ -277,7 +268,6 @@ class DashboardSideNavigationState
  */
 
   Widget _widgetNavigationDrawerDestinations() {
-    print("crer ------ ${mainDestinations.length}");
     return NavigationDrawer(
       selectedIndex: selectedNavigation,
       onDestinationSelected: (int index) {

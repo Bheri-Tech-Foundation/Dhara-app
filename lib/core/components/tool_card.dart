@@ -212,7 +212,6 @@ class _ToolCardState extends State<ToolCard> {
       final currentVerse = _currentVerses[currentIndex];
       final isCurrentlyBookmarked = currentVerse.isStarred ?? false;
       
-      print('🔖 Attempting to toggle bookmark for verse ${currentVerse.versePk}, currently starred: $isCurrentlyBookmarked');
       
       // Make the API call with the ACTUAL verse PK (same as VerseService)
       final result = await verseService.repository.toggleBookmark(
@@ -227,7 +226,6 @@ class _ToolCardState extends State<ToolCard> {
             isStarred: !isCurrentlyBookmarked,
           );
           
-          print('🔖 Before update: ${currentVerse.isStarred} -> After update: ${updatedVerse.isStarred}');
           
           setState(() {
             _currentVerses[currentIndex] = updatedVerse;
@@ -236,19 +234,14 @@ class _ToolCardState extends State<ToolCard> {
           // Also add to VerseService cache so VerseCard StreamBuilder gets updates
           VerseService.instance.addVerseToCache(updatedVerse);
           
-          print('🔖 Successfully updated verse ${currentVerse.versePk} at index $currentIndex');
-          print('🔖 Verse in list now has isStarred: ${_currentVerses[currentIndex].isStarred}');
         } else {
-          print('🔖 API returned success=false for bookmark toggle');
         }
       } else {
         // Handle API errors (like "already bookmarked") gracefully
-        print('🔖 API call failed: ${result.status} - ${result.message}');
         
         // If it's an "already bookmarked" error, sync the state with server
         if (result.message?.contains("already bookmarked") == true || 
             result.message?.contains("already") == true) {
-          print('🔖 Verse seems to be out of sync, updating local state to match server');
           
           // If we tried to bookmark but it's already bookmarked, set it as bookmarked
           final correctedVerse = currentVerse.copyWith(
@@ -262,11 +255,9 @@ class _ToolCardState extends State<ToolCard> {
           // Also add to VerseService cache
           VerseService.instance.addVerseToCache(correctedVerse);
           
-          print('🔖 Corrected verse ${currentVerse.versePk} bookmark state to: ${correctedVerse.isStarred}');
         }
       }
     } catch (e) {
-      print('Bookmark toggle failed: $e');
     }
   }
 
@@ -915,12 +906,6 @@ class _ToolCardState extends State<ToolCard> {
     final queryToSend = widget.result.originalQuery ?? widget.result.query;
 
     // Debug: Log what we're passing to Prashna
-    print('🔵 Building Prashna content for tool card:');
-    print('   Original Query: "${widget.result.originalQuery}"');
-    print('   Display Query: "${widget.result.query}"');
-    print('   Query to send to Prashna: "$queryToSend"');
-    print('   QueryID: ${widget.result.queryId}');
-    print('   Is Expanded: $_isExpanded');
 
     return PrashnaToolCardContent(
       key: ValueKey('prashna_${widget.result.queryId}'), // Prevent recreating widget on rebuild
@@ -1176,7 +1161,6 @@ class _ToolCardState extends State<ToolCard> {
     }
 
     if (widget.result.itemId == null || widget.result.queryId == null) {
-      print('❌ Cannot submit: Missing itemId or queryId');
       return;
     }
 
@@ -1191,12 +1175,6 @@ class _ToolCardState extends State<ToolCard> {
         vote: _missingController.text.trim(), // The actual text
       );
 
-      print('📝 Submitting MISSING RESOURCE for TOOL:');
-      print('   Tool Type: ${widget.toolType.name}');
-      print('   item_id: ${widget.result.itemId}');
-      print('   query_id: ${widget.result.queryId}');
-      print('   value: add_missing');
-      print('   vote: "${_missingController.text.trim()}"');
 
       await votingRepository.submitVote(voteRequest);
 
@@ -1214,7 +1192,6 @@ class _ToolCardState extends State<ToolCard> {
         );
       }
     } catch (e) {
-      print('❌ Failed to submit missing resource: $e');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -1327,11 +1304,9 @@ class _ToolCardState extends State<ToolCard> {
             _currentChunks[currentIndex] = newChunk;
           });
           
-          print('🛠️ Tool Card: Navigated chunk $chunkRefId to ${newChunk.chunkRefId} (${isNext ? 'next' : 'previous'})');
         }
       }
     } catch (e) {
-      print('🛠️ Tool Card: Navigation failed: $e');
     }
   }
 

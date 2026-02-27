@@ -18,7 +18,6 @@ class ApiRequest<ErrorType> {
     } on DioException catch (e) {
       // print(e.message);
 
-      print("ApiRequest sendRequest 1: $e");
       inspect(e);
 
       // inspect(e);
@@ -43,8 +42,6 @@ class ApiRequest<ErrorType> {
             );
           }
         } catch (err) {
-          print("ApiRequest sendRequest 2: $err");
-          print("ApiRequest sendRequest 3 e: ${e.response?.data}");
           inspect(e.response?.data);
         }
       }
@@ -97,7 +94,6 @@ class ApiRequest<ErrorType> {
     } on DioException catch (e) {
       // print(e.message);
 
-      print("ApiRequest sendRequest 1: $e");
       // inspect(e);
 
       // inspect(e);
@@ -117,10 +113,6 @@ class ApiRequest<ErrorType> {
               jsonDecode(e.response?.data) as Map<String, dynamic>,
             );
           } else if (e.response?.data is ResponseBody) {
-            print(
-              "ApiRequest sendRequest 1 3: ${(e.response?.data as ResponseBody).statusCode}",
-            );
-
             inspect(e.response?.data);
             // final errorStream = (e.response?.data as ResponseBody).stream..toString();
             //     print("object: ${errorStream}");
@@ -136,15 +128,13 @@ class ApiRequest<ErrorType> {
               await for (final line in errorStream) {
                 if (line.trim().isEmpty) continue;
                 // callback?.call(line);
-                print("object: ${line}");
-
                 try {
                   errorObject = await errorParse(
                     jsonDecode(line) as Map<String, dynamic>,
                   );
                 } catch (e) {
 
-                  print("ApiRequest sendRequest e parse 1 ");
+                
                 }
 
                 if (errorObject != null) {
@@ -158,8 +148,6 @@ class ApiRequest<ErrorType> {
             );
           }
         } catch (err) {
-          print("ApiRequest sendRequest 2: $err");
-          print("ApiRequest sendRequest 3 e: ${e.response?.data}");
         }
       }
 

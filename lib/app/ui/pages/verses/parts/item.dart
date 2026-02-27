@@ -156,14 +156,11 @@ class VerseItemState extends State<VerseItemWidget> {
   }
 
   _onOtherFieldsItemExpansionToggle(int index) {
-    print("_mOtherFieldsExpandedStates: ${index}");
     if (_mOtherFieldsExpandedStates.length <= index) {
       return false;
     }
 
     bool isToOpen = !_mOtherFieldsExpandedStates[index];
-    print("_mOtherFieldsExpandedStates 2: ${index} ${isToOpen}");
-
     _onOtherFieldsItemExpansionState(index, isToOpen);
   }
 

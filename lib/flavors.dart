@@ -26,7 +26,6 @@ class F {
     } else {
       ENV = EnvDevelopmentN();
     }
-    print("ENV: $ENV");
   }
 
   static String get indexRoute {

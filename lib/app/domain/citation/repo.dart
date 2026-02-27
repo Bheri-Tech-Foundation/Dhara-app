@@ -20,8 +20,6 @@ class CitationRepository {
 
   Future<CitationRM?> getChunkCitation(int chunkRefId) async {
     try {
-      print('Requesting citation for chunk ID: $chunkRefId');
-      
       // Get BooksRepository from dependency injection
       final booksRepo = Modular.get<BooksRepository>();
       
@@ -41,11 +39,9 @@ class CitationRepository {
           vancouver: footnote,
         );
       } else {
-        print('Failed to get chunk citation: ${result.message}');
         return null;
       }
     } catch (e) {
-      print('Error fetching chunk citation: $e');
       return null;
     }
   }

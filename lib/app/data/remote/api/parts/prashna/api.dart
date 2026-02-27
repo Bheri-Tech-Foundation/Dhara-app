@@ -8,7 +8,6 @@ import 'package:dharak_flutter/app/data/remote/api/parts/prashna/dto/chat_reques
 import 'package:dharak_flutter/app/types/prashna/ai_model.dart';
 import 'package:dharak_flutter/app/types/prashna/sse_event.dart';
 import 'package:dio/dio.dart';
-import 'package:logger/logger.dart';
 
 class PrashnaApiRepo extends ApiRequest<ErrorDto> {
   final PrashnaApiPointSimple apiPoint;
@@ -120,32 +119,10 @@ class PrashnaApiRepo extends ApiRequest<ErrorDto> {
       try {
         final json = jsonDecode(jsonStr) as Map<String, dynamic>;
         
-        // Debug: Log ALL events to see the complete stream
-        final eventType = json['event'] as String?;
-        final content = json['content'];
-        
-        // Log every single event type we receive
-        print('📡 SSE EVENT: type="$eventType", content=${content is String ? (content.length > 50 ? content.substring(0, 50) + "..." : content) : content}');
-        
-        // Special attention to QueryID or anything with "query"
-        if (eventType != null && eventType.toLowerCase().contains('query')) {
-          print('🚨 ⚠️ FOUND QUERY EVENT! ⚠️');
-          print('   Event type: "$eventType"');
-          print('   Full JSON: $json');
-        }
-        
         final event = SseEvent.fromJson(json);
-        
-        // Additional check after parsing
-        if (event.event.toLowerCase().contains('query')) {
-          print('🚨 PARSED SSE EVENT WITH "QUERY": ${event.event}');
-          print('   Runtime type: ${event.runtimeType}');
-          print('   Content: ${event.content}');
-        }
         
         return SseEventResult(event: event);
       } catch (e) {
-        print('❌ SSE Parse Error: $e for line: $jsonStr');
         return SseEventResult(error: 'Failed to parse response data');
       }
     } catch (e) {

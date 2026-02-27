@@ -137,7 +137,6 @@ class _AppRootState extends State<DashboardPage> {
       try {
         _mRouteChangeNotifier?.removeListener(_onRouteChanged);
       } catch (e) {
-        print("dashboard app state _mRouteChangeNotifier: remove err");
       }
       _mRouteChangeNotifier = null;
     }
@@ -147,11 +146,8 @@ class _AppRootState extends State<DashboardPage> {
 
   /// Get dynamic color based on current tab and active section
   Color _getDynamicTabColor(String? currentTab, BuildContext context) {
-    print('🎨 Dashboard: _getDynamicTabColor called with currentTab = $currentTab');
-    print('🎨 Dashboard: Expected QuickSearch tab constant = ${UiConstants.Tabs.quicksearch}');
     
     if (currentTab == null) {
-      print('🎨 Dashboard: currentTab is null, returning unified color');
       return TabColors.unifiedColor;
     }
     
@@ -161,41 +157,32 @@ class _AppRootState extends State<DashboardPage> {
         final provider = Provider.of<ActiveSectionProvider>(context, listen: true);
         final activeSection = provider.activeSection;
         final color = TabColors.getQuickSearchSectionColor(activeSection);
-        print('🎨 Dashboard: ✅ QuickSearch tab detected! - section = $activeSection, color = $color');
         return color;
       } catch (e) {
-        print('🚨 Dashboard: Provider error = $e');
         return TabColors.unifiedColor; // Fallback to unified color
       }
     }
     
     // For other tabs, get their specific color
     final color = TabColors.getMainTabColor(currentTab);
-    print('🎨 Dashboard: Other tab ($currentTab) color = $color');
-    print('🎨 Dashboard: Tab comparison: "$currentTab" == "${UiConstants.Tabs.quicksearch}" = ${currentTab == UiConstants.Tabs.quicksearch}');
     return color;
   }
 
   void _onDestinationSelected(int index) {
-    print("_onDestinationSelected index: ${index}");
 
     if (index < defaultMainDestinations.length &&
         defaultMainDestinations[index].routePath != null) {
       final routePath = defaultMainDestinations[index].routePath!;
       final tabName = defaultMainDestinations[index].tabName;
       
-      print("_onDestinationSelected routePath: ${routePath}, tabName: ${tabName}");
 
       // Prevent rapid successive tab switches
       if (mBloc.state.currentTab == tabName) {
-        print("🚫 Dashboard: Tab already selected, ignoring");
         return;
       }
 
       // Update the BLoC state directly
-      print("🔧 Dashboard: Force updating tab to: ${tabName}");
       mBloc.onTabChanged(tabName);
-      print("🔧 Dashboard: After force update, state.currentTab = ${mBloc.state.currentTab}");
 
       // Use pushNamed instead of pushReplacementNamed to avoid navigation conflicts
       Modular.to.pushNamed(routePath);
@@ -253,18 +240,9 @@ class _AppRootState extends State<DashboardPage> {
     var currentRoute =
         Provider.of<RouteChangeNotifier>(context, listen: false).currentRoute;
 
-    print(
-      "#DashboardPage _onRouteChanged: tab=${currentTab}, route=${currentRoute}",
-    );
-    print(
-      "🔄 Dashboard: About to call mBloc.onTabChanged with: ${currentTab}",
-    );
 
     mBloc.onTabChanged(currentTab);
     
-    print(
-      "🔄 Dashboard: After onTabChanged, state.currentTab = ${mBloc.state.currentTab}",
-    );
     // selectedNavigation
     // var index = currentTab != null
     //     ? onCurrentTabSelected(currentTab) ?? selectedNavigation
@@ -338,7 +316,6 @@ class _AppRootState extends State<DashboardPage> {
               _mCurrentTabIndexState = currentIndex;
             });
 
-            print("setState _mCurrentTabIndexState working property");
           },
         ),
         BlocListener<DashboardController, DashboardCubitState>(
@@ -395,7 +372,6 @@ class _AppRootState extends State<DashboardPage> {
     try {
       _mRouteChangeNotifier?.removeListener(_onRouteChanged);
     } catch (e) {
-      print("dashboard app state _mRouteChangeNotifier: remove err");
     }
     super.dispose();
   }
@@ -564,7 +540,6 @@ class _AppRootState extends State<DashboardPage> {
           builder: (context, activeProvider, child) {
             // Get dynamic color based on active tab and section
             var seedColor = _getDynamicTabColor(currentTab, context);
-            print('🎨 Dashboard: Building bottom nav with seedColor = $seedColor');
             
             return _buildBottomNavigationBar(state, currentIndex, seedColor);
           },
@@ -790,7 +765,6 @@ class _AppRootState extends State<DashboardPage> {
                       width: TdResDimens.dp_32,
                       height: TdResDimens.dp_28,
                       
-
 
                       // colorFilter: ,
                       // height: TdResDimens.dp_40,
@@ -1177,7 +1151,6 @@ class _AppRootState extends State<DashboardPage> {
                       // });
 
                       if (value != null) {
-                        print("🎯 DASHBOARD: User selected language '$value' from dropdown");
                         mBloc.onVerseLanguageChange(value);
                       }
                     },
@@ -1333,7 +1306,6 @@ class _AppRootState extends State<DashboardPage> {
   }
 
   void _showToast(String message) {
-    print("_showToast : Dashboard ${message}");
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(

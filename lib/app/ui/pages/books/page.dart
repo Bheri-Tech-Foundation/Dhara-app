@@ -575,7 +575,6 @@ class BooksPageState extends State<BooksPage> {
                         child: SizedBox.shrink(),
                       );
                     }
-                    print("📱 BlocBuilder: Rendering ${state.bookChunks.length} chunks");
                     return SliverList.builder(
                       itemCount: state.bookChunks.length,
                       itemBuilder: (context, index) {
@@ -923,33 +922,17 @@ class BooksPageState extends State<BooksPage> {
   void _handlePreviousChunk(BookChunkRM chunk) async {
     if (chunk.chunkRefId == null) return;
     
-    print('📖 Navigate to previous chunk from: ${chunk.chunkRefId}');
-    
     // Use BooksService to handle navigation (QuickSearch should update via stream)
     final booksService = BooksService.instance;
-    final newChunk = await booksService.navigateChunk(chunk.chunkRefId!, false);
-    
-    if (newChunk != null) {
-      print('✅ Books Page: Navigation successful ${chunk.chunkRefId} -> ${newChunk.chunkRefId}');
-    } else {
-      print('❌ Books Page: Navigation failed');
-    }
+    await booksService.navigateChunk(chunk.chunkRefId!, false);
   }
 
   /// ⏭️ Handle next chunk navigation  
   void _handleNextChunk(BookChunkRM chunk) async {
     if (chunk.chunkRefId == null) return;
     
-    print('📖 Navigate to next chunk from: ${chunk.chunkRefId}');
-    
     // Use BooksService to handle navigation (QuickSearch should update via stream)
     final booksService = BooksService.instance;
-    final newChunk = await booksService.navigateChunk(chunk.chunkRefId!, true);
-    
-    if (newChunk != null) {
-      print('✅ Books Page: Navigation successful ${chunk.chunkRefId} -> ${newChunk.chunkRefId}');
-    } else {
-      print('❌ Books Page: Navigation failed');
-    }
+    await booksService.navigateChunk(chunk.chunkRefId!, true);
   }
 }

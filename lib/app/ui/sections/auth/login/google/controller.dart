@@ -38,7 +38,6 @@ class GoogleLoginController extends Cubit<GoogleLoginCubitState> {
     if (purpose == AuthUiConstants.PURPOSE_GOOGLE_LOGIN_DIRECT) {
       onSubmit();
     } else if (purpose == AuthUiConstants.PURPOSE_GOOGLE_AFTER_LOGIN) {
-      print("afterGoogleUILogin init");
       afterGoogleUILogin().then((onValue) {});
     }
   }
@@ -70,10 +69,8 @@ class GoogleLoginController extends Cubit<GoogleLoginCubitState> {
       await directLogin();
 
       if (state.idToken != null) {
-        print("google login onSubmit: success");
         onSuccess();
       } else {
-        print("google login onSubmit: failed");
         onFailed("unable to google login");
       }
     });
@@ -87,11 +84,9 @@ class GoogleLoginController extends Cubit<GoogleLoginCubitState> {
       await _getGoogleIdTokenWithAccountPicker();
 
       if (state.idToken != null) {
-        print("google login onSubmitWithAccountPicker: success");
         // Keep isInProgress true - backend login will happen next
         onSuccess();
       } else {
-        print("google login onSubmitWithAccountPicker: failed - no token");
         // Clear loading state on failure
         emit(state.copyWith(isInProgress: false));
         onFailed("unable to login with selected account");
@@ -107,11 +102,9 @@ class GoogleLoginController extends Cubit<GoogleLoginCubitState> {
       await _getGoogleIdTokenSilent();
 
       if (state.idToken != null) {
-        print("google login onSubmitSilent: success");
         // Keep isInProgress true - backend login will happen next
         onSuccess();
       } else {
-        print("google login onSubmitSilent: failed - no token");
         // Clear loading state on failure
         emit(state.copyWith(isInProgress: false));
         onFailed("unable to silent login");
@@ -120,72 +113,56 @@ class GoogleLoginController extends Cubit<GoogleLoginCubitState> {
   }
 
   Future<void> _getGoogleIdToken() async {
-    print("google login ctrl _getGoogleIdToken: idtoken");
     try {
       var token = await mAuthAccountRepository.getIdToken();
-      print("_getGoogleIdToken: idtoken obtained");
       emit(state.copyWith(idToken: token));
     } catch (e) {
-      print("_getGoogleIdToken error: $e");
     }
   }
 
   Future<void> _getGoogleIdTokenWithAccountPicker() async {
-    print("google login ctrl _getGoogleIdTokenWithAccountPicker: idtoken");
     try {
       var token = await mAuthAccountRepository.getIdTokenWithAccountPicker();
-      print("_getGoogleIdTokenWithAccountPicker: idtoken obtained");
       emit(state.copyWith(idToken: token));
     } catch (e) {
-      print("_getGoogleIdTokenWithAccountPicker error: $e");
     }
   }
 
   Future<void> _getGoogleIdTokenSilent() async {
-    print("google login ctrl _getGoogleIdTokenSilent: idtoken");
     try {
       var token = await mAuthAccountRepository.getIdTokenSilent();
-      print("_getGoogleIdTokenSilent: idtoken obtained");
       emit(state.copyWith(idToken: token));
     } catch (e) {
-      print("_getGoogleIdTokenSilent error: $e");
     }
   }
 
   Future<bool> afterGoogleUILogin() async {
     try {
       emit(state.copyWith(idToken: null));
-      print("afterGoogleUILogin login: 1");
       await _getGoogleIdToken();
 
       if (state.idToken != null) {
-        print("afterGoogleUILogin login onSubmit: 1");
         onSuccess();
       } else {
-        print("afterGoogleUILogin login onSubmit: 2");
         onFailed("unable to google login");
       }
 
       return true;
     } catch (e) {
-      print("afterGoogleUILogin error: $e");
       return false;
     }
   }
 
   Future<bool> directLogin() async {
-    print("directLogin login: 1");
 
     try {
       emit(state.copyWith(idToken: null));
       var result = await mAuthAccountRepository.signInWithGoogle();
 
-      print("directLogin login: 2");
       await _getGoogleIdToken();
 
       return true;
     } catch (e) {
-      print("directLogin error: $e");
       return false;
     }
   }
@@ -195,7 +172,6 @@ class GoogleLoginController extends Cubit<GoogleLoginCubitState> {
 | */
 
   void onSuccess() {
-    print("google login onSuccess: ");
     emit(
       state.copyWith(
         result: GoogleLoginArgsResult(

@@ -15,13 +15,6 @@ abstract class SseEvent {
   factory SseEvent.fromJson(Map<String, dynamic> json) {
     final eventType = json['event'] as String;
     
-    // Debug: Log unknown events that might be QueryID with different casing
-    if (eventType.toLowerCase() == 'queryid' && eventType != 'QueryID') {
-      print('⚠️ QueryID event received with different casing: "$eventType"');
-      print('   Expected: "QueryID", Got: "$eventType"');
-      print('   Content: ${json['content']}');
-    }
-    
     switch (eventType) {
       case 'ContentDelta':
         return ContentDeltaEvent.fromJson(json);
@@ -42,11 +35,6 @@ abstract class SseEvent {
       case 'EventData':
         return EventDataEvent.fromJson(json);
       default:
-        // Log unknown events
-        if (eventType.toLowerCase().contains('query')) {
-          print('🚨 Unknown event with "query" in name: "$eventType"');
-          print('   Full JSON: $json');
-        }
         return UnknownEvent.fromJson(json);
     }
   }

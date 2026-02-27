@@ -82,8 +82,6 @@ class AppThemeProvider extends ChangeNotifier {
         notifyListeners();
       }
     } catch (e) {
-      // If loading fails, keep default theme
-      print('Failed to load theme preference: $e');
     }
   }
   
@@ -104,7 +102,6 @@ class AppThemeProvider extends ChangeNotifier {
       }
       await _storage.write(key: _themeKey, value: themeString);
     } catch (e) {
-      print('Failed to save theme preference: $e');
     }
   }
 }

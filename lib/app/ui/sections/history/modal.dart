@@ -54,8 +54,6 @@ class SearchHistoryModalState extends State<SearchHistoryModal> {
     prepareTheme(context);
     return PopScope(
       canPop: () {
-        print("SearchHistoryModal PopScope back press");
-
         return false;
       }(),
       // onPopInvoked: (didPop) => {

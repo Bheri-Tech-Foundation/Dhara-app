@@ -69,18 +69,8 @@ class _FeedbackModalState extends State<FeedbackModal> {
         vote: feedback,
       );
 
-      print('═══════════════════════════════════════');
-      print('📝 SUBMITTING GENERAL FEEDBACK:');
-      print('   API Endpoint: /vote/');
-      print('   item_id: feed_back');
-      print('   query_id: ${widget.queryId}');
-      print('   value: ${widget.itemId ?? "null (general feedback)"}');
-      print('   vote: "${feedback.substring(0, feedback.length > 50 ? 50 : feedback.length)}..."');
-      print('═══════════════════════════════════════');
-
       final success = await _votingRepository.submitVote(voteRequest);
       
-      print('✅ Feedback submission result: $success');
       _logger.d('✅ Feedback submitted: $success');
       
       if (mounted) {

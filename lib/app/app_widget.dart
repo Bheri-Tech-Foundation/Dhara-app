@@ -37,7 +37,6 @@ class AppWidget extends StatelessWidget {
     //       Modular.setInitialRoute(F.indexRoute);
     // }
 
-    print("MyApp");
     // return
     // ChangeNotifierProvider<AppThemeProvider>(
     //     create: (_) =>

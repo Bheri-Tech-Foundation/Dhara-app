@@ -1,5 +1,3 @@
-import 'dart:developer';
-
 import 'package:dharak_flutter/app/domain/base/domain_result.dart';
 import 'package:dharak_flutter/app/domain/verse/repo.dart';
 import 'package:dharak_flutter/app/types/verse/bookmarks/bookmark_toggle_result.dart';
@@ -41,7 +39,6 @@ class VerseBookmarksController extends Cubit<VerseBookmarksCubitState> {
       growable: true,
     );
     var index = removedVersesIds.indexWhere((e) => e == entity.pk);
-    print("onBookmarkToggle: 1. ${index} ${isToRemove}");
 
     if (index < 0 && isToRemove) {
       // print("onUpdatedCustomization index: ${index} qunatity:  ${addonsSelections[index].quantity} ${entity.quantity}");
@@ -53,8 +50,6 @@ class VerseBookmarksController extends Cubit<VerseBookmarksCubitState> {
 
       if (isUpdated) {
         removedVersesIds.add(entity.pk);
-        print("onBookmarkToggle: 2");
-
         emit(state.copyWith(removedVersesIds: removedVersesIds));
       }
     } else if (index >= 0 && !isToRemove) {
@@ -66,8 +61,6 @@ class VerseBookmarksController extends Cubit<VerseBookmarksCubitState> {
         removedVersesIds.removeAt(index);
         emit(state.copyWith(removedVersesIds: removedVersesIds));
       }
-
-      print("onBookmarkToggle: 3");
     }
 
     // print("onBookmarkToggle: ")

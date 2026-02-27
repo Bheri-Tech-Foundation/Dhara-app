@@ -270,8 +270,6 @@ class BooksController extends Cubit<BooksCubitState> {
     // 🚀 PERFORMANCE: Combine loading=false with data update in single emit
     
     if (result.status == DomainResultStatus.SUCCESS && result.data != null) {
-      print("getChunks: ${result}");
-
       // 🚀 PERFORMANCE: Progressive rendering for instant UI
       _allChunks = result.data?.data ?? [];
       _displayedChunks.clear();
@@ -292,8 +290,6 @@ class BooksController extends Cubit<BooksCubitState> {
           ),
         );
         
-        print("getChunks instant: Showing ${_displayedChunks.length}/${_allChunks.length} chunks");
-        
         // Start progressive loading for remaining chunks
         _startProgressiveLoading();
       } else {
@@ -309,11 +305,8 @@ class BooksController extends Cubit<BooksCubitState> {
         );
       }
 
-      print("getChunks success: ${_allChunks.length} total chunks found");
       return true;
     } else if (result.status == DomainResultStatus.ERROR) {
-      print("getChunks error: ");
-      
       // Use simple error handling
       bool shouldShowToast = true;
       String errorMessage = result.message ?? 'An error occurred while searching books';
@@ -326,9 +319,7 @@ class BooksController extends Cubit<BooksCubitState> {
           toastCounter: shouldShowToast ? (state.toastCounter ?? 0) + 1 : state.toastCounter,
         ),
       );
-      print("getChunks error message: ${result.message}");
     }
-    print("getChunks final: ${result}");
 
     return false;
   }
@@ -361,7 +352,6 @@ class BooksController extends Cubit<BooksCubitState> {
     _progressiveLoadingTimer?.cancel();
     
     if (_displayedChunks.length >= _allChunks.length) {
-      print("Progressive loading: All chunks already displayed");
       return;
     }
     
@@ -371,7 +361,6 @@ class BooksController extends Cubit<BooksCubitState> {
   
   void _loadNextBatch() {
     if (_displayedChunks.length >= _allChunks.length) {
-      print("Progressive loading: Complete - ${_allChunks.length} chunks displayed");
       return;
     }
     
@@ -384,11 +373,8 @@ class BooksController extends Cubit<BooksCubitState> {
     final nextBatch = _allChunks.skip(currentCount).take(batchSize).toList();
     _displayedChunks.addAll(nextBatch);
     
-    print("Progressive loading: Added batch ${nextBatch.length}, total: ${_displayedChunks.length}/${_allChunks.length}");
-    
     // Update UI with new batch - force new list instance to trigger BlocBuilder
     final newChunks = List<BookChunkRM>.from(_displayedChunks);
-    print("Progressive loading: Emitting state with ${newChunks.length} chunks");
     emit(state.copyWith(
       bookChunks: newChunks,
       searchCounter: state.searchCounter + 1, // Force counter increment to trigger rebuild

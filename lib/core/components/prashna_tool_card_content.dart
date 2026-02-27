@@ -70,7 +70,6 @@ class _PrashnaToolCardContentState extends State<PrashnaToolCardContent> {
     // Check if we have cached content for this queryId
     if (_contentCache.containsKey(widget.queryId)) {
       final cached = _contentCache[widget.queryId]!;
-      print('✅ Loading cached Prashna content for queryId=${widget.queryId}');
       setState(() {
         _content = cached.content;
         _fetchedQueryId = cached.fetchedQueryId;
@@ -83,10 +82,8 @@ class _PrashnaToolCardContentState extends State<PrashnaToolCardContent> {
 
     // Only start stream if expanded
     if (widget.isExpanded) {
-      print('🔵 Card is expanded, starting Prashna stream');
       _startPrashnaStream();
     } else {
-      print('⏸️ Card is collapsed, waiting for expansion to start stream');
     }
   }
 
@@ -96,7 +93,6 @@ class _PrashnaToolCardContentState extends State<PrashnaToolCardContent> {
     
     // Handle query/queryId changes
     if (oldWidget.query != widget.query || oldWidget.queryId != widget.queryId) {
-      print('⚠️ Prashna widget updated with different query/queryId, restarting stream');
       _activeStreams.remove(oldWidget.queryId); // Remove old queryId from cache
       _streamSubscription?.cancel();
       _content = '';
@@ -112,7 +108,6 @@ class _PrashnaToolCardContentState extends State<PrashnaToolCardContent> {
     if (oldWidget.isExpanded != widget.isExpanded && widget.isExpanded) {
       // Card just expanded
       if (!_contentCache.containsKey(widget.queryId) && !_activeStreams.contains(widget.queryId)) {
-        print('🔵 Card expanded for first time, starting Prashna stream');
         setState(() {
           _isStreaming = true; // Set loading state BEFORE starting stream
         });
@@ -132,18 +127,11 @@ class _PrashnaToolCardContentState extends State<PrashnaToolCardContent> {
   void _startPrashnaStream() {
     // Check static cache to prevent multiple streams for the same queryId
     if (_activeStreams.contains(widget.queryId)) {
-      print('⚠️ Prashna stream already active for queryId=${widget.queryId}, skipping');
-      print('   Active streams: $_activeStreams');
       return;
     }
 
     // Mark this queryId as having an active stream
     _activeStreams.add(widget.queryId);
-    print('🔵 Starting Prashna stream for Shodh:');
-    print('   Query: "${widget.query}"');
-    print('   Shodh QueryID (input): ${widget.queryId}');
-    print('   Will receive NEW Prashna QueryID from SSE stream');
-    print('   Active streams after add: $_activeStreams');
 
     _streamSubscription = _prashnaRepo.sendStandaloneQuery(
       query: widget.query,
@@ -173,11 +161,6 @@ class _PrashnaToolCardContentState extends State<PrashnaToolCardContent> {
         if (event is QueryIdEvent) {
           final prashnaQueryId = event.queryId;
           if (prashnaQueryId != null) {
-            print('🎯 ===== PRASHNA QUERY ID RECEIVED =====');
-            print('   Shodh QueryID (input): ${widget.queryId}');
-            print('   Prashna QueryID (output): $prashnaQueryId');
-            print('   This Prashna QueryID will be used for voting');
-            print('========================================');
             setState(() {
               _fetchedQueryId = prashnaQueryId;
             });
@@ -199,7 +182,6 @@ class _PrashnaToolCardContentState extends State<PrashnaToolCardContent> {
         }
       },
       onError: (error) {
-        print('❌ Prashna stream error: $error');
         _activeStreams.remove(widget.queryId); // Remove from cache on error
         
         // Cache error state
@@ -217,9 +199,7 @@ class _PrashnaToolCardContentState extends State<PrashnaToolCardContent> {
         });
       },
       onDone: () {
-        print('✅ Prashna stream completed for queryId=${widget.queryId}');
         _activeStreams.remove(widget.queryId); // Remove from cache on completion
-        print('   Active streams after removal: $_activeStreams');
         
         // Cache final content
         _contentCache[widget.queryId] = _PrashnaContentCache(

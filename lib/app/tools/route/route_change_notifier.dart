@@ -12,7 +12,6 @@ class RouteChangeNotifier extends ChangeNotifier {
 
     void updateTab(String tabName) {
 
-      print("updateTab: ${tabName}");
     currentTab = tabName;
     notifyListeners();
   }

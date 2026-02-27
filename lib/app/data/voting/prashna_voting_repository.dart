@@ -21,14 +21,6 @@ class PrashnaVotingRepository extends ApiRequest<ErrorDto> {
   /// Submit a Prashna vote (rating or feedback)
   Future<bool> submitVote(PrashnaVoteRequest voteRequest) async {
     try {
-      print('═══════════════════════════════════════');
-      print('📊 SUBMITTING PRASHNA VOTE:');
-      print('   API Endpoint: /prashna/vote/');
-      print('   query_id: ${voteRequest.queryId}');
-      print('   v_type: ${voteRequest.voteType.apiValue}');
-      print('   vote: ${voteRequest.vote}');
-      print('═══════════════════════════════════════');
-
       final response = await sendRequest(
         () => _apiPoint.submitVote(
           queryId: voteRequest.queryId,
@@ -42,16 +34,13 @@ class PrashnaVotingRepository extends ApiRequest<ErrorDto> {
       _cacheVoteState(voteRequest);
 
       if (response.status == ApiResponseStatus.SUCCESS) {
-        print('✅ Prashna vote submission result: ${response.data?.message}');
         _logger.d('✅ Prashna vote submitted: ${response.data?.message}');
         return true;
       } else {
-        print('⚠️ Prashna vote submission failed: ${response.error}');
         _logger.w('⚠️ Prashna vote submission failed');
         return false;
       }
     } catch (e, stackTrace) {
-      print('❌ Prashna vote submission failed: $e');
       _logger.e('Failed to submit Prashna vote', error: e, stackTrace: stackTrace);
       return false;
     }

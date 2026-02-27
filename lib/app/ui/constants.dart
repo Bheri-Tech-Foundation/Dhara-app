@@ -93,12 +93,10 @@ class _Routes {
 
     if (path.isNotEmpty) {
       var routePath = '/$path$route';
-      print("getRoutePath: ${routePath}");
       return routePath;
     }
 
     var routePath = '/${dashboardDefault}$route';
-      print("getRoutePath else: ${routePath}");
       return routePath;
   }
 

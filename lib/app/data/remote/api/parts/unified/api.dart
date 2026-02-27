@@ -7,17 +7,10 @@ class UnifiedSearchApiRepo {
   /// Perform unified search and return combined results
   Future<UnifiedSearchResult> search(String query) async {
     try {
-      print("🔍 Starting unified search for: '$query'");
       final result = await _apiPoint.processUnifiedSearch(query);
-      
-      print("✅ Unified search completed:");
-      print("   - Definitions: ${result.definitions.length}");
-      print("   - Verses: ${result.verses?.verses.verses.length ?? 0}");
-      print("   - Chunks: ${result.chunks?.chunks.data.length ?? 0}");
       
       return result;
     } catch (e) {
-      print("❌ Unified search repository error: $e");
       rethrow;
     }
   }

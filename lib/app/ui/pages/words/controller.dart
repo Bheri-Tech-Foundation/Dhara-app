@@ -111,8 +111,6 @@ class WordDefineController extends Cubit<WordDefineCubitState> {
    */
 
   _formCreate() {
-    print("_formCreate ....");
-
     stream.listen((value) {
       formValidate();
     });
@@ -191,10 +189,6 @@ class WordDefineController extends Cubit<WordDefineCubitState> {
 
     emit(state.copyWith(isLoading: false));
     if (result.status == DomainResultStatus.SUCCESS && result.data != null) {
-      print("getDefinitions: ${result}");
-      // emit(state.copyWith(order: result.data));
-      // ;
-
       emit(
         state.copyWith(
           wordDetails: result.data?.details,
@@ -207,23 +201,16 @@ class WordDefineController extends Cubit<WordDefineCubitState> {
         ),
       );
 
-      print("getDefinitions 2: ${result.data?.details.definitions}");
       return true;
     }else if(result.errorCode!=null){
-    print("getDefinitions 3: ${result.message}");
 
     }
-    print("getDefinitions 4: ${result}");
 
     return false;
   }
 
   String getAllText() {
     // Frontend-only implementation: Format all definitions nicely
-    print('📋 getAllText called - state.wordDefinitions.length: ${state.wordDefinitions.length}');
-    print('📋 dictWordDefinitions: ${state.dictWordDefinitions?.givenWord}');
-    print('📋 searchQuery: ${state.searchQuery}');
-    
     final StringBuffer buffer = StringBuffer();
     
     // Add word name if available
@@ -256,8 +243,6 @@ class WordDefineController extends Cubit<WordDefineCubitState> {
     }
     
     final result = buffer.toString().trim();
-    print('📋 getAllText result length: ${result.length} chars');
-    print('📋 getAllText result preview: ${result.substring(0, result.length > 100 ? 100 : result.length)}');
     
     return result;
   }

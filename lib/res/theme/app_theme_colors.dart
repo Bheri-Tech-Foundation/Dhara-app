@@ -136,7 +136,6 @@ class AppThemeColors extends ThemeExtension<AppThemeColors> {
     
     bool isDark = false,
   }) {
-    print("isDark: $isDark $seedColor");
     var back = TdThemeHelper.colorBack(isDark: isDark);
     var surface = TdThemeHelper.colorSurface(isDark: isDark);
     var onSurface = TdThemeHelper.colorOnSurface(isDark: isDark);
