@@ -3262,6 +3262,35 @@ class _EnhancedQuickSearchContentState extends State<_EnhancedQuickSearchContent
         previous.error != current.error ||
         previous.searchCounter != current.searchCounter,
       builder: (context, state) {
+        // Loading state
+        if (state.isLoading && state.wordDefineResult == null) {
+          return _buildLoadingState('Searching definitions...');
+        }
+
+        // Error state with no results to show
+        if (state.error != null && state.wordDefineResult == null) {
+          return _buildErrorState(state.error!, () {
+            final query = widget.searchController.text.trim();
+            if (query.isNotEmpty) {
+              final controller = BlocProvider.of<QuickSearchController>(context);
+              controller.performSearch(query);
+            }
+          });
+        }
+
+        // Searched but got no definition back
+        if (state.searchCounter > 0 &&
+            !state.isLoading &&
+            state.wordDefineResult == null) {
+          return _buildCouldntLoadState('definitions', () {
+            final query = widget.searchController.text.trim();
+            if (query.isNotEmpty) {
+              final controller = BlocProvider.of<QuickSearchController>(context);
+              controller.performSearch(query);
+            }
+          });
+        }
+
         return Container(
           color: Color.alphaBlend(
             themeColors.secondaryColor.withAlpha(0x12),
@@ -3703,7 +3732,13 @@ class _EnhancedQuickSearchContentState extends State<_EnhancedQuickSearchContent
         }
 
         if (state.verseResults.isEmpty) {
-          return _buildEmptySearchState('QuickVerse', 'No verses found for your search', Icons.keyboard_command_key);
+          return _buildCouldntLoadState('verses', () {
+            final query = widget.searchController.text.trim();
+            if (query.isNotEmpty) {
+              final controller = BlocProvider.of<QuickSearchController>(context);
+              controller.performSearch(query);
+            }
+          });
         }
 
         return Column(
@@ -3891,7 +3926,13 @@ class _EnhancedQuickSearchContentState extends State<_EnhancedQuickSearchContent
         }
 
         if (state.bookResults.isEmpty) {
-          return _buildEmptySearchState('Books', 'No book content found for your search', Icons.menu_book);
+          return _buildCouldntLoadState('book results', () {
+            final query = widget.searchController.text.trim();
+            if (query.isNotEmpty) {
+              final controller = BlocProvider.of<QuickSearchController>(context);
+              controller.performSearch(query);
+            }
+          });
         }
 
         return ListView.builder(
@@ -4006,6 +4047,47 @@ class _EnhancedQuickSearchContentState extends State<_EnhancedQuickSearchContent
             child: Text('Try Again'),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildCouldntLoadState(String contentType, VoidCallback onRetry) {
+    final themeColors = Theme.of(context).extension<AppThemeColors>()!;
+    
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(32),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.cloud_off_rounded,
+              size: 56,
+              color: themeColors.onSurface.withOpacity(0.3),
+            ),
+            const SizedBox(height: 16),
+            Text(
+              "Couldn't load $contentType",
+              style: TdResTextStyles.h4.copyWith(
+                color: themeColors.onSurface.withOpacity(0.6),
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Please check your connection and try again.',
+              style: TdResTextStyles.p2.copyWith(
+                color: themeColors.onSurface.withOpacity(0.4),
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 20),
+            TextButton.icon(
+              onPressed: onRetry,
+              icon: const Icon(Icons.refresh, size: 18),
+              label: const Text('Try Again'),
+            ),
+          ],
+        ),
       ),
     );
   }
