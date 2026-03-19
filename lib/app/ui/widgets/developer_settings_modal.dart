@@ -23,6 +23,7 @@ class _DeveloperSettingsModalState extends State<DeveloperSettingsModal> {
   final TextEditingController _customUrlController = TextEditingController();
   
   bool _isEnabled = false;
+  ApiRoute _selectedRoute = ApiRoute.bheri;
   
   @override
   void initState() {
@@ -43,6 +44,7 @@ class _DeveloperSettingsModalState extends State<DeveloperSettingsModal> {
     setState(() {
       _isEnabled = DeveloperModeService.instance.isEnabled;
       _customUrlController.text = DeveloperModeService.instance.customDomain;
+      _selectedRoute = DeveloperModeService.instance.apiRoute;
     });
   }
 
@@ -159,13 +161,91 @@ class _DeveloperSettingsModalState extends State<DeveloperSettingsModal> {
                   ),
                   
                   TdResGaps.v_20,
+
+                  // Backend route selector
+                  Text(
+                    'Backend Route',
+                    style: TdResTextStyles.h4.copyWith(
+                      color: themeColors.onSurface,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  TdResGaps.v_8,
+                  Text(
+                    'Switch between Bheri (default) and Samiksha backends.',
+                    style: TdResTextStyles.buttonSmall.copyWith(
+                      color: themeColors.onSurface?.withOpacity(0.6),
+                    ),
+                  ),
+                  TdResGaps.v_12,
+                  Row(
+                    children: ApiRoute.values.map((route) {
+                      final isSelected = _selectedRoute == route;
+                      return Expanded(
+                        child: Padding(
+                          padding: EdgeInsets.only(
+                            right: route != ApiRoute.values.last ? TdResDimens.dp_8 : 0,
+                          ),
+                          child: OutlinedButton(
+                            onPressed: () => _switchRoute(route),
+                            style: OutlinedButton.styleFrom(
+                              backgroundColor: isSelected 
+                                  ? themeColors.primary.withOpacity(0.15) 
+                                  : Colors.transparent,
+                              side: BorderSide(
+                                color: isSelected ? themeColors.primary : Colors.grey.withOpacity(0.4),
+                                width: isSelected ? 2 : 1,
+                              ),
+                              padding: const EdgeInsets.symmetric(vertical: TdResDimens.dp_14),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(TdResDimens.dp_8),
+                              ),
+                            ),
+                            child: Column(
+                              children: [
+                                Text(
+                                  route.label,
+                                  style: TdResTextStyles.h6.copyWith(
+                                    fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                                    color: isSelected ? themeColors.primary : themeColors.onSurface,
+                                  ),
+                                ),
+                                const SizedBox(height: 2),
+                                Text(
+                                  route.path,
+                                  style: TdResTextStyles.buttonSmall.copyWith(
+                                    fontFamily: 'monospace',
+                                    color: isSelected 
+                                        ? themeColors.primary.withOpacity(0.8) 
+                                        : themeColors.onSurface?.withOpacity(0.5),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      );
+                    }).toList(),
+                  ),
+
+                  TdResGaps.v_24,
+
+                  // Custom domain section
+                  Text(
+                    'Custom Domain (Optional)',
+                    style: TdResTextStyles.h4.copyWith(
+                      color: themeColors.onSurface,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  TdResGaps.v_12,
                   TextField(
                     controller: _customUrlController,
-                    onSubmitted: (_) => _applyCustomUrl(), // Press Enter to apply
+                    onSubmitted: (_) => _applyCustomUrl(),
                     decoration: InputDecoration(
                       hintText: 'http://192.168.167.88:8000',
                       prefixIcon: Icon(Icons.link, color: themeColors.primary),
-                      suffixText: '/bheri',
+                      suffixText: _selectedRoute.path,
                       suffixStyle: TdResTextStyles.h6.copyWith(
                         color: Colors.green,
                         fontWeight: FontWeight.w600,
@@ -292,6 +372,16 @@ class _DeveloperSettingsModalState extends State<DeveloperSettingsModal> {
     );
   }
   
+  Future<void> _switchRoute(ApiRoute route) async {
+    await DeveloperModeService.instance.setApiRoute(route);
+    setState(() {
+      _selectedRoute = route;
+    });
+    if (context.mounted) {
+      _showRestartDialog();
+    }
+  }
+
   Future<void> _applyCustomUrl() async {
     final url = _customUrlController.text.trim();
     
