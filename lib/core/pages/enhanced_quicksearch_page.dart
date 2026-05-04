@@ -5089,8 +5089,6 @@ class _GraphEntityCardWidget extends StatefulWidget {
 }
 
 class _GraphEntityCardWidgetState extends State<_GraphEntityCardWidget> {
-  bool _isExpanded = false;
-
   @override
   Widget build(BuildContext context) {
     final entity = widget.entity;
@@ -5198,41 +5196,26 @@ class _GraphEntityCardWidgetState extends State<_GraphEntityCardWidget> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    _isExpanded ? entity.summary : entity.summaryPreview,
+                  SelectableText(
+                    entity.summary,
                     style: TextStyle(
                       fontSize: 13,
                       color: themeColors.onSurface.withOpacity(0.75),
                       height: 1.5,
                     ),
                   ),
-                  if (entity.summary.length > entity.summaryPreview.length) ...[
-                    const SizedBox(height: 6),
-                    Row(
-                      children: [
-                        GestureDetector(
-                          onTap: () => setState(() => _isExpanded = !_isExpanded),
-                          child: Text(
-                            _isExpanded ? 'Show less' : 'Read more',
-                            style: TextStyle(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w600,
-                              color: widget.graphColor,
-                            ),
-                          ),
-                        ),
-                        const Spacer(),
-                        GestureDetector(
-                          onTap: () => widget.onCopy('${entity.name}\n${entity.labels.join(', ')}\n\n${entity.summary}'),
-                          child: Icon(
-                            Icons.copy_rounded,
-                            size: 16,
-                            color: themeColors.onSurface.withOpacity(0.4),
-                          ),
-                        ),
-                      ],
+                  const SizedBox(height: 6),
+                  Align(
+                    alignment: Alignment.centerRight,
+                    child: GestureDetector(
+                      onTap: () => widget.onCopy('${entity.name}\n${entity.labels.join(', ')}\n\n${entity.summary}'),
+                      child: Icon(
+                        Icons.copy_rounded,
+                        size: 16,
+                        color: themeColors.onSurface.withOpacity(0.4),
+                      ),
                     ),
-                  ],
+                  ),
                 ],
               ),
             ),

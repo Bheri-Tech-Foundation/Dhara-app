@@ -95,13 +95,6 @@ class GraphEntity {
 
   String get primaryLabel => labels.isNotEmpty ? labels.first : 'UNKNOWN';
 
-  /// First 2-3 sentences for preview display.
-  String get summaryPreview {
-    final sentences = summary.split(RegExp(r'(?<=[.!?])\s+'));
-    if (sentences.length <= 3) return summary;
-    return '${sentences.take(3).join(' ')}...';
-  }
-
   factory GraphEntity.fromJson(Map<String, dynamic> json, {String role = ''}) {
     final labels = (json['labels'] as List<dynamic>?)
             ?.map((e) => e.toString())
