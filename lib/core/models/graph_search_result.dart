@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 /// Model for NL-to-Cypher (Knowledge Graph) API response.
 /// Used exclusively in developer mode for the "Graph" search tab.
 class GraphSearchResult {
@@ -12,6 +14,7 @@ class GraphSearchResult {
   final String? modificationDetails;
   final String status;
   final String? error;
+  final Map<String, dynamic> rawJson;
 
   GraphSearchResult({
     required this.naturalLanguageQuery,
@@ -25,7 +28,17 @@ class GraphSearchResult {
     this.modificationDetails,
     required this.status,
     this.error,
+    required this.rawJson,
   });
+
+  /// Pretty-printed JSON string for display.
+  String get rawJsonPretty {
+    try {
+      return const JsonEncoder.withIndent('  ').convert(rawJson);
+    } catch (_) {
+      return rawJson.toString();
+    }
+  }
 
   bool get isSuccess => status == 'success' && error == null;
 
@@ -60,6 +73,7 @@ class GraphSearchResult {
       modificationDetails: json['modification_details'] as String?,
       status: json['status'] as String? ?? 'unknown',
       error: json['error'] as String?,
+      rawJson: json,
     );
   }
 }

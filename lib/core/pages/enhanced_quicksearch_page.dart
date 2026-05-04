@@ -4108,6 +4108,8 @@ class _EnhancedQuickSearchContentState extends State<_EnhancedQuickSearchContent
             ),
           const SizedBox(height: 8),
           _buildGraphTechnicalPanel(result, themeColors, graphColor),
+          const SizedBox(height: 4),
+          _buildGraphRawResponsePanel(result, themeColors, graphColor),
           const SizedBox(height: 24),
         ],
       ),
@@ -4276,6 +4278,48 @@ class _EnhancedQuickSearchContentState extends State<_EnhancedQuickSearchContent
                   ),
                 ),
                 const SizedBox(height: 12),
+                if (result.graphPaths.isNotEmpty) ...[
+                  Text(
+                    'Graph Paths',
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w600,
+                      color: themeColors.onSurface.withOpacity(0.5),
+                      letterSpacing: 0.5,
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  Wrap(
+                    spacing: 6,
+                    runSpacing: 4,
+                    children: result.graphPaths.map((path) => Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                      decoration: BoxDecoration(
+                        color: graphColor.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(6),
+                        border: Border.all(color: graphColor.withOpacity(0.2)),
+                      ),
+                      child: Text(
+                        path,
+                        style: TextStyle(fontSize: 11, color: graphColor, fontWeight: FontWeight.w500),
+                      ),
+                    )).toList(),
+                  ),
+                  const SizedBox(height: 12),
+                ],
+                if (result.dbModified) ...[
+                  Row(
+                    children: [
+                      Icon(Icons.edit, size: 12, color: const Color(0xFFE65100)),
+                      const SizedBox(width: 4),
+                      Text(
+                        'DB Modified: ${result.modificationDetails ?? 'Yes'}',
+                        style: const TextStyle(fontSize: 11, color: Color(0xFFE65100)),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                ],
                 Row(
                   children: [
                     Text(
@@ -4293,6 +4337,70 @@ class _EnhancedQuickSearchContentState extends State<_EnhancedQuickSearchContent
                   ],
                 ),
               ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildGraphRawResponsePanel(GraphSearchResult result, AppThemeColors themeColors, Color graphColor) {
+    return Theme(
+      data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
+      child: ExpansionTile(
+        tilePadding: const EdgeInsets.symmetric(horizontal: 12),
+        childrenPadding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
+        leading: Icon(Icons.data_object, size: 18, color: themeColors.onSurface.withOpacity(0.5)),
+        title: Text(
+          'Raw Response',
+          style: TextStyle(
+            fontSize: 13,
+            fontWeight: FontWeight.w500,
+            color: themeColors.onSurface.withOpacity(0.6),
+          ),
+        ),
+        trailing: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            IconButton(
+              icon: Icon(Icons.copy, size: 16, color: themeColors.onSurface.withOpacity(0.4)),
+              tooltip: 'Copy raw JSON',
+              onPressed: () {
+                Clipboard.setData(ClipboardData(text: result.rawJsonPretty));
+                if (mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: const Text('Raw JSON copied to clipboard'),
+                      backgroundColor: graphColor,
+                      duration: const Duration(seconds: 1),
+                    ),
+                  );
+                }
+              },
+            ),
+            Icon(Icons.expand_more, size: 20, color: themeColors.onSurface.withOpacity(0.4)),
+          ],
+        ),
+        children: [
+          Container(
+            width: double.infinity,
+            constraints: const BoxConstraints(maxHeight: 400),
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: const Color(0xFF1E1E1E),
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: themeColors.onSurface.withOpacity(0.08)),
+            ),
+            child: SingleChildScrollView(
+              child: SelectableText(
+                result.rawJsonPretty,
+                style: const TextStyle(
+                  fontFamily: 'monospace',
+                  fontSize: 11,
+                  color: Color(0xFFD4D4D4),
+                  height: 1.5,
+                ),
+              ),
             ),
           ),
         ],
