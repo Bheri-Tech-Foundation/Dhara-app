@@ -26,6 +26,9 @@ import 'package:dharak_flutter/core/services/dictionary_service.dart';
 import 'package:dharak_flutter/core/services/verse_service.dart';
 import 'package:dharak_flutter/core/services/unified_service.dart';
 import 'package:dharak_flutter/core/services/books_service.dart';
+import 'package:dharak_flutter/core/services/graph_search_service.dart';
+import 'package:dharak_flutter/core/models/graph_search_result.dart';
+import 'package:dharak_flutter/app/data/services/developer_mode_service.dart';
 import 'package:dharak_flutter/res/styles/text_styles.dart';
 import 'package:dharak_flutter/res/theme/app_theme_colors.dart';
 import 'package:dharak_flutter/res/theme/app_theme_display.dart';
@@ -50,6 +53,7 @@ enum QuickSearchMode {
   dictionary,
   verse,
   books,
+  graph,
 }
 
 extension QuickSearchTabExtension on QuickSearchTab {
@@ -86,6 +90,8 @@ extension QuickSearchModeExtension on QuickSearchMode {
         return 'QuickVerse';
       case QuickSearchMode.books:
         return 'Books';
+      case QuickSearchMode.graph:
+        return 'Graph';
     }
   }
 
@@ -99,6 +105,8 @@ extension QuickSearchModeExtension on QuickSearchMode {
         return Icons.keyboard_command_key;
       case QuickSearchMode.books:
         return Icons.menu_book;
+      case QuickSearchMode.graph:
+        return Icons.hub;
     }
   }
 
@@ -112,6 +120,8 @@ extension QuickSearchModeExtension on QuickSearchMode {
         return const Color(0xFF189565); // Green (from unified plugin)
       case QuickSearchMode.books:
         return Colors.blue; // Blue (from unified plugin)
+      case QuickSearchMode.graph:
+        return const Color(0xFF00897B); // Teal for Knowledge Graph
     }
   }
 
@@ -125,6 +135,8 @@ extension QuickSearchModeExtension on QuickSearchMode {
         return 'Type partial verse to search...';
       case QuickSearchMode.books:
         return 'Enter phrase to search or Ask a question ...';
+      case QuickSearchMode.graph:
+        return 'Ask a question about the knowledge graph...\ne.g. "Who killed Ravana?"';
     }
   }
 }
@@ -152,14 +164,21 @@ class _EnhancedQuickSearchPageState extends State<EnhancedQuickSearchPage>
     QuickSearchMode.dictionary: '',
     QuickSearchMode.verse: '',
     QuickSearchMode.books: '',
+    QuickSearchMode.graph: '',
   };
-  
+
   final Map<QuickSearchMode, bool> _hasSearchedByMode = {
     QuickSearchMode.unified: false,
     QuickSearchMode.dictionary: false,
     QuickSearchMode.verse: false,
     QuickSearchMode.books: false,
+    QuickSearchMode.graph: false,
   };
+
+  // Graph search state (managed locally since it's developer-mode only)
+  GraphSearchResult? _graphResult;
+  bool _graphLoading = false;
+  String? _graphError;
 
   // Language change management
   StreamSubscription<DashboardCubitState>? _languageSubscription;
@@ -281,6 +300,9 @@ class _EnhancedQuickSearchPageState extends State<EnhancedQuickSearchPage>
       case QuickSearchMode.books:
         // Books service will handle its own cache
         break;
+      case QuickSearchMode.graph:
+        GraphSearchService.instance.clearResults();
+        break;
     }
   }
 
@@ -311,6 +333,9 @@ class _EnhancedQuickSearchPageState extends State<EnhancedQuickSearchPage>
         final controller = BlocProvider.of<QuickSearchController>(context);
         controller.switchSearchType(SearchType.books);
         controller.forceSearch(query); // Use new forceSearch method
+        break;
+      case QuickSearchMode.graph:
+        _performGraphSearch(query);
         break;
     }
     
@@ -346,6 +371,9 @@ class _EnhancedQuickSearchPageState extends State<EnhancedQuickSearchPage>
           final controller = Modular.get<QuickSearchController>();
           controller.switchSearchType(SearchType.books);
           controller.forceSearch(query);
+          break;
+        case QuickSearchMode.graph:
+          _performGraphSearch(query);
           break;
       }
       
@@ -476,6 +504,27 @@ class _EnhancedQuickSearchPageState extends State<EnhancedQuickSearchPage>
         controller.switchSearchType(SearchType.books);
         controller.performSearch(query);
         break;
+      case QuickSearchMode.graph:
+        _performGraphSearch(query);
+        break;
+    }
+  }
+
+  Future<void> _performGraphSearch(String query) async {
+    setState(() {
+      _graphLoading = true;
+      _graphError = null;
+      _graphResult = null;
+    });
+
+    final result = await GraphSearchService.instance.searchGraph(query);
+
+    if (mounted) {
+      setState(() {
+        _graphLoading = false;
+        _graphResult = result;
+        _graphError = result == null ? 'Could not get results from the knowledge graph' : null;
+      });
     }
   }
 
@@ -501,6 +550,9 @@ class _EnhancedQuickSearchPageState extends State<EnhancedQuickSearchPage>
           onTabChanged: () {},
           onPerformSearch: _performSearch,
           onSearchModeChanged: _switchSearchMode,
+          graphResult: _graphResult,
+          graphLoading: _graphLoading,
+          graphError: _graphError,
         ),
     );
   }
@@ -538,6 +590,7 @@ class _EnhancedQuickSearchPageState extends State<EnhancedQuickSearchPage>
       case QuickSearchMode.dictionary:
       case QuickSearchMode.verse:
       case QuickSearchMode.books:
+      case QuickSearchMode.graph:
         // For all modes, check if we've performed a search
         return _currentQuery.isNotEmpty;
     }
@@ -1331,6 +1384,8 @@ class _EnhancedQuickSearchPageState extends State<EnhancedQuickSearchPage>
         return 'Welcome to QuickVerse';
       case QuickSearchMode.books:
         return 'Welcome to Books';
+      case QuickSearchMode.graph:
+        return 'Knowledge Graph';
     }
   }
 
@@ -1344,6 +1399,8 @@ class _EnhancedQuickSearchPageState extends State<EnhancedQuickSearchPage>
         return 'Do you have a shloka, mantra, verse or a kriti humming in your mind? Search for it here. Just enter the parts you remember to get started!';
       case QuickSearchMode.books:
         return 'Dive deep into sacred texts and spiritual literature. Search through chapters, find specific passages, or explore the vast library of Indic wisdom.';
+      case QuickSearchMode.graph:
+        return 'Query the Indic knowledge graph with natural language. Ask questions like "Who killed Ravana?" or "Who is the father of Rama?"';
     }
   }
 
@@ -1408,12 +1465,15 @@ class _EnhancedQuickSearchContent extends StatefulWidget {
   final TextEditingController searchController;
   final TabController tabController;
   final QuickSearchTab currentTab;
-  final QuickSearchMode currentSearchMode; // Add search mode
+  final QuickSearchMode currentSearchMode;
   final String currentQuery;
   final VoidCallback onTabChanged;
   final VoidCallback onPerformSearch;
-  final Function(QuickSearchMode) onSearchModeChanged; // Add callback for search mode changes
-  final VoidCallback? onClearSearch; // Add callback for clearing search
+  final Function(QuickSearchMode) onSearchModeChanged;
+  final VoidCallback? onClearSearch;
+  final GraphSearchResult? graphResult;
+  final bool graphLoading;
+  final String? graphError;
 
   const _EnhancedQuickSearchContent({
     required this.searchController,
@@ -1425,6 +1485,9 @@ class _EnhancedQuickSearchContent extends StatefulWidget {
     required this.onPerformSearch,
     required this.onSearchModeChanged,
     this.onClearSearch,
+    this.graphResult,
+    this.graphLoading = false,
+    this.graphError,
   });
 
   @override
@@ -1435,6 +1498,10 @@ class _EnhancedQuickSearchContentState extends State<_EnhancedQuickSearchContent
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   bool _isSearching = false;
   UnifiedState? _currentUnifiedState;
+
+  GraphSearchResult? get _graphResultFromParent => widget.graphResult;
+  bool get _graphLoadingFromParent => widget.graphLoading;
+  String? get _graphErrorFromParent => widget.graphError;
 
   @override
   Widget build(BuildContext context) {
@@ -1624,8 +1691,8 @@ class _EnhancedQuickSearchContentState extends State<_EnhancedQuickSearchContent
           ),
         ];
       case QuickSearchMode.unified:
-      default:
-        return []; // Unified mode uses clear screen button instead
+      case QuickSearchMode.graph:
+        return [];
     }
   }
 
@@ -1642,6 +1709,9 @@ class _EnhancedQuickSearchContentState extends State<_EnhancedQuickSearchContent
       case QuickSearchMode.verse:
       case QuickSearchMode.books:
         Modular.get<QuickSearchController>().clearSearch();
+        break;
+      case QuickSearchMode.graph:
+        GraphSearchService.instance.clearResults();
         break;
     }
     
@@ -1688,6 +1758,8 @@ class _EnhancedQuickSearchContentState extends State<_EnhancedQuickSearchContent
         case QuickSearchMode.books:
           final state = BlocProvider.of<QuickSearchController>(context, listen: false).state;
           return state.bookResults.isNotEmpty;
+        case QuickSearchMode.graph:
+          return _graphResultFromParent != null || _graphLoadingFromParent;
       }
     } catch (e) {
       return false;
@@ -1742,6 +1814,8 @@ class _EnhancedQuickSearchContentState extends State<_EnhancedQuickSearchContent
           final quickSearchController = Modular.get<QuickSearchController>();
           final hasResults = quickSearchController.state.bookResults.isNotEmpty;
           return hasResults;
+        case QuickSearchMode.graph:
+          return _graphResultFromParent != null || _graphLoadingFromParent;
       }
     } catch (e) {
       // If controllers aren't available yet, default to false
@@ -2569,6 +2643,8 @@ class _EnhancedQuickSearchContentState extends State<_EnhancedQuickSearchContent
         return 'Welcome to QuickVerse';
       case QuickSearchMode.books:
         return 'Welcome to Books';
+      case QuickSearchMode.graph:
+        return 'Knowledge Graph';
     }
   }
 
@@ -2582,6 +2658,8 @@ class _EnhancedQuickSearchContentState extends State<_EnhancedQuickSearchContent
         return 'Do you have a shloka, mantra, verse or a kriti humming in your mind? Search for it here. Just enter the parts you remember to get started!';
       case QuickSearchMode.books:
         return 'Ask a question or enter a phrase to search the world of Indic Knowledge';
+      case QuickSearchMode.graph:
+        return 'Query the Indic knowledge graph with natural language. Ask questions like "Who killed Ravana?" or "Who is the father of Rama?"';
     }
   }
 
@@ -2673,6 +2751,8 @@ class _EnhancedQuickSearchContentState extends State<_EnhancedQuickSearchContent
             ),
           ),
         ];
+      case QuickSearchMode.graph:
+        return [];
     }
   }
 
@@ -2773,6 +2853,8 @@ class _EnhancedQuickSearchContentState extends State<_EnhancedQuickSearchContent
         return _buildVerseContent();
       case QuickSearchMode.books:
         return _buildBooksContent();
+      case QuickSearchMode.graph:
+        return _buildGraphContent();
     }
   }
 
@@ -3960,6 +4042,264 @@ class _EnhancedQuickSearchContentState extends State<_EnhancedQuickSearchContent
     );
   }
 
+  Widget _buildGraphContent() {
+    final themeColors = Theme.of(context).extension<AppThemeColors>()!;
+    const graphColor = Color(0xFF00897B);
+
+    if (_graphLoadingFromParent) {
+      return _buildLoadingState('Querying knowledge graph...');
+    }
+
+    if (_graphErrorFromParent != null) {
+      return _buildErrorState(_graphErrorFromParent!, () {
+        final query = widget.searchController.text.trim();
+        if (query.isNotEmpty) {
+          widget.onPerformSearch();
+        }
+      });
+    }
+
+    final result = _graphResultFromParent;
+    if (result == null) {
+      return _buildCouldntLoadState('graph results', () {
+        final query = widget.searchController.text.trim();
+        if (query.isNotEmpty) {
+          widget.onPerformSearch();
+        }
+      });
+    }
+
+    if (!result.isSuccess) {
+      return _buildErrorState(
+        result.error ?? 'Knowledge graph query failed',
+        () => widget.onPerformSearch(),
+      );
+    }
+
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _buildGraphAnswerBanner(result, themeColors, graphColor),
+          const SizedBox(height: 16),
+          if (result.entities.isNotEmpty)
+            ...result.entities.map(
+              (entity) => Padding(
+                padding: const EdgeInsets.only(bottom: 12),
+                child: _buildGraphEntityCard(entity, themeColors, graphColor),
+              ),
+            ),
+          if (result.entities.isEmpty)
+            Center(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 32),
+                child: Column(
+                  children: [
+                    Icon(Icons.search_off, size: 48, color: themeColors.onSurface.withOpacity(0.3)),
+                    const SizedBox(height: 12),
+                    Text(
+                      'No entities found for this query',
+                      style: TextStyle(color: themeColors.onSurface.withOpacity(0.5), fontSize: 14),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          const SizedBox(height: 8),
+          _buildGraphTechnicalPanel(result, themeColors, graphColor),
+          const SizedBox(height: 24),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildGraphAnswerBanner(GraphSearchResult result, AppThemeColors themeColors, Color graphColor) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: graphColor.withOpacity(0.08),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: graphColor.withOpacity(0.2)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(Icons.help_outline, size: 16, color: graphColor),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  result.naturalLanguageQuery,
+                  style: TextStyle(
+                    fontSize: 13,
+                    color: themeColors.onSurface.withOpacity(0.6),
+                    fontStyle: FontStyle.italic,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          if (result.interpretation.isNotEmpty) ...[
+            Text(
+              result.interpretation,
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.w700,
+                color: themeColors.onSurface,
+              ),
+            ),
+            const SizedBox(height: 8),
+          ],
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                decoration: BoxDecoration(
+                  color: graphColor.withOpacity(0.15),
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                child: Text(
+                  '${result.resultCount} result${result.resultCount != 1 ? 's' : ''}',
+                  style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: graphColor),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                decoration: BoxDecoration(
+                  color: themeColors.onSurface.withOpacity(0.06),
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                child: Text(
+                  'via ${result.generationMethod}',
+                  style: TextStyle(fontSize: 11, color: themeColors.onSurface.withOpacity(0.5)),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Color _getLabelColor(String label) {
+    switch (label.toUpperCase()) {
+      case 'DEITY':
+        return const Color(0xFFFF8F00);
+      case 'PERSON':
+        return const Color(0xFF1565C0);
+      case 'DEMON':
+        return const Color(0xFFC62828);
+      case 'ANIMAL':
+        return const Color(0xFF2E7D32);
+      case 'KINGDOM':
+        return const Color(0xFF6A1B9A);
+      case 'WEAPON':
+        return const Color(0xFF4E342E);
+      case 'PLACE':
+        return const Color(0xFF00695C);
+      case 'EVENT':
+        return const Color(0xFFE65100);
+      default:
+        return const Color(0xFF546E7A);
+    }
+  }
+
+  Widget _buildGraphEntityCard(GraphEntity entity, AppThemeColors themeColors, Color graphColor) {
+    return _GraphEntityCardWidget(
+      entity: entity,
+      themeColors: themeColors,
+      graphColor: graphColor,
+      getLabelColor: _getLabelColor,
+      onCopy: (text) {
+        Clipboard.setData(ClipboardData(text: text));
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: const Text('Copied to clipboard'),
+              backgroundColor: graphColor,
+              duration: const Duration(seconds: 1),
+            ),
+          );
+        }
+      },
+    );
+  }
+
+  Widget _buildGraphTechnicalPanel(GraphSearchResult result, AppThemeColors themeColors, Color graphColor) {
+    return Theme(
+      data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
+      child: ExpansionTile(
+        tilePadding: const EdgeInsets.symmetric(horizontal: 12),
+        childrenPadding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
+        leading: Icon(Icons.code, size: 18, color: themeColors.onSurface.withOpacity(0.5)),
+        title: Text(
+          'Technical Details',
+          style: TextStyle(
+            fontSize: 13,
+            fontWeight: FontWeight.w500,
+            color: themeColors.onSurface.withOpacity(0.6),
+          ),
+        ),
+        children: [
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: themeColors.onSurface.withOpacity(0.04),
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: themeColors.onSurface.withOpacity(0.08)),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Generated Cypher Query',
+                  style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w600,
+                    color: themeColors.onSurface.withOpacity(0.5),
+                    letterSpacing: 0.5,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                SelectableText(
+                  result.cypherQuery,
+                  style: TextStyle(
+                    fontFamily: 'monospace',
+                    fontSize: 12,
+                    color: themeColors.onSurface.withOpacity(0.8),
+                    height: 1.5,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Row(
+                  children: [
+                    Text(
+                      'Method: ${result.generationMethod}',
+                      style: TextStyle(fontSize: 11, color: themeColors.onSurface.withOpacity(0.5)),
+                    ),
+                    const Spacer(),
+                    Text(
+                      'Status: ${result.status}',
+                      style: TextStyle(
+                        fontSize: 11,
+                        color: result.isSuccess ? const Color(0xFF2E7D32) : const Color(0xFFC62828),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildEmptySearchState(String title, String subtitle, IconData icon) {
     final themeColors = Theme.of(context).extension<AppThemeColors>()!;
     
@@ -4270,6 +4610,22 @@ class _EnhancedQuickSearchContentState extends State<_EnhancedQuickSearchContent
             },
             themeColors: themeColors,
           ),
+
+          // Graph App (developer mode only)
+          if (DeveloperModeService.instance.isEnabled) ...[
+            const SizedBox(height: 8),
+            _buildDrawerAppItem(
+              icon: Icons.hub,
+              title: 'Graph',
+              subtitle: 'Knowledge graph queries (Dev)',
+              color: const Color(0xFF00897B), // Teal
+              onTap: () {
+                Navigator.of(context).pop();
+                widget.onSearchModeChanged(QuickSearchMode.graph);
+              },
+              themeColors: themeColors,
+            ),
+          ],
         ],
       ),
     );
@@ -4598,6 +4954,180 @@ class _FeedbackSectionState extends State<_FeedbackSection> {
               ),
             ],
           ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Expandable entity card for Knowledge Graph results
+class _GraphEntityCardWidget extends StatefulWidget {
+  final GraphEntity entity;
+  final AppThemeColors themeColors;
+  final Color graphColor;
+  final Color Function(String label) getLabelColor;
+  final void Function(String text) onCopy;
+
+  const _GraphEntityCardWidget({
+    required this.entity,
+    required this.themeColors,
+    required this.graphColor,
+    required this.getLabelColor,
+    required this.onCopy,
+  });
+
+  @override
+  State<_GraphEntityCardWidget> createState() => _GraphEntityCardWidgetState();
+}
+
+class _GraphEntityCardWidgetState extends State<_GraphEntityCardWidget> {
+  bool _isExpanded = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final entity = widget.entity;
+    final themeColors = widget.themeColors;
+    final primaryColor = widget.getLabelColor(entity.primaryLabel);
+
+    return Container(
+      decoration: BoxDecoration(
+        color: themeColors.surface,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: themeColors.onSurface.withOpacity(0.08)),
+        boxShadow: [
+          BoxShadow(
+            color: primaryColor.withOpacity(0.06),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Header with colored left border
+          Container(
+            padding: const EdgeInsets.all(14),
+            decoration: BoxDecoration(
+              border: Border(
+                left: BorderSide(color: primaryColor, width: 3),
+              ),
+              borderRadius: const BorderRadius.only(
+                topLeft: Radius.circular(12),
+                topRight: Radius.circular(12),
+              ),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Entity name + role
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        entity.name,
+                        style: TextStyle(
+                          fontSize: 17,
+                          fontWeight: FontWeight.w700,
+                          color: themeColors.onSurface,
+                        ),
+                      ),
+                    ),
+                    if (entity.role.isNotEmpty)
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                        decoration: BoxDecoration(
+                          color: widget.graphColor.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(6),
+                          border: Border.all(color: widget.graphColor.withOpacity(0.3)),
+                        ),
+                        child: Text(
+                          entity.role,
+                          style: TextStyle(
+                            fontSize: 10,
+                            fontWeight: FontWeight.w600,
+                            color: widget.graphColor,
+                            letterSpacing: 0.3,
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+
+                // Category labels
+                Wrap(
+                  spacing: 6,
+                  runSpacing: 4,
+                  children: entity.labels.map((label) {
+                    final labelColor = widget.getLabelColor(label);
+                    return Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                      decoration: BoxDecoration(
+                        color: labelColor.withOpacity(0.12),
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                      child: Text(
+                        label,
+                        style: TextStyle(
+                          fontSize: 10,
+                          fontWeight: FontWeight.w700,
+                          color: labelColor,
+                          letterSpacing: 0.5,
+                        ),
+                      ),
+                    );
+                  }).toList(),
+                ),
+              ],
+            ),
+          ),
+
+          // Summary
+          if (entity.summary.isNotEmpty)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(14, 8, 14, 14),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    _isExpanded ? entity.summary : entity.summaryPreview,
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: themeColors.onSurface.withOpacity(0.75),
+                      height: 1.5,
+                    ),
+                  ),
+                  if (entity.summary.length > entity.summaryPreview.length) ...[
+                    const SizedBox(height: 6),
+                    Row(
+                      children: [
+                        GestureDetector(
+                          onTap: () => setState(() => _isExpanded = !_isExpanded),
+                          child: Text(
+                            _isExpanded ? 'Show less' : 'Read more',
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                              color: widget.graphColor,
+                            ),
+                          ),
+                        ),
+                        const Spacer(),
+                        GestureDetector(
+                          onTap: () => widget.onCopy('${entity.name}\n${entity.labels.join(', ')}\n\n${entity.summary}'),
+                          child: Icon(
+                            Icons.copy_rounded,
+                            size: 16,
+                            color: themeColors.onSurface.withOpacity(0.4),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ],
+              ),
+            ),
         ],
       ),
     );
