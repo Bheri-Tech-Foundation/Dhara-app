@@ -5089,6 +5089,8 @@ class _GraphEntityCardWidget extends StatefulWidget {
 }
 
 class _GraphEntityCardWidgetState extends State<_GraphEntityCardWidget> {
+  bool _summaryExpanded = false;
+
   @override
   Widget build(BuildContext context) {
     final entity = widget.entity;
@@ -5197,7 +5199,7 @@ class _GraphEntityCardWidgetState extends State<_GraphEntityCardWidget> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   SelectableText(
-                    entity.summary,
+                    _summaryExpanded ? entity.summary : entity.summaryPreview,
                     style: TextStyle(
                       fontSize: 13,
                       color: themeColors.onSurface.withOpacity(0.75),
@@ -5205,16 +5207,30 @@ class _GraphEntityCardWidgetState extends State<_GraphEntityCardWidget> {
                     ),
                   ),
                   const SizedBox(height: 6),
-                  Align(
-                    alignment: Alignment.centerRight,
-                    child: GestureDetector(
-                      onTap: () => widget.onCopy('${entity.name}\n${entity.labels.join(', ')}\n\n${entity.summary}'),
-                      child: Icon(
-                        Icons.copy_rounded,
-                        size: 16,
-                        color: themeColors.onSurface.withOpacity(0.4),
+                  Row(
+                    children: [
+                      if (entity.hasLongSummary)
+                        GestureDetector(
+                          onTap: () => setState(() => _summaryExpanded = !_summaryExpanded),
+                          child: Text(
+                            _summaryExpanded ? 'Show less' : 'Read more',
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                              color: widget.graphColor,
+                            ),
+                          ),
+                        ),
+                      const Spacer(),
+                      GestureDetector(
+                        onTap: () => widget.onCopy('${entity.name}\n${entity.labels.join(', ')}\n\n${entity.summary}'),
+                        child: Icon(
+                          Icons.copy_rounded,
+                          size: 16,
+                          color: themeColors.onSurface.withOpacity(0.4),
+                        ),
                       ),
-                    ),
+                    ],
                   ),
                 ],
               ),
