@@ -7,6 +7,7 @@ import 'package:dharak_flutter/app/types/dictionary/word_definitions.dart';
 import 'package:dharak_flutter/app/types/unified/unified_response.dart';
 import 'package:dharak_flutter/app/types/verse/verse.dart';
 import 'package:dharak_flutter/core/cache/smart_search_cache.dart';
+import 'package:dharak_flutter/core/services/graph_search_service.dart';
 import 'package:dharak_flutter/core/services/verse_service.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter_modular/flutter_modular.dart';
@@ -305,6 +306,31 @@ class UnifiedService {
                 continue;
               }
 
+              // Handle nl_to_cypher — fire off graph result polling (developer mode only)
+              if (type == 'nl_to_cypher') {
+                if (DeveloperModeService.instance.isEnabled && data is Map<String, dynamic>) {
+                  final resultKey = data['result_key'] as String?;
+                  if (resultKey != null && resultKey.isNotEmpty) {
+                    // Create a loading placeholder result for graph
+                    final graphLoadingResult = UnifiedSearchResult(
+                      query: query,
+                      originalQuery: query,
+                      timestamp: DateTime.now(),
+                      searchSessionId: currentSessionId,
+                      splits: currentResult.splits,
+                      queryId: currentResult.queryId,
+                      itemId: itemId,
+                      graphLoading: true,
+                    );
+                    _addOrUpdateGraphResult(graphLoadingResult);
+
+                    // Fire and forget — poll the result endpoint asynchronously
+                    _pollGraphResult(resultKey, query, currentSessionId, currentResult, itemId);
+                  }
+                }
+                continue;
+              }
+
               // Normalize verse data before parsing to prevent type cast failures
               if (type == 'verse' && data is List) {
                 for (var verse in data) {
@@ -565,6 +591,69 @@ class UnifiedService {
     }
 
     _currentResults.add(currentResults);
+  }
+
+  /// Add or update a graph-specific result (keyed by "__graph__" query marker)
+  void _addOrUpdateGraphResult(UnifiedSearchResult graphResult) {
+    final currentResults = List<UnifiedSearchResult>.from(_currentResults.value);
+    final graphKey = '__graph__${graphResult.searchSessionId}';
+
+    final existingIndex = currentResults.indexWhere(
+      (r) => r.itemId == graphKey,
+    );
+
+    final tagged = graphResult.copyWith(
+      itemId: graphKey,
+      searchSessionId: _currentSearchSessionId,
+    );
+
+    if (existingIndex != -1) {
+      currentResults[existingIndex] = tagged;
+    } else {
+      currentResults.add(tagged);
+    }
+
+    _currentResults.add(currentResults);
+  }
+
+  /// Poll the nl_to_cypher_result endpoint until completed
+  Future<void> _pollGraphResult(
+    String resultKey,
+    String query,
+    int sessionId,
+    UnifiedSearchResult currentResult,
+    String? itemId,
+  ) async {
+    try {
+      final result = await GraphSearchService.instance.fetchNlToCypherResult(resultKey);
+
+      final graphResult = UnifiedSearchResult(
+        query: query,
+        originalQuery: query,
+        timestamp: DateTime.now(),
+        searchSessionId: sessionId,
+        splits: currentResult.splits,
+        queryId: currentResult.queryId,
+        itemId: '__graph__$sessionId',
+        graphResult: result,
+        graphLoading: false,
+        graphError: result == null ? (GraphSearchService.instance.errorStream.valueOrNull ?? 'Graph query failed') : null,
+      );
+      _addOrUpdateGraphResult(graphResult);
+    } catch (_) {
+      final errorResult = UnifiedSearchResult(
+        query: query,
+        originalQuery: query,
+        timestamp: DateTime.now(),
+        searchSessionId: sessionId,
+        splits: currentResult.splits,
+        queryId: currentResult.queryId,
+        itemId: '__graph__$sessionId',
+        graphLoading: false,
+        graphError: 'Failed to fetch graph results',
+      );
+      _addOrUpdateGraphResult(errorResult);
+    }
   }
 
   void _reprocessVersesWithLanguage(UnifiedSearchResult currentResult, int sessionId, String query) {

@@ -99,6 +99,83 @@ class GraphSearchService {
     }
   }
 
+  /// Fetch NL-to-Cypher result from the quick_search polling endpoint.
+  /// Called when the streaming quick_search response includes a
+  /// `type: "nl_to_cypher"` chunk with a `result_key`.
+  Future<GraphSearchResult?> fetchNlToCypherResult(String resultKey) async {
+    _loadingSubject.add(true);
+    _errorSubject.add(null);
+
+    try {
+      final baseUrl = DeveloperModeService.instance.getEffectiveApiUrl();
+      final url = '$baseUrl/quick_search/nl_to_cypher_result/?result_key=$resultKey';
+
+      // Poll until status is "completed" or we timeout
+      const maxAttempts = 30;
+      const pollInterval = Duration(seconds: 3);
+
+      for (int attempt = 0; attempt < maxAttempts; attempt++) {
+        final response = await _client.get(
+          url,
+          options: Options(
+            headers: {'accept': 'application/json'},
+            validateStatus: (status) => status != null && status < 500,
+          ),
+        );
+
+        if (response.statusCode == 200 && response.data != null) {
+          final responseData = response.data is Map<String, dynamic>
+              ? response.data as Map<String, dynamic>
+              : <String, dynamic>{};
+
+          final status = responseData['status'] as String? ?? '';
+
+          if (status == 'completed') {
+            final data = responseData['data'] as Map<String, dynamic>? ?? responseData;
+            final result = GraphSearchResult.fromJson(data);
+            _resultSubject.add(result);
+            _loadingSubject.add(false);
+            return result;
+          } else if (status == 'error' || status == 'failed') {
+            final errorMsg = responseData['error']?.toString() ?? 'Graph query failed';
+            _errorSubject.add(errorMsg);
+            _loadingSubject.add(false);
+            return null;
+          }
+
+          // Status is "pending" or "queued" — wait and retry
+          await Future.delayed(pollInterval);
+        } else {
+          _errorSubject.add('Graph query failed (${response.statusCode})');
+          _loadingSubject.add(false);
+          return null;
+        }
+      }
+
+      _errorSubject.add('Graph query timed out after polling');
+      _loadingSubject.add(false);
+      return null;
+    } on DioException catch (e) {
+      String errorMsg;
+      if (e.type == DioExceptionType.connectionTimeout ||
+          e.type == DioExceptionType.receiveTimeout) {
+        errorMsg = 'Request timed out.';
+      } else if (e.type == DioExceptionType.connectionError) {
+        errorMsg = 'Could not connect to the server.';
+      } else {
+        errorMsg = 'Network error: ${e.message ?? 'Unknown error'}';
+      }
+      _errorSubject.add(errorMsg);
+      _loadingSubject.add(false);
+      return null;
+    } catch (e) {
+      _logger.e('Graph poll error', error: e);
+      _errorSubject.add('An unexpected error occurred');
+      _loadingSubject.add(false);
+      return null;
+    }
+  }
+
   void clearResults() {
     _resultSubject.add(null);
     _errorSubject.add(null);

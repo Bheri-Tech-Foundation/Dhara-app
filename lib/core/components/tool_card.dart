@@ -24,6 +24,7 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:dharak_flutter/core/components/word_definition_card.dart';
 import 'package:dharak_flutter/core/components/verse_card.dart';
 import 'package:dharak_flutter/core/components/prashna_tool_card_content.dart';
+import 'package:dharak_flutter/core/models/graph_search_result.dart';
 import 'package:dharak_flutter/core/controllers/unified_controller.dart';
 import 'package:dharak_flutter/core/services/dictionary_service.dart';
 import 'package:dharak_flutter/core/services/verse_service.dart';
@@ -35,7 +36,7 @@ import 'package:expandable/expandable.dart';
 import 'package:flutter/material.dart';
 import 'package:markdown_widget/config/all.dart';
 
-enum ExpandableToolType { definition, verse, chunk, prashna }
+enum ExpandableToolType { definition, verse, chunk, prashna, graph }
 
 extension ExpandableToolTypeExtension on ExpandableToolType {
   String get label {
@@ -48,6 +49,8 @@ extension ExpandableToolTypeExtension on ExpandableToolType {
         return 'Chunk';
       case ExpandableToolType.prashna:
         return 'Prashna';
+      case ExpandableToolType.graph:
+        return 'Graph';
     }
   }
 }
@@ -145,13 +148,15 @@ class _ToolCardState extends State<ToolCard> {
   Color _getToolColor() {
     switch (widget.toolType) {
       case ExpandableToolType.definition:
-        return const Color(0xFFF9140C); // Red for dict (from unified plugin)
+        return const Color(0xFFF9140C);
       case ExpandableToolType.verse:
-        return const Color(0xFF189565); // Green for verses (from unified plugin)
+        return const Color(0xFF189565);
       case ExpandableToolType.chunk:
-        return Colors.blue; // Blue for books (from unified plugin)
+        return Colors.blue;
       case ExpandableToolType.prashna:
-        return const Color(0xFF9333EA); // Purple for Prashna AI
+        return const Color(0xFF9333EA);
+      case ExpandableToolType.graph:
+        return const Color(0xFF00897B);
     }
   }
 
@@ -159,13 +164,15 @@ class _ToolCardState extends State<ToolCard> {
   IconData _getToolIcon() {
     switch (widget.toolType) {
       case ExpandableToolType.definition:
-        return Icons.local_library_outlined; // Library icon for dict
+        return Icons.local_library_outlined;
       case ExpandableToolType.verse:
-        return Icons.keyboard_command_key; // Command key icon for verses
+        return Icons.keyboard_command_key;
       case ExpandableToolType.chunk:
-        return Icons.menu_book; // Menu book icon for chunks
+        return Icons.menu_book;
       case ExpandableToolType.prashna:
-        return Icons.psychology_outlined; // AI brain icon for Prashna
+        return Icons.psychology_outlined;
+      case ExpandableToolType.graph:
+        return Icons.hub_outlined;
     }
   }
 
@@ -602,6 +609,8 @@ class _ToolCardState extends State<ToolCard> {
         return _buildChunkContent();
       case ExpandableToolType.prashna:
         return _buildPrashnaContent();
+      case ExpandableToolType.graph:
+        return _buildGraphToolContent();
     }
   }
 
@@ -912,6 +921,65 @@ class _ToolCardState extends State<ToolCard> {
       query: queryToSend,
       queryId: widget.result.queryId!,
       isExpanded: _isExpanded, // Pass expansion state
+      themeColors: widget.themeColors,
+    );
+  }
+
+  Widget _buildGraphToolContent() {
+    if (widget.result.graphLoading) {
+      return Padding(
+        padding: const EdgeInsets.all(16),
+        child: Row(
+          children: [
+            SizedBox(
+              width: 18,
+              height: 18,
+              child: CircularProgressIndicator(
+                strokeWidth: 2,
+                color: const Color(0xFF00897B),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Text(
+              'Querying knowledge graph...',
+              style: TextStyle(
+                fontSize: 13,
+                color: widget.themeColors.onSurface.withOpacity(0.6),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    if (widget.result.graphError != null) {
+      return Padding(
+        padding: const EdgeInsets.all(16),
+        child: Row(
+          children: [
+            Icon(Icons.error_outline, size: 18, color: Colors.red.shade400),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                widget.result.graphError!,
+                style: TextStyle(fontSize: 13, color: Colors.red.shade400),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    final result = widget.result.graphResult;
+    if (result == null) {
+      return const Padding(
+        padding: EdgeInsets.all(16),
+        child: Text('No graph data available'),
+      );
+    }
+
+    return _GraphToolResultContent(
+      result: result,
       themeColors: widget.themeColors,
     );
   }
@@ -1394,4 +1462,296 @@ class _ToolCardState extends State<ToolCard> {
     );
   }
 
+}
+
+/// Displays graph (NL-to-Cypher) results inside a ToolCard
+class _GraphToolResultContent extends StatelessWidget {
+  final GraphSearchResult result;
+  final AppThemeColors themeColors;
+
+  const _GraphToolResultContent({
+    required this.result,
+    required this.themeColors,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    const graphColor = Color(0xFF00897B);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Interpretation banner
+        if (result.interpretation.isNotEmpty)
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+            child: Text(
+              result.interpretation,
+              style: TextStyle(
+                fontSize: 15,
+                fontWeight: FontWeight.w700,
+                color: themeColors.onSurface,
+              ),
+            ),
+          ),
+
+        // Result count + method
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
+          child: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                decoration: BoxDecoration(
+                  color: graphColor.withOpacity(0.15),
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                child: Text(
+                  '${result.resultCount} result${result.resultCount != 1 ? 's' : ''}',
+                  style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: graphColor),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                decoration: BoxDecoration(
+                  color: themeColors.onSurface.withOpacity(0.06),
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                child: Text(
+                  'via ${result.generationMethod}',
+                  style: TextStyle(fontSize: 11, color: themeColors.onSurface.withOpacity(0.5)),
+                ),
+              ),
+            ],
+          ),
+        ),
+
+        // Entity list
+        if (result.entities.isNotEmpty)
+          ...result.entities.map((entity) => _GraphEntityItem(
+            entity: entity,
+            themeColors: themeColors,
+          )),
+
+        if (result.entities.isEmpty)
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: Text(
+              'No entities found for this query',
+              style: TextStyle(fontSize: 13, color: themeColors.onSurface.withOpacity(0.5)),
+            ),
+          ),
+
+        // Cypher query (collapsible)
+        if (result.cypherQuery.isNotEmpty)
+          Theme(
+            data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
+            child: ExpansionTile(
+              tilePadding: const EdgeInsets.symmetric(horizontal: 16),
+              childrenPadding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+              leading: Icon(Icons.code, size: 16, color: themeColors.onSurface.withOpacity(0.4)),
+              title: Text(
+                'Cypher Query',
+                style: TextStyle(fontSize: 12, color: themeColors.onSurface.withOpacity(0.5)),
+              ),
+              children: [
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: themeColors.onSurface.withOpacity(0.04),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: SelectableText(
+                    result.cypherQuery,
+                    style: TextStyle(
+                      fontFamily: 'monospace',
+                      fontSize: 11,
+                      color: themeColors.onSurface.withOpacity(0.7),
+                      height: 1.5,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+        // Raw JSON (collapsible)
+        Theme(
+          data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
+          child: ExpansionTile(
+            tilePadding: const EdgeInsets.symmetric(horizontal: 16),
+            childrenPadding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+            leading: Icon(Icons.data_object, size: 16, color: themeColors.onSurface.withOpacity(0.4)),
+            title: Text(
+              'Raw Response',
+              style: TextStyle(fontSize: 12, color: themeColors.onSurface.withOpacity(0.5)),
+            ),
+            children: [
+              Container(
+                width: double.infinity,
+                constraints: const BoxConstraints(maxHeight: 300),
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF1E1E1E),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: SingleChildScrollView(
+                  child: SelectableText(
+                    result.rawJsonPretty,
+                    style: const TextStyle(
+                      fontFamily: 'monospace',
+                      fontSize: 11,
+                      color: Color(0xFFD4D4D4),
+                      height: 1.5,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+/// Single entity row inside the Graph tool card
+class _GraphEntityItem extends StatefulWidget {
+  final GraphEntity entity;
+  final AppThemeColors themeColors;
+
+  const _GraphEntityItem({
+    required this.entity,
+    required this.themeColors,
+  });
+
+  @override
+  State<_GraphEntityItem> createState() => _GraphEntityItemState();
+}
+
+class _GraphEntityItemState extends State<_GraphEntityItem> {
+  bool _summaryExpanded = false;
+
+  Color _getLabelColor(String label) {
+    switch (label.toUpperCase()) {
+      case 'DEITY': return const Color(0xFFFF8F00);
+      case 'PERSON': return const Color(0xFF1565C0);
+      case 'DEMON': return const Color(0xFFC62828);
+      case 'ANIMAL': return const Color(0xFF2E7D32);
+      case 'KINGDOM': return const Color(0xFF6A1B9A);
+      case 'WEAPON': return const Color(0xFF4E342E);
+      case 'PLACE': return const Color(0xFF00695C);
+      case 'EVENT': return const Color(0xFFE65100);
+      default: return const Color(0xFF546E7A);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final entity = widget.entity;
+    final themeColors = widget.themeColors;
+    final primaryColor = _getLabelColor(entity.primaryLabel);
+
+    return Container(
+      margin: const EdgeInsets.fromLTRB(16, 8, 16, 4),
+      decoration: BoxDecoration(
+        color: themeColors.surface,
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: themeColors.onSurface.withOpacity(0.08)),
+        boxShadow: [
+          BoxShadow(color: primaryColor.withOpacity(0.06), blurRadius: 6, offset: const Offset(0, 2)),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Header
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              border: Border(left: BorderSide(color: primaryColor, width: 3)),
+              borderRadius: const BorderRadius.only(
+                topLeft: Radius.circular(10),
+                topRight: Radius.circular(10),
+              ),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        entity.name,
+                        style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: themeColors.onSurface),
+                      ),
+                    ),
+                    if (entity.role.isNotEmpty)
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF00897B).withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(4),
+                          border: Border.all(color: const Color(0xFF00897B).withOpacity(0.3)),
+                        ),
+                        child: Text(
+                          entity.role,
+                          style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w600, color: Color(0xFF00897B)),
+                        ),
+                      ),
+                  ],
+                ),
+                const SizedBox(height: 6),
+                Wrap(
+                  spacing: 4,
+                  runSpacing: 4,
+                  children: entity.labels.map((label) {
+                    final labelColor = _getLabelColor(label);
+                    return Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: labelColor.withOpacity(0.12),
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                      child: Text(
+                        label,
+                        style: TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: labelColor, letterSpacing: 0.5),
+                      ),
+                    );
+                  }).toList(),
+                ),
+              ],
+            ),
+          ),
+
+          // Summary
+          if (entity.summary.isNotEmpty)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(12, 6, 12, 12),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  SelectableText(
+                    _summaryExpanded ? entity.summary : entity.summaryPreview,
+                    style: TextStyle(fontSize: 12, color: themeColors.onSurface.withOpacity(0.7), height: 1.5),
+                  ),
+                  if (entity.hasLongSummary) ...[
+                    const SizedBox(height: 4),
+                    GestureDetector(
+                      onTap: () => setState(() => _summaryExpanded = !_summaryExpanded),
+                      child: Text(
+                        _summaryExpanded ? 'Show less' : 'Read more',
+                        style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Color(0xFF00897B)),
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+        ],
+      ),
+    );
+  }
 }

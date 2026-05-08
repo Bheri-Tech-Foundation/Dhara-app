@@ -1,6 +1,7 @@
 import 'package:dharak_flutter/app/types/books/book_chunk.dart';
 import 'package:dharak_flutter/app/types/dictionary/word_definitions.dart';
 import 'package:dharak_flutter/app/types/verse/verse.dart';
+import 'package:dharak_flutter/core/models/graph_search_result.dart';
 import 'package:json_annotation/json_annotation.dart';
 
 part 'unified_response.g.dart';
@@ -60,6 +61,11 @@ class UnifiedSearchResult {
   final int? queryId; // Query ID for voting (from API)
   final String? itemId; // Item ID for this specific result (from API)
 
+  // Graph (NL-to-Cypher) fields — developer mode only
+  final GraphSearchResult? graphResult;
+  final bool graphLoading;
+  final String? graphError;
+
   UnifiedSearchResult({
     required this.query,
     this.originalQuery, // Store the original user query
@@ -72,6 +78,9 @@ class UnifiedSearchResult {
     this.outputScript,
     this.queryId,
     this.itemId,
+    this.graphResult,
+    this.graphLoading = false,
+    this.graphError,
   });
 
   UnifiedSearchResult copyWith({
@@ -86,6 +95,9 @@ class UnifiedSearchResult {
     String? outputScript,
     int? queryId,
     String? itemId,
+    GraphSearchResult? graphResult,
+    bool? graphLoading,
+    String? graphError,
   }) {
     return UnifiedSearchResult(
       query: query ?? this.query,
@@ -99,6 +111,9 @@ class UnifiedSearchResult {
       outputScript: outputScript ?? this.outputScript,
       queryId: queryId ?? this.queryId,
       itemId: itemId ?? this.itemId,
+      graphResult: graphResult ?? this.graphResult,
+      graphLoading: graphLoading ?? this.graphLoading,
+      graphError: graphError ?? this.graphError,
     );
   }
 
@@ -108,5 +123,6 @@ class UnifiedSearchResult {
                            definition!.details.definitions.isNotEmpty;
   bool get hasVerses => verses != null && verses!.isNotEmpty;
   bool get hasChunks => chunks != null && chunks!.isNotEmpty;
-  bool get hasAnyResults => hasDefinition || hasVerses || hasChunks;
+  bool get hasGraph => graphResult != null || graphLoading;
+  bool get hasAnyResults => hasDefinition || hasVerses || hasChunks || hasGraph;
 }

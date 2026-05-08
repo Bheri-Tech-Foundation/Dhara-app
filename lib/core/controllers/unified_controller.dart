@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:copy_with_extension/copy_with_extension.dart';
 import 'package:dharak_flutter/app/bloc/state_bloc.dart';
+import 'package:dharak_flutter/app/data/services/developer_mode_service.dart';
 import 'package:dharak_flutter/app/data/services/tester_mode_service.dart';
 import 'package:dharak_flutter/app/types/unified/unified_response.dart';
 import 'package:dharak_flutter/core/services/unified_service.dart';
@@ -129,12 +130,16 @@ class UnifiedController extends Cubit<UnifiedState> {
     if (result.hasChunks) tools.add(ExpandableToolType.chunk);
     
     // Add Prashna AI tool to results that have chunks OR have the originalQuery
-    // This ensures Prashna appears with the main query result, not fragment results
     if (TesterModeService.instance.isEnabled && 
         result.queryId != null &&
         result.originalQuery != null && 
         result.originalQuery!.isNotEmpty) {
       tools.add(ExpandableToolType.prashna);
+    }
+
+    // Add Graph tool when developer mode is enabled and graph data exists
+    if (DeveloperModeService.instance.isEnabled && result.hasGraph) {
+      tools.add(ExpandableToolType.graph);
     }
     
     return tools;
