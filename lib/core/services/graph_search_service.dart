@@ -123,6 +123,12 @@ class GraphSearchService {
           ),
         );
 
+        // HTTP 202 = still processing, keep polling
+        if (response.statusCode == 202) {
+          await Future.delayed(pollInterval);
+          continue;
+        }
+
         if (response.statusCode == 200 && response.data != null) {
           final responseData = response.data is Map<String, dynamic>
               ? response.data as Map<String, dynamic>
@@ -131,8 +137,7 @@ class GraphSearchService {
           final status = responseData['status'] as String? ?? '';
 
           if (status == 'completed') {
-            final data = responseData['data'] as Map<String, dynamic>? ?? responseData;
-            final result = GraphSearchResult.fromJson(data);
+            final result = GraphSearchResult.fromWrapperJson(responseData);
             _resultSubject.add(result);
             _loadingSubject.add(false);
             return result;
@@ -145,6 +150,14 @@ class GraphSearchService {
 
           // Status is "pending" or "queued" — wait and retry
           await Future.delayed(pollInterval);
+        } else if (response.statusCode == 404) {
+          _errorSubject.add('Graph result not found or expired');
+          _loadingSubject.add(false);
+          return null;
+        } else if (response.statusCode == 400) {
+          _errorSubject.add('Invalid query for graph search');
+          _loadingSubject.add(false);
+          return null;
         } else {
           _errorSubject.add('Graph query failed (${response.statusCode})');
           _loadingSubject.add(false);

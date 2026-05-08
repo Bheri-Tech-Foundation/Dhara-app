@@ -8,12 +8,15 @@ class GraphSearchResult {
   final String generationMethod;
   final List<GraphEntity> entities;
   final List<String> graphPaths;
+  final List<String> canonicalPathSummary;
+  final List<GraphSubgraph> graphSubgraphs;
   final String interpretation;
   final int resultCount;
   final bool dbModified;
   final String? modificationDetails;
   final String status;
   final String? error;
+  final double? timeTaken;
   final Map<String, dynamic> rawJson;
 
   GraphSearchResult({
@@ -22,16 +25,18 @@ class GraphSearchResult {
     required this.generationMethod,
     required this.entities,
     required this.graphPaths,
+    this.canonicalPathSummary = const [],
+    this.graphSubgraphs = const [],
     required this.interpretation,
     required this.resultCount,
     required this.dbModified,
     this.modificationDetails,
     required this.status,
     this.error,
+    this.timeTaken,
     required this.rawJson,
   });
 
-  /// Pretty-printed JSON string for display.
   String get rawJsonPretty {
     try {
       return const JsonEncoder.withIndent('  ').convert(rawJson);
@@ -42,13 +47,21 @@ class GraphSearchResult {
 
   bool get isSuccess => status == 'success' && error == null;
 
+  /// All unique relationships across all subgraphs.
+  List<GraphRelationship> get allRelationships {
+    final rels = <GraphRelationship>[];
+    for (final sg in graphSubgraphs) {
+      rels.addAll(sg.relationships);
+    }
+    return rels;
+  }
+
   factory GraphSearchResult.fromJson(Map<String, dynamic> json) {
     final dbResults = json['db_results'] as List<dynamic>? ?? [];
     final entities = <GraphEntity>[];
 
     for (final result in dbResults) {
       if (result is Map<String, dynamic>) {
-        // The key is the variable name from the Cypher RETURN clause (e.g. "killer")
         for (final entry in result.entries) {
           final nodeData = entry.value;
           if (nodeData is Map<String, dynamic>) {
@@ -57,6 +70,12 @@ class GraphSearchResult {
         }
       }
     }
+
+    final subgraphsJson = json['graph_subgraphs'] as List<dynamic>? ?? [];
+    final subgraphs = subgraphsJson
+        .whereType<Map<String, dynamic>>()
+        .map((sg) => GraphSubgraph.fromJson(sg))
+        .toList();
 
     return GraphSearchResult(
       naturalLanguageQuery: json['natural_language_query'] as String? ?? '',
@@ -67,6 +86,11 @@ class GraphSearchResult {
               ?.map((e) => e.toString())
               .toList() ??
           [],
+      canonicalPathSummary: (json['canonical_path_summary'] as List<dynamic>?)
+              ?.map((e) => e.toString())
+              .toList() ??
+          [],
+      graphSubgraphs: subgraphs,
       interpretation: json['interpretation'] as String? ?? '',
       resultCount: json['result_count'] as int? ?? 0,
       dbModified: json['db_modified'] as bool? ?? false,
@@ -74,6 +98,30 @@ class GraphSearchResult {
       status: json['status'] as String? ?? 'unknown',
       error: json['error'] as String?,
       rawJson: json,
+    );
+  }
+
+  /// Create from the wrapper response that includes status_code and time_taken.
+  factory GraphSearchResult.fromWrapperJson(Map<String, dynamic> wrapper) {
+    final data = wrapper['data'] as Map<String, dynamic>? ?? wrapper;
+    final result = GraphSearchResult.fromJson(data);
+    final timeTaken = wrapper['time_taken'];
+    return GraphSearchResult(
+      naturalLanguageQuery: result.naturalLanguageQuery,
+      cypherQuery: result.cypherQuery,
+      generationMethod: result.generationMethod,
+      entities: result.entities,
+      graphPaths: result.graphPaths,
+      canonicalPathSummary: result.canonicalPathSummary,
+      graphSubgraphs: result.graphSubgraphs,
+      interpretation: result.interpretation,
+      resultCount: result.resultCount,
+      dbModified: result.dbModified,
+      modificationDetails: result.modificationDetails,
+      status: result.status,
+      error: result.error,
+      timeTaken: timeTaken is num ? timeTaken.toDouble() : null,
+      rawJson: wrapper,
     );
   }
 }
@@ -84,6 +132,7 @@ class GraphEntity {
   final String name;
   final String summary;
   final String id;
+  final int? neo4jId;
 
   GraphEntity({
     required this.role,
@@ -91,11 +140,11 @@ class GraphEntity {
     required this.name,
     required this.summary,
     required this.id,
+    this.neo4jId,
   });
 
   String get primaryLabel => labels.isNotEmpty ? labels.first : 'UNKNOWN';
 
-  /// First 3 sentences for collapsed preview.
   String get summaryPreview {
     final sentences = summary.split(RegExp(r'(?<=[.!?])\s+'));
     if (sentences.length <= 3) return summary;
@@ -117,6 +166,62 @@ class GraphEntity {
       name: properties['name'] as String? ?? 'Unknown',
       summary: properties['summary'] as String? ?? '',
       id: properties['id'] as String? ?? '',
+      neo4jId: properties['neo4j_id'] as int? ?? json['neo4j_id'] as int?,
+    );
+  }
+}
+
+/// A relationship between two nodes in the knowledge graph.
+class GraphRelationship {
+  final String type;
+  final String? details;
+  final int? neo4jId;
+  final int? startNodeNeo4jId;
+  final int? endNodeNeo4jId;
+
+  GraphRelationship({
+    required this.type,
+    this.details,
+    this.neo4jId,
+    this.startNodeNeo4jId,
+    this.endNodeNeo4jId,
+  });
+
+  factory GraphRelationship.fromJson(Map<String, dynamic> json) {
+    final properties = json['properties'] as Map<String, dynamic>? ?? {};
+    return GraphRelationship(
+      type: json['type'] as String? ?? 'RELATED_TO',
+      details: properties['details'] as String?,
+      neo4jId: json['neo4j_id'] as int?,
+      startNodeNeo4jId: json['start_node_neo4j_id'] as int?,
+      endNodeNeo4jId: json['end_node_neo4j_id'] as int?,
+    );
+  }
+}
+
+/// A subgraph containing nodes and their relationships.
+class GraphSubgraph {
+  final List<GraphEntity> nodes;
+  final List<GraphRelationship> relationships;
+
+  GraphSubgraph({
+    required this.nodes,
+    required this.relationships,
+  });
+
+  factory GraphSubgraph.fromJson(Map<String, dynamic> json) {
+    final nodesJson = json['nodes'] as List<dynamic>? ?? [];
+    final relsJson = json['relationships'] as List<dynamic>? ?? [];
+
+    return GraphSubgraph(
+      nodes: nodesJson
+          .whereType<Map<String, dynamic>>()
+          .map((n) => GraphEntity.fromJson(n))
+          .toList(),
+      relationships: relsJson
+          .whereType<Map<String, dynamic>>()
+          .map((r) => GraphRelationship.fromJson(r))
+          .toList(),
     );
   }
 }

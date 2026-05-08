@@ -1474,6 +1474,22 @@ class _GraphToolResultContent extends StatelessWidget {
     required this.themeColors,
   });
 
+  /// Resolve a neo4j node ID to its entity name for relationship display.
+  String _resolveNodeName(int? neo4jId, GraphSearchResult result) {
+    if (neo4jId == null) return '?';
+    // Search entities from db_results first
+    for (final entity in result.entities) {
+      if (entity.neo4jId == neo4jId) return entity.name;
+    }
+    // Then search subgraph nodes
+    for (final sg in result.graphSubgraphs) {
+      for (final node in sg.nodes) {
+        if (node.neo4jId == neo4jId) return node.name;
+      }
+    }
+    return 'Node#$neo4jId';
+  }
+
   @override
   Widget build(BuildContext context) {
     const graphColor = Color(0xFF00897B);
@@ -1495,10 +1511,12 @@ class _GraphToolResultContent extends StatelessWidget {
             ),
           ),
 
-        // Result count + method
+        // Result count + method + time
         Padding(
           padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
-          child: Row(
+          child: Wrap(
+            spacing: 8,
+            runSpacing: 6,
             children: [
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
@@ -1511,7 +1529,6 @@ class _GraphToolResultContent extends StatelessWidget {
                   style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: graphColor),
                 ),
               ),
-              const SizedBox(width: 8),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                 decoration: BoxDecoration(
@@ -1523,6 +1540,30 @@ class _GraphToolResultContent extends StatelessWidget {
                   style: TextStyle(fontSize: 11, color: themeColors.onSurface.withOpacity(0.5)),
                 ),
               ),
+              if (result.timeTaken != null)
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                  decoration: BoxDecoration(
+                    color: themeColors.onSurface.withOpacity(0.06),
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                  child: Text(
+                    '${result.timeTaken!.toStringAsFixed(1)}s',
+                    style: TextStyle(fontSize: 11, color: themeColors.onSurface.withOpacity(0.5)),
+                  ),
+                ),
+              if (result.allRelationships.isNotEmpty)
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF7B1FA2).withOpacity(0.12),
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                  child: Text(
+                    '${result.allRelationships.length} relation${result.allRelationships.length != 1 ? 's' : ''}',
+                    style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: Color(0xFF7B1FA2)),
+                  ),
+                ),
             ],
           ),
         ),
@@ -1540,6 +1581,84 @@ class _GraphToolResultContent extends StatelessWidget {
             child: Text(
               'No entities found for this query',
               style: TextStyle(fontSize: 13, color: themeColors.onSurface.withOpacity(0.5)),
+            ),
+          ),
+
+        // Relationships (collapsible)
+        if (result.allRelationships.isNotEmpty)
+          Theme(
+            data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
+            child: ExpansionTile(
+              tilePadding: const EdgeInsets.symmetric(horizontal: 16),
+              childrenPadding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+              leading: Icon(Icons.link, size: 16, color: const Color(0xFF7B1FA2).withOpacity(0.6)),
+              title: Text(
+                'Relationships (${result.allRelationships.length})',
+                style: TextStyle(fontSize: 12, color: themeColors.onSurface.withOpacity(0.5)),
+              ),
+              children: [
+                ...result.allRelationships.map((rel) {
+                  final startName = _resolveNodeName(rel.startNodeNeo4jId, result);
+                  final endName = _resolveNodeName(rel.endNodeNeo4jId, result);
+                  return Container(
+                    margin: const EdgeInsets.only(bottom: 6),
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: themeColors.onSurface.withOpacity(0.03),
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: themeColors.onSurface.withOpacity(0.06)),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Flexible(
+                              child: Text(
+                                startName,
+                                style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: themeColors.onSurface),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                            Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 6),
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFF7B1FA2).withOpacity(0.12),
+                                  borderRadius: BorderRadius.circular(4),
+                                ),
+                                child: Text(
+                                  rel.type.replaceAll('_', ' '),
+                                  style: const TextStyle(fontSize: 9, fontWeight: FontWeight.w700, color: Color(0xFF7B1FA2), letterSpacing: 0.3),
+                                ),
+                              ),
+                            ),
+                            const Icon(Icons.arrow_forward, size: 12, color: Color(0xFF7B1FA2)),
+                            const SizedBox(width: 6),
+                            Flexible(
+                              child: Text(
+                                endName,
+                                style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: themeColors.onSurface),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          ],
+                        ),
+                        if (rel.details != null && rel.details!.isNotEmpty) ...[
+                          const SizedBox(height: 4),
+                          Text(
+                            rel.details!,
+                            style: TextStyle(fontSize: 11, color: themeColors.onSurface.withOpacity(0.55), height: 1.4),
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ],
+                      ],
+                    ),
+                  );
+                }),
+              ],
             ),
           ),
 
