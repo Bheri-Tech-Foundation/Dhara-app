@@ -102,13 +102,14 @@ class GraphSearchService {
   /// Fetch NL-to-Cypher result from the quick_search polling endpoint.
   /// Called when the streaming quick_search response includes a
   /// `type: "nl_to_cypher"` chunk with a `result_key`.
-  Future<GraphSearchResult?> fetchNlToCypherResult(String resultKey) async {
+  Future<GraphSearchResult?> fetchNlToCypherResult(String resultKey, {int? queryId}) async {
     _loadingSubject.add(true);
     _errorSubject.add(null);
 
     try {
       final baseUrl = DeveloperModeService.instance.getEffectiveApiUrl();
-      final url = '$baseUrl/quick_search/nl_to_cypher_result/?result_key=$resultKey';
+      final queryIdParam = queryId != null ? '&query_id=$queryId' : '';
+      final url = '$baseUrl/quick_search/nl_to_cypher_result/?result_key=$resultKey$queryIdParam';
 
       // Poll until status is "completed" or we timeout
       const maxAttempts = 30;

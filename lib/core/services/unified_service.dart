@@ -625,7 +625,10 @@ class UnifiedService {
     String? itemId,
   ) async {
     try {
-      final result = await GraphSearchService.instance.fetchNlToCypherResult(resultKey);
+      final result = await GraphSearchService.instance.fetchNlToCypherResult(
+        resultKey,
+        queryId: currentResult.queryId != null ? int.tryParse(currentResult.queryId.toString()) : null,
+      );
 
       final graphResult = UnifiedSearchResult(
         query: query,
