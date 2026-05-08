@@ -637,7 +637,7 @@ class UnifiedService {
         itemId: '__graph__$sessionId',
         graphResult: result,
         graphLoading: false,
-        graphError: result == null ? (GraphSearchService.instance.errorStream.valueOrNull ?? 'Graph query failed') : null,
+        graphError: result == null ? 'Graph query failed' : null,
       );
       _addOrUpdateGraphResult(graphResult);
     } catch (_) {
