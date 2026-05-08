@@ -123,6 +123,6 @@ class UnifiedSearchResult {
                            definition!.details.definitions.isNotEmpty;
   bool get hasVerses => verses != null && verses!.isNotEmpty;
   bool get hasChunks => chunks != null && chunks!.isNotEmpty;
-  bool get hasGraph => graphResult != null || graphLoading;
+  bool get hasGraph => graphResult != null || graphLoading || graphError != null;
   bool get hasAnyResults => hasDefinition || hasVerses || hasChunks || hasGraph;
 }
