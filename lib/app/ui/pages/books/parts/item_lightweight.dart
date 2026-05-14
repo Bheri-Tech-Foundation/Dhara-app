@@ -517,14 +517,6 @@ class _BookChunkItemLightweightWidgetState extends State<BookChunkItemLightweigh
           onTap: () => _handleShare(),
           isEnabled: true,
         ),
-        if (_hasChunkMisc) ...[
-          const SizedBox(width: 8),
-          _buildActionButton(
-            icon: Icons.info_outline,
-            onTap: () => _handleShowChunkMisc(),
-            isEnabled: true,
-          ),
-        ],
       ],
     );
   }
@@ -559,14 +551,6 @@ class _BookChunkItemLightweightWidgetState extends State<BookChunkItemLightweigh
           onTap: () => _handleShare(),
           isEnabled: true,
         ),
-        if (_hasChunkMisc) ...[
-          const SizedBox(width: 8),
-          _buildActionButton(
-            icon: Icons.info_outline,
-            onTap: () => _handleShowChunkMisc(),
-            isEnabled: true,
-          ),
-        ],
       ],
     );
   }
