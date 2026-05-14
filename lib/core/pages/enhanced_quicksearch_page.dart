@@ -30,7 +30,6 @@ import 'package:dharak_flutter/core/services/graph_search_service.dart';
 import 'package:dharak_flutter/core/services/dhara_insights_service.dart';
 import 'package:dharak_flutter/core/models/graph_search_result.dart';
 import 'package:dharak_flutter/app/types/dhara_insights/dhara_insight_chunk.dart';
-import 'package:dharak_flutter/core/components/dhara_insight_item.dart';
 import 'package:dharak_flutter/app/data/services/developer_mode_service.dart';
 import 'package:dharak_flutter/res/styles/text_styles.dart';
 import 'package:dharak_flutter/res/theme/app_theme_colors.dart';
@@ -4230,9 +4229,18 @@ class _EnhancedQuickSearchContentState extends State<_EnhancedQuickSearchContent
       itemCount: _dharaInsightsResultsFromParent.length,
       itemBuilder: (context, index) {
         final chunk = _dharaInsightsResultsFromParent[index];
+        final bookChunk = chunk.toBookChunkRM();
         return Padding(
-          padding: const EdgeInsets.only(bottom: 12),
-          child: DharaInsightItemWidget(chunk: chunk),
+          padding: EdgeInsets.only(bottom: index < _dharaInsightsResultsFromParent.length - 1 ? 16 : 0),
+          child: BookChunkItemLightweightWidget(
+            chunk: bookChunk,
+            onSourceClick: (url) async {
+              final uri = Uri.parse(url);
+              if (await canLaunchUrl(uri)) {
+                await launchUrl(uri, mode: LaunchMode.externalApplication);
+              }
+            },
+          ),
         );
       },
     );

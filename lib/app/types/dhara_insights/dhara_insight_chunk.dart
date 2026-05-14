@@ -1,3 +1,5 @@
+import 'package:dharak_flutter/app/types/books/book_chunk.dart';
+
 class DharaInsightChunkRM {
   final String? text;
   final int? chunkRefId;
@@ -42,6 +44,21 @@ class DharaInsightChunkRM {
     'source_type': sourceType,
     'is_starred': isStarred,
   };
+
+  /// Convert to BookChunkRM for rendering with the same UI widget.
+  /// Keeps models separate so APIs can diverge later.
+  BookChunkRM toBookChunkRM() {
+    return BookChunkRM(
+      text: text,
+      chunkRefId: chunkRefId,
+      score: score,
+      reference: reference,
+      sourceTitle: sourceTitle,
+      sourceUrl: sourceUrl,
+      sourceType: sourceType,
+      isStarred: isStarred,
+    );
+  }
 
   DharaInsightChunkRM copyWith({
     String? text,

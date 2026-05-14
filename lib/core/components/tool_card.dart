@@ -6,7 +6,6 @@ import 'package:dharak_flutter/app/data/voting/voting_repository.dart';
 import 'package:dharak_flutter/app/domain/verse/constants.dart';
 import 'package:dharak_flutter/app/types/books/book_chunk.dart';
 import 'package:dharak_flutter/app/types/dhara_insights/dhara_insight_chunk.dart';
-import 'package:dharak_flutter/core/components/dhara_insight_item.dart';
 import 'package:dharak_flutter/app/types/dictionary/word_definitions.dart';
 import 'package:dharak_flutter/app/types/unified/unified_response.dart';
 import 'package:dharak_flutter/app/types/verse/verse.dart';
@@ -1022,11 +1021,20 @@ class _ToolCardState extends State<ToolCard> {
         ),
         const SizedBox(height: 16),
         ...chunks.map((chunk) {
-          return DharaInsightItemWidget(
-            chunk: chunk,
-            themeColors: widget.themeColors,
-            queryId: widget.result.queryId,
-            itemId: widget.result.itemId != null ? int.tryParse(widget.result.itemId.toString()) : null,
+          final bookChunk = chunk.toBookChunkRM();
+          return Padding(
+            padding: const EdgeInsets.only(bottom: 8),
+            child: BookChunkItemLightweightWidget(
+              chunk: bookChunk,
+              onSourceClick: (url) async {
+                final uri = Uri.parse(url);
+                if (await canLaunchUrl(uri)) {
+                  await launchUrl(uri, mode: LaunchMode.externalApplication);
+                }
+              },
+              queryId: widget.result.queryId,
+              itemId: widget.result.itemId != null ? int.tryParse(widget.result.itemId.toString()) : null,
+            ),
           );
         }),
       ],
