@@ -3,6 +3,19 @@ import 'package:json_annotation/json_annotation.dart';
 part 'book_chunk.g.dart';
 
 @JsonSerializable()
+class ChunkMiscRM {
+  final String? title;
+  final String? value;
+
+  ChunkMiscRM({this.title, this.value});
+
+  factory ChunkMiscRM.fromJson(Map<String, dynamic> json) =>
+      _$ChunkMiscRMFromJson(json);
+
+  Map<String, dynamic> toJson() => _$ChunkMiscRMToJson(this);
+}
+
+@JsonSerializable()
 class BookChunkRM {
   final String? text;
   
@@ -12,7 +25,6 @@ class BookChunkRM {
   final double? score;
   final String? reference;
   
-  // New API fields for enhanced book cards
   @JsonKey(name: 'source_title')
   final String? sourceTitle;
   
@@ -22,9 +34,11 @@ class BookChunkRM {
   @JsonKey(name: 'source_type')
   final String? sourceType;
   
-  // Bookmark status (similar to verses)
   @JsonKey(name: 'is_starred')
   final bool? isStarred;
+
+  @JsonKey(name: 'chunk_misc')
+  final List<ChunkMiscRM>? chunkMisc;
 
   BookChunkRM({
     this.text,
@@ -35,6 +49,7 @@ class BookChunkRM {
     this.sourceUrl,
     this.sourceType,
     this.isStarred,
+    this.chunkMisc,
   });
 
   factory BookChunkRM.fromJson(Map<String, dynamic> json) =>
@@ -42,7 +57,6 @@ class BookChunkRM {
 
   Map<String, dynamic> toJson() => _$BookChunkRMToJson(this);
   
-  /// Create a copy with updated fields (similar to VerseRM.copyWith)
   BookChunkRM copyWith({
     String? text,
     int? chunkRefId,
@@ -52,6 +66,7 @@ class BookChunkRM {
     String? sourceUrl,
     String? sourceType,
     bool? isStarred,
+    List<ChunkMiscRM>? chunkMisc,
   }) {
     return BookChunkRM(
       text: text ?? this.text,
@@ -62,6 +77,7 @@ class BookChunkRM {
       sourceUrl: sourceUrl ?? this.sourceUrl,
       sourceType: sourceType ?? this.sourceType,
       isStarred: isStarred ?? this.isStarred,
+      chunkMisc: chunkMisc ?? this.chunkMisc,
     );
   }
 }

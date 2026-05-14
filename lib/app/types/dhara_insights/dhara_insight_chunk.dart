@@ -9,6 +9,7 @@ class DharaInsightChunkRM {
   final String? sourceUrl;
   final String? sourceType;
   final bool? isStarred;
+  final List<ChunkMiscRM>? chunkMisc;
 
   DharaInsightChunkRM({
     this.text,
@@ -19,6 +20,7 @@ class DharaInsightChunkRM {
     this.sourceUrl,
     this.sourceType,
     this.isStarred,
+    this.chunkMisc,
   });
 
   factory DharaInsightChunkRM.fromJson(Map<String, dynamic> json) {
@@ -31,6 +33,9 @@ class DharaInsightChunkRM {
       sourceUrl: json['source_url'] as String?,
       sourceType: json['source_type'] as String?,
       isStarred: json['is_starred'] as bool?,
+      chunkMisc: (json['chunk_misc'] as List<dynamic>?)
+          ?.map((e) => ChunkMiscRM.fromJson(e as Map<String, dynamic>))
+          .toList(),
     );
   }
 
@@ -43,10 +48,9 @@ class DharaInsightChunkRM {
     'source_url': sourceUrl,
     'source_type': sourceType,
     'is_starred': isStarred,
+    'chunk_misc': chunkMisc?.map((e) => e.toJson()).toList(),
   };
 
-  /// Convert to BookChunkRM for rendering with the same UI widget.
-  /// Keeps models separate so APIs can diverge later.
   BookChunkRM toBookChunkRM() {
     return BookChunkRM(
       text: text,
@@ -57,6 +61,7 @@ class DharaInsightChunkRM {
       sourceUrl: sourceUrl,
       sourceType: sourceType,
       isStarred: isStarred,
+      chunkMisc: chunkMisc,
     );
   }
 
@@ -69,6 +74,7 @@ class DharaInsightChunkRM {
     String? sourceUrl,
     String? sourceType,
     bool? isStarred,
+    List<ChunkMiscRM>? chunkMisc,
   }) {
     return DharaInsightChunkRM(
       text: text ?? this.text,
@@ -79,6 +85,7 @@ class DharaInsightChunkRM {
       sourceUrl: sourceUrl ?? this.sourceUrl,
       sourceType: sourceType ?? this.sourceType,
       isStarred: isStarred ?? this.isStarred,
+      chunkMisc: chunkMisc ?? this.chunkMisc,
     );
   }
 }

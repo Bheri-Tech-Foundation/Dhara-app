@@ -77,7 +77,9 @@ class _BookChunkItemLightweightWidgetState extends State<BookChunkItemLightweigh
   // Local state for bookmark status to ensure UI updates
   late bool _isBookmarked;
 
-  // Dynamic colors based on source type for left border accent
+  bool get _hasChunkMisc =>
+      widget.chunk.chunkMisc != null && widget.chunk.chunkMisc!.isNotEmpty;
+
   Color get _borderColor {
     switch (widget.chunk.sourceType) {
       case BookChunkSourceType.original:
@@ -438,12 +440,10 @@ class _BookChunkItemLightweightWidgetState extends State<BookChunkItemLightweigh
     }
   }
 
-  /// 🔹 Original Content: Traditional navigation + bookmark/share
   Widget _buildOriginalActions() {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        // Navigation buttons for original content
         _buildActionButton(
           icon: Icons.chevron_left,
           onTap: () => _handleNavigation(false),
@@ -458,7 +458,6 @@ class _BookChunkItemLightweightWidgetState extends State<BookChunkItemLightweigh
         
         const SizedBox(width: 12),
         
-        // Standard actions
         _buildActionButton(
           icon: _isBookmarked ? Icons.bookmark : Icons.bookmark_border_outlined,
           onTap: () => _handleBookmark(),
@@ -476,16 +475,22 @@ class _BookChunkItemLightweightWidgetState extends State<BookChunkItemLightweigh
           onTap: () => _handleShare(),
           isEnabled: true,
         ),
+        if (_hasChunkMisc) ...[
+          const SizedBox(width: 8),
+          _buildActionButton(
+            icon: Icons.info_outline,
+            onTap: () => _handleShowChunkMisc(),
+            isEnabled: true,
+          ),
+        ],
       ],
     );
   }
 
-  /// 🔶 Merged Augmentation: "See All Sources" + standard actions
   Widget _buildMergedAugmentationActions() {
     return Row(
       mainAxisSize: MainAxisSize.min,
               children: [
-        // Special "See All Sources" button
         _buildSpecialButton(
           icon: Icons.library_books,
           label: "See Facts",
@@ -495,7 +500,6 @@ class _BookChunkItemLightweightWidgetState extends State<BookChunkItemLightweigh
         
         const SizedBox(width: 12),
         
-        // Standard actions
                 _buildActionButton(
           icon: _isBookmarked ? Icons.bookmark : Icons.bookmark_border_outlined,
           onTap: () => _handleBookmark(),
@@ -513,16 +517,22 @@ class _BookChunkItemLightweightWidgetState extends State<BookChunkItemLightweigh
           onTap: () => _handleShare(),
           isEnabled: true,
         ),
+        if (_hasChunkMisc) ...[
+          const SizedBox(width: 8),
+          _buildActionButton(
+            icon: Icons.info_outline,
+            onTap: () => _handleShowChunkMisc(),
+            isEnabled: true,
+          ),
+        ],
       ],
     );
   }
 
-  /// 🔸 Augmentation: "See Original" + standard actions  
   Widget _buildAugmentationActions() {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        // Special "See Original" button
         _buildSpecialButton(
           icon: Icons.source,
           label: "See Original",
@@ -532,7 +542,6 @@ class _BookChunkItemLightweightWidgetState extends State<BookChunkItemLightweigh
         
         const SizedBox(width: 12),
         
-        // Standard actions
         _buildActionButton(
           icon: _isBookmarked ? Icons.bookmark : Icons.bookmark_border_outlined,
           onTap: () => _handleBookmark(),
@@ -550,11 +559,18 @@ class _BookChunkItemLightweightWidgetState extends State<BookChunkItemLightweigh
           onTap: () => _handleShare(),
           isEnabled: true,
         ),
+        if (_hasChunkMisc) ...[
+          const SizedBox(width: 8),
+          _buildActionButton(
+            icon: Icons.info_outline,
+            onTap: () => _handleShowChunkMisc(),
+            isEnabled: true,
+          ),
+        ],
       ],
     );
   }
 
-  /// 🔺 None Source Type: Pure Dhara knowledge + standard actions
   Widget _buildNoneActions() {
     return Row(
       mainAxisSize: MainAxisSize.min,
@@ -576,11 +592,18 @@ class _BookChunkItemLightweightWidgetState extends State<BookChunkItemLightweigh
           onTap: () => _handleShare(),
           isEnabled: true,
         ),
+        if (_hasChunkMisc) ...[
+          const SizedBox(width: 8),
+          _buildActionButton(
+            icon: Icons.info_outline,
+            onTap: () => _handleShowChunkMisc(),
+            isEnabled: true,
+          ),
+        ],
       ],
     );
   }
 
-  /// Default actions for unknown source types
   Widget _buildDefaultActions() {
     return Row(
       mainAxisSize: MainAxisSize.min,
@@ -602,6 +625,14 @@ class _BookChunkItemLightweightWidgetState extends State<BookChunkItemLightweigh
           onTap: () => _handleShare(),
           isEnabled: true,
         ),
+        if (_hasChunkMisc) ...[
+          const SizedBox(width: 8),
+          _buildActionButton(
+            icon: Icons.info_outline,
+            onTap: () => _handleShowChunkMisc(),
+            isEnabled: true,
+          ),
+        ],
       ],
     );
   }
@@ -1276,6 +1307,173 @@ class _BookChunkItemLightweightWidgetState extends State<BookChunkItemLightweigh
         );
       }
     }
+  }
+
+  void _handleShowChunkMisc() {
+    if (!_hasChunkMisc) return;
+    final miscItems = widget.chunk.chunkMisc!;
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      enableDrag: true,
+      isDismissible: true,
+      builder: (context) => DraggableScrollableSheet(
+        initialChildSize: 0.55,
+        minChildSize: 0.3,
+        maxChildSize: 0.9,
+        builder: (context, scrollController) {
+          return Container(
+            decoration: BoxDecoration(
+              color: effectiveThemeColors.surface,
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.15),
+                  blurRadius: 20,
+                  offset: const Offset(0, -4),
+                ),
+              ],
+            ),
+            child: Column(
+              children: [
+                // Drag handle
+                Container(
+                  margin: const EdgeInsets.only(top: 10, bottom: 6),
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: effectiveThemeColors.onSurface.withOpacity(0.2),
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+                // Header
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 8, 12, 12),
+                  child: Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: _borderColor.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: Icon(
+                          Icons.info_outline,
+                          color: _borderColor,
+                          size: 20,
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Text(
+                          'Additional Info',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.w700,
+                            color: effectiveThemeColors.onSurface,
+                          ),
+                        ),
+                      ),
+                      IconButton(
+                        onPressed: () => Navigator.of(context).pop(),
+                        icon: Icon(
+                          Icons.close,
+                          color: effectiveThemeColors.onSurface.withOpacity(0.5),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Divider(
+                  height: 1,
+                  color: effectiveThemeColors.onSurface.withOpacity(0.08),
+                ),
+                // Misc items list
+                Expanded(
+                  child: ListView.separated(
+                    controller: scrollController,
+                    padding: const EdgeInsets.all(16),
+                    itemCount: miscItems.length,
+                    separatorBuilder: (_, __) => const SizedBox(height: 12),
+                    itemBuilder: (context, index) {
+                      final item = miscItems[index];
+                      return _buildChunkMiscItem(item, index);
+                    },
+                  ),
+                ),
+              ],
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildChunkMiscItem(ChunkMiscRM item, int index) {
+    return Container(
+      decoration: BoxDecoration(
+        color: _borderColor.withOpacity(0.04),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: _borderColor.withOpacity(0.12),
+          width: 1,
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Title bar
+          if (item.title != null && item.title!.isNotEmpty)
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+              decoration: BoxDecoration(
+                color: _borderColor.withOpacity(0.08),
+                borderRadius: const BorderRadius.only(
+                  topLeft: Radius.circular(11),
+                  topRight: Radius.circular(11),
+                ),
+              ),
+              child: Row(
+                children: [
+                  Icon(
+                    Icons.label_outline,
+                    size: 15,
+                    color: _borderColor.withOpacity(0.7),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      item.title!,
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w700,
+                        color: _borderColor,
+                        letterSpacing: 0.3,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          // Value content
+          if (item.value != null && item.value!.isNotEmpty)
+            Padding(
+              padding: const EdgeInsets.all(14),
+              child: SelectableText(
+                item.value!,
+                style: TextStyle(
+                  fontSize: 14,
+                  height: 1.6,
+                  color: effectiveThemeColors.onSurface,
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
   }
 
   void _handleCitation() async {
