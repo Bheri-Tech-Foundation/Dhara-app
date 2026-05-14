@@ -27,7 +27,10 @@ import 'package:dharak_flutter/core/services/verse_service.dart';
 import 'package:dharak_flutter/core/services/unified_service.dart';
 import 'package:dharak_flutter/core/services/books_service.dart';
 import 'package:dharak_flutter/core/services/graph_search_service.dart';
+import 'package:dharak_flutter/core/services/dhara_insights_service.dart';
 import 'package:dharak_flutter/core/models/graph_search_result.dart';
+import 'package:dharak_flutter/app/types/dhara_insights/dhara_insight_chunk.dart';
+import 'package:dharak_flutter/core/components/dhara_insight_item.dart';
 import 'package:dharak_flutter/app/data/services/developer_mode_service.dart';
 import 'package:dharak_flutter/res/styles/text_styles.dart';
 import 'package:dharak_flutter/res/theme/app_theme_colors.dart';
@@ -54,6 +57,7 @@ enum QuickSearchMode {
   verse,
   books,
   graph,
+  dharaInsights,
 }
 
 extension QuickSearchTabExtension on QuickSearchTab {
@@ -92,6 +96,8 @@ extension QuickSearchModeExtension on QuickSearchMode {
         return 'Books';
       case QuickSearchMode.graph:
         return 'Graph';
+      case QuickSearchMode.dharaInsights:
+        return 'Dhara Insights';
     }
   }
 
@@ -107,21 +113,25 @@ extension QuickSearchModeExtension on QuickSearchMode {
         return Icons.menu_book;
       case QuickSearchMode.graph:
         return Icons.hub;
+      case QuickSearchMode.dharaInsights:
+        return Icons.auto_awesome;
     }
   }
 
   Color get color {
     switch (this) {
       case QuickSearchMode.unified:
-        return const Color(0xFFFF6B35); // Dutch orange for Shodh
+        return const Color(0xFFFF6B35);
       case QuickSearchMode.dictionary:
-        return const Color(0xFFF9140C); // Red (from unified plugin)
+        return const Color(0xFFF9140C);
       case QuickSearchMode.verse:
-        return const Color(0xFF189565); // Green (from unified plugin)
+        return const Color(0xFF189565);
       case QuickSearchMode.books:
-        return Colors.blue; // Blue (from unified plugin)
+        return Colors.blue;
       case QuickSearchMode.graph:
-        return const Color(0xFF00897B); // Teal for Knowledge Graph
+        return const Color(0xFF00897B);
+      case QuickSearchMode.dharaInsights:
+        return const Color(0xFF6A1B9A);
     }
   }
 
@@ -137,6 +147,8 @@ extension QuickSearchModeExtension on QuickSearchMode {
         return 'Enter phrase to search or Ask a question ...';
       case QuickSearchMode.graph:
         return 'Ask a question about the knowledge graph...\ne.g. "Who killed Ravana?"';
+      case QuickSearchMode.dharaInsights:
+        return 'Search Dhara knowledge base...\ne.g. "Who is Rama?"';
     }
   }
 }
@@ -165,6 +177,7 @@ class _EnhancedQuickSearchPageState extends State<EnhancedQuickSearchPage>
     QuickSearchMode.verse: '',
     QuickSearchMode.books: '',
     QuickSearchMode.graph: '',
+    QuickSearchMode.dharaInsights: '',
   };
 
   final Map<QuickSearchMode, bool> _hasSearchedByMode = {
@@ -173,12 +186,18 @@ class _EnhancedQuickSearchPageState extends State<EnhancedQuickSearchPage>
     QuickSearchMode.verse: false,
     QuickSearchMode.books: false,
     QuickSearchMode.graph: false,
+    QuickSearchMode.dharaInsights: false,
   };
 
   // Graph search state (managed locally since it's developer-mode only)
   GraphSearchResult? _graphResult;
   bool _graphLoading = false;
   String? _graphError;
+
+  // Dhara Insights search state (managed locally since it's developer-mode only)
+  List<DharaInsightChunkRM> _dharaInsightsResults = [];
+  bool _dharaInsightsLoading = false;
+  String? _dharaInsightsError;
 
   // Language change management
   StreamSubscription<DashboardCubitState>? _languageSubscription;
@@ -303,6 +322,9 @@ class _EnhancedQuickSearchPageState extends State<EnhancedQuickSearchPage>
       case QuickSearchMode.graph:
         GraphSearchService.instance.clearResults();
         break;
+      case QuickSearchMode.dharaInsights:
+        DharaInsightsService.instance.clearResults();
+        break;
     }
   }
 
@@ -336,6 +358,9 @@ class _EnhancedQuickSearchPageState extends State<EnhancedQuickSearchPage>
         break;
       case QuickSearchMode.graph:
         _performGraphSearch(query);
+        break;
+      case QuickSearchMode.dharaInsights:
+        _performDharaInsightsSearch(query);
         break;
     }
     
@@ -374,6 +399,9 @@ class _EnhancedQuickSearchPageState extends State<EnhancedQuickSearchPage>
           break;
         case QuickSearchMode.graph:
           _performGraphSearch(query);
+          break;
+        case QuickSearchMode.dharaInsights:
+          _performDharaInsightsSearch(query);
           break;
       }
       
@@ -507,6 +535,9 @@ class _EnhancedQuickSearchPageState extends State<EnhancedQuickSearchPage>
       case QuickSearchMode.graph:
         _performGraphSearch(query);
         break;
+      case QuickSearchMode.dharaInsights:
+        _performDharaInsightsSearch(query);
+        break;
     }
   }
 
@@ -524,6 +555,24 @@ class _EnhancedQuickSearchPageState extends State<EnhancedQuickSearchPage>
         _graphLoading = false;
         _graphResult = result;
         _graphError = result == null ? 'Could not get results from the knowledge graph' : null;
+      });
+    }
+  }
+
+  Future<void> _performDharaInsightsSearch(String query) async {
+    setState(() {
+      _dharaInsightsLoading = true;
+      _dharaInsightsError = null;
+      _dharaInsightsResults = [];
+    });
+
+    final results = await DharaInsightsService.instance.searchDharaInsights(query);
+
+    if (mounted) {
+      setState(() {
+        _dharaInsightsLoading = false;
+        _dharaInsightsResults = results;
+        _dharaInsightsError = results.isEmpty ? 'No Dhara Insights results found' : null;
       });
     }
   }
@@ -553,6 +602,9 @@ class _EnhancedQuickSearchPageState extends State<EnhancedQuickSearchPage>
           graphResult: _graphResult,
           graphLoading: _graphLoading,
           graphError: _graphError,
+          dharaInsightsResults: _dharaInsightsResults,
+          dharaInsightsLoading: _dharaInsightsLoading,
+          dharaInsightsError: _dharaInsightsError,
         ),
     );
   }
@@ -591,6 +643,7 @@ class _EnhancedQuickSearchPageState extends State<EnhancedQuickSearchPage>
       case QuickSearchMode.verse:
       case QuickSearchMode.books:
       case QuickSearchMode.graph:
+      case QuickSearchMode.dharaInsights:
         // For all modes, check if we've performed a search
         return _currentQuery.isNotEmpty;
     }
@@ -1386,6 +1439,8 @@ class _EnhancedQuickSearchPageState extends State<EnhancedQuickSearchPage>
         return 'Welcome to Books';
       case QuickSearchMode.graph:
         return 'Knowledge Graph';
+      case QuickSearchMode.dharaInsights:
+        return 'Dhara Insights';
     }
   }
 
@@ -1401,6 +1456,8 @@ class _EnhancedQuickSearchPageState extends State<EnhancedQuickSearchPage>
         return 'Dive deep into sacred texts and spiritual literature. Search through chapters, find specific passages, or explore the vast library of Indic wisdom.';
       case QuickSearchMode.graph:
         return 'Query the Indic knowledge graph with natural language. Ask questions like "Who killed Ravana?" or "Who is the father of Rama?"';
+      case QuickSearchMode.dharaInsights:
+        return 'Search the Dhara knowledge base with natural language. Ask questions like "Who is Rama?" or explore Indic wisdom.';
     }
   }
 
@@ -1474,6 +1531,9 @@ class _EnhancedQuickSearchContent extends StatefulWidget {
   final GraphSearchResult? graphResult;
   final bool graphLoading;
   final String? graphError;
+  final List<DharaInsightChunkRM> dharaInsightsResults;
+  final bool dharaInsightsLoading;
+  final String? dharaInsightsError;
 
   const _EnhancedQuickSearchContent({
     required this.searchController,
@@ -1488,6 +1548,9 @@ class _EnhancedQuickSearchContent extends StatefulWidget {
     this.graphResult,
     this.graphLoading = false,
     this.graphError,
+    this.dharaInsightsResults = const [],
+    this.dharaInsightsLoading = false,
+    this.dharaInsightsError,
   });
 
   @override
@@ -1502,6 +1565,10 @@ class _EnhancedQuickSearchContentState extends State<_EnhancedQuickSearchContent
   GraphSearchResult? get _graphResultFromParent => widget.graphResult;
   bool get _graphLoadingFromParent => widget.graphLoading;
   String? get _graphErrorFromParent => widget.graphError;
+
+  List<DharaInsightChunkRM> get _dharaInsightsResultsFromParent => widget.dharaInsightsResults;
+  bool get _dharaInsightsLoadingFromParent => widget.dharaInsightsLoading;
+  String? get _dharaInsightsErrorFromParent => widget.dharaInsightsError;
 
   @override
   Widget build(BuildContext context) {
@@ -1692,6 +1759,7 @@ class _EnhancedQuickSearchContentState extends State<_EnhancedQuickSearchContent
         ];
       case QuickSearchMode.unified:
       case QuickSearchMode.graph:
+      case QuickSearchMode.dharaInsights:
         return [];
     }
   }
@@ -1712,6 +1780,9 @@ class _EnhancedQuickSearchContentState extends State<_EnhancedQuickSearchContent
         break;
       case QuickSearchMode.graph:
         GraphSearchService.instance.clearResults();
+        break;
+      case QuickSearchMode.dharaInsights:
+        DharaInsightsService.instance.clearResults();
         break;
     }
     
@@ -1760,6 +1831,8 @@ class _EnhancedQuickSearchContentState extends State<_EnhancedQuickSearchContent
           return state.bookResults.isNotEmpty;
         case QuickSearchMode.graph:
           return _graphResultFromParent != null || _graphLoadingFromParent;
+        case QuickSearchMode.dharaInsights:
+          return _dharaInsightsResultsFromParent.isNotEmpty || _dharaInsightsLoadingFromParent;
       }
     } catch (e) {
       return false;
@@ -1816,6 +1889,8 @@ class _EnhancedQuickSearchContentState extends State<_EnhancedQuickSearchContent
           return hasResults;
         case QuickSearchMode.graph:
           return _graphResultFromParent != null || _graphLoadingFromParent;
+        case QuickSearchMode.dharaInsights:
+          return _dharaInsightsResultsFromParent.isNotEmpty || _dharaInsightsLoadingFromParent;
       }
     } catch (e) {
       // If controllers aren't available yet, default to false
@@ -2645,6 +2720,8 @@ class _EnhancedQuickSearchContentState extends State<_EnhancedQuickSearchContent
         return 'Welcome to Books';
       case QuickSearchMode.graph:
         return 'Knowledge Graph';
+      case QuickSearchMode.dharaInsights:
+        return 'Dhara Insights';
     }
   }
 
@@ -2660,6 +2737,8 @@ class _EnhancedQuickSearchContentState extends State<_EnhancedQuickSearchContent
         return 'Ask a question or enter a phrase to search the world of Indic Knowledge';
       case QuickSearchMode.graph:
         return 'Query the Indic knowledge graph with natural language. Ask questions like "Who killed Ravana?" or "Who is the father of Rama?"';
+      case QuickSearchMode.dharaInsights:
+        return 'Search the Dhara knowledge base with natural language. Ask questions like "Who is Rama?" or explore Indic wisdom.';
     }
   }
 
@@ -2752,6 +2831,8 @@ class _EnhancedQuickSearchContentState extends State<_EnhancedQuickSearchContent
           ),
         ];
       case QuickSearchMode.graph:
+        return [];
+      case QuickSearchMode.dharaInsights:
         return [];
     }
   }
@@ -2855,6 +2936,8 @@ class _EnhancedQuickSearchContentState extends State<_EnhancedQuickSearchContent
         return _buildBooksContent();
       case QuickSearchMode.graph:
         return _buildGraphContent();
+      case QuickSearchMode.dharaInsights:
+        return _buildDharaInsightsContent();
     }
   }
 
@@ -4116,6 +4199,45 @@ class _EnhancedQuickSearchContentState extends State<_EnhancedQuickSearchContent
     );
   }
 
+  Widget _buildDharaInsightsContent() {
+    final themeColors = Theme.of(context).extension<AppThemeColors>()!;
+    const insightsColor = Color(0xFF6A1B9A);
+
+    if (_dharaInsightsLoadingFromParent) {
+      return _buildLoadingState('Searching Dhara Insights...');
+    }
+
+    if (_dharaInsightsErrorFromParent != null && _dharaInsightsResultsFromParent.isEmpty) {
+      return _buildErrorState(_dharaInsightsErrorFromParent!, () {
+        final query = widget.searchController.text.trim();
+        if (query.isNotEmpty) {
+          widget.onPerformSearch();
+        }
+      });
+    }
+
+    if (_dharaInsightsResultsFromParent.isEmpty) {
+      return _buildCouldntLoadState('Dhara Insights results', () {
+        final query = widget.searchController.text.trim();
+        if (query.isNotEmpty) {
+          widget.onPerformSearch();
+        }
+      });
+    }
+
+    return ListView.builder(
+      padding: const EdgeInsets.all(16),
+      itemCount: _dharaInsightsResultsFromParent.length,
+      itemBuilder: (context, index) {
+        final chunk = _dharaInsightsResultsFromParent[index];
+        return Padding(
+          padding: const EdgeInsets.only(bottom: 12),
+          child: DharaInsightItemWidget(chunk: chunk),
+        );
+      },
+    );
+  }
+
   Widget _buildGraphAnswerBanner(GraphSearchResult result, AppThemeColors themeColors, Color graphColor) {
     return Container(
       padding: const EdgeInsets.all(16),
@@ -4730,6 +4852,18 @@ class _EnhancedQuickSearchContentState extends State<_EnhancedQuickSearchContent
               onTap: () {
                 Navigator.of(context).pop();
                 widget.onSearchModeChanged(QuickSearchMode.graph);
+              },
+              themeColors: themeColors,
+            ),
+            const SizedBox(height: 8),
+            _buildDrawerAppItem(
+              icon: Icons.auto_awesome,
+              title: 'Dhara Insights',
+              subtitle: 'Dhara knowledge search (Dev)',
+              color: const Color(0xFF6A1B9A),
+              onTap: () {
+                Navigator.of(context).pop();
+                widget.onSearchModeChanged(QuickSearchMode.dharaInsights);
               },
               themeColors: themeColors,
             ),

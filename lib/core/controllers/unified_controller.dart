@@ -141,6 +141,11 @@ class UnifiedController extends Cubit<UnifiedState> {
     if (DeveloperModeService.instance.isEnabled && result.hasGraph) {
       tools.add(ExpandableToolType.graph);
     }
+
+    // Add Dhara Insights when developer mode is enabled and data exists
+    if (DeveloperModeService.instance.isEnabled && result.hasDharaInsights) {
+      tools.add(ExpandableToolType.dharaInsights);
+    }
     
     return tools;
   }

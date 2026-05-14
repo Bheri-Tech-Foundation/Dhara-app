@@ -1,4 +1,5 @@
 import 'package:dharak_flutter/app/types/books/book_chunk.dart';
+import 'package:dharak_flutter/app/types/dhara_insights/dhara_insight_chunk.dart';
 import 'package:dharak_flutter/app/types/dictionary/word_definitions.dart';
 import 'package:dharak_flutter/app/types/verse/verse.dart';
 import 'package:dharak_flutter/core/models/graph_search_result.dart';
@@ -66,9 +67,12 @@ class UnifiedSearchResult {
   final bool graphLoading;
   final String? graphError;
 
+  // Dhara Insights fields — developer mode only
+  final List<DharaInsightChunkRM>? dharaChunks;
+
   UnifiedSearchResult({
     required this.query,
-    this.originalQuery, // Store the original user query
+    this.originalQuery,
     required this.timestamp,
     required this.searchSessionId,
     this.splits,
@@ -81,6 +85,7 @@ class UnifiedSearchResult {
     this.graphResult,
     this.graphLoading = false,
     this.graphError,
+    this.dharaChunks,
   });
 
   UnifiedSearchResult copyWith({
@@ -98,6 +103,7 @@ class UnifiedSearchResult {
     GraphSearchResult? graphResult,
     bool? graphLoading,
     String? graphError,
+    List<DharaInsightChunkRM>? dharaChunks,
   }) {
     return UnifiedSearchResult(
       query: query ?? this.query,
@@ -114,6 +120,7 @@ class UnifiedSearchResult {
       graphResult: graphResult ?? this.graphResult,
       graphLoading: graphLoading ?? this.graphLoading,
       graphError: graphError ?? this.graphError,
+      dharaChunks: dharaChunks ?? this.dharaChunks,
     );
   }
 
@@ -124,5 +131,6 @@ class UnifiedSearchResult {
   bool get hasVerses => verses != null && verses!.isNotEmpty;
   bool get hasChunks => chunks != null && chunks!.isNotEmpty;
   bool get hasGraph => graphResult != null || graphLoading || graphError != null;
-  bool get hasAnyResults => hasDefinition || hasVerses || hasChunks || hasGraph;
+  bool get hasDharaInsights => dharaChunks != null && dharaChunks!.isNotEmpty;
+  bool get hasAnyResults => hasDefinition || hasVerses || hasChunks || hasGraph || hasDharaInsights;
 }

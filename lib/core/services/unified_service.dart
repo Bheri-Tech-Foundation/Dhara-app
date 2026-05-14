@@ -3,6 +3,7 @@ import 'dart:convert';
 
 import 'package:dharak_flutter/app/data/services/developer_mode_service.dart';
 import 'package:dharak_flutter/app/types/books/book_chunk.dart';
+import 'package:dharak_flutter/app/types/dhara_insights/dhara_insight_chunk.dart';
 import 'package:dharak_flutter/app/types/dictionary/word_definitions.dart';
 import 'package:dharak_flutter/app/types/unified/unified_response.dart';
 import 'package:dharak_flutter/app/types/verse/verse.dart';
@@ -485,6 +486,39 @@ class UnifiedService {
                 _addOrUpdateResult(chunkResult);
               } catch (_) {}
               break;
+
+            case 'dhara_chunk':
+              if (!DeveloperModeService.instance.isEnabled) break;
+              try {
+                if (data is! List<dynamic>) continue;
+                final dharaChunks = <DharaInsightChunkRM>[];
+                for (var c in data) {
+                  try {
+                    dharaChunks.add(DharaInsightChunkRM.fromJson(c as Map<String, dynamic>));
+                  } catch (_) {}
+                }
+
+                if (dharaChunks.isEmpty) break;
+
+                String dharaQuery = query;
+                if (currentResult.splits != null && currentResult.splits!.heritageQuery.isNotEmpty) {
+                  dharaQuery = currentResult.splits!.heritageQuery;
+                }
+
+                final dharaResult = UnifiedSearchResult(
+                  query: dharaQuery,
+                  originalQuery: query,
+                  timestamp: DateTime.now(),
+                  searchSessionId: currentSessionId,
+                  splits: currentResult.splits,
+                  dharaChunks: dharaChunks,
+                  queryId: currentResult.queryId,
+                  itemId: '__dhara_insights__$currentSessionId',
+                );
+
+                _addOrUpdateDharaInsightsResult(dharaResult);
+              } catch (_) {}
+              break;
             }
 
         } catch (e) {
@@ -604,6 +638,29 @@ class UnifiedService {
 
     final tagged = graphResult.copyWith(
       itemId: graphKey,
+      searchSessionId: _currentSearchSessionId,
+    );
+
+    if (existingIndex != -1) {
+      currentResults[existingIndex] = tagged;
+    } else {
+      currentResults.add(tagged);
+    }
+
+    _currentResults.add(currentResults);
+  }
+
+  /// Add or update a Dhara Insights result (keyed by "__dhara_insights__" marker)
+  void _addOrUpdateDharaInsightsResult(UnifiedSearchResult dharaResult) {
+    final currentResults = List<UnifiedSearchResult>.from(_currentResults.value);
+    final dharaKey = '__dhara_insights__${dharaResult.searchSessionId}';
+
+    final existingIndex = currentResults.indexWhere(
+      (r) => r.itemId == dharaKey,
+    );
+
+    final tagged = dharaResult.copyWith(
+      itemId: dharaKey,
       searchSessionId: _currentSearchSessionId,
     );
 

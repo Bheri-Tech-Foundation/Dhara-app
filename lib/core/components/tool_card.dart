@@ -5,6 +5,8 @@ import 'package:dharak_flutter/app/data/services/tester_mode_service.dart';
 import 'package:dharak_flutter/app/data/voting/voting_repository.dart';
 import 'package:dharak_flutter/app/domain/verse/constants.dart';
 import 'package:dharak_flutter/app/types/books/book_chunk.dart';
+import 'package:dharak_flutter/app/types/dhara_insights/dhara_insight_chunk.dart';
+import 'package:dharak_flutter/core/components/dhara_insight_item.dart';
 import 'package:dharak_flutter/app/types/dictionary/word_definitions.dart';
 import 'package:dharak_flutter/app/types/unified/unified_response.dart';
 import 'package:dharak_flutter/app/types/verse/verse.dart';
@@ -36,7 +38,7 @@ import 'package:expandable/expandable.dart';
 import 'package:flutter/material.dart';
 import 'package:markdown_widget/config/all.dart';
 
-enum ExpandableToolType { definition, verse, chunk, prashna, graph }
+enum ExpandableToolType { definition, verse, chunk, prashna, graph, dharaInsights }
 
 extension ExpandableToolTypeExtension on ExpandableToolType {
   String get label {
@@ -51,6 +53,8 @@ extension ExpandableToolTypeExtension on ExpandableToolType {
         return 'Prashna';
       case ExpandableToolType.graph:
         return 'Graph';
+      case ExpandableToolType.dharaInsights:
+        return 'Dhara Insights';
     }
   }
 }
@@ -157,6 +161,8 @@ class _ToolCardState extends State<ToolCard> {
         return const Color(0xFF9333EA);
       case ExpandableToolType.graph:
         return const Color(0xFF00897B);
+      case ExpandableToolType.dharaInsights:
+        return const Color(0xFF6A1B9A);
     }
   }
 
@@ -173,6 +179,8 @@ class _ToolCardState extends State<ToolCard> {
         return Icons.psychology_outlined;
       case ExpandableToolType.graph:
         return Icons.hub_outlined;
+      case ExpandableToolType.dharaInsights:
+        return Icons.auto_awesome;
     }
   }
 
@@ -611,6 +619,8 @@ class _ToolCardState extends State<ToolCard> {
         return _buildPrashnaContent();
       case ExpandableToolType.graph:
         return _buildGraphToolContent();
+      case ExpandableToolType.dharaInsights:
+        return _buildDharaInsightsContent();
     }
   }
 
@@ -981,6 +991,45 @@ class _ToolCardState extends State<ToolCard> {
     return _GraphToolResultContent(
       result: result,
       themeColors: widget.themeColors,
+    );
+  }
+
+  Widget _buildDharaInsightsContent() {
+    if (widget.result.dharaChunks == null || widget.result.dharaChunks!.isEmpty) {
+      return const Text('No Dhara Insights data available');
+    }
+
+    final chunks = widget.result.dharaChunks!;
+
+    return Column(
+      children: [
+        Row(
+          children: [
+            Text(
+              'Dhara Insights',
+              style: TdResTextStyles.h4.copyWith(
+                color: widget.themeColors.onSurface,
+              ),
+            ),
+            const Spacer(),
+            Text(
+              '${chunks.length} result${chunks.length != 1 ? 's' : ''}',
+              style: TdResTextStyles.p3.copyWith(
+                color: widget.themeColors.onSurface.withOpacity(0.6),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 16),
+        ...chunks.map((chunk) {
+          return DharaInsightItemWidget(
+            chunk: chunk,
+            themeColors: widget.themeColors,
+            queryId: widget.result.queryId,
+            itemId: widget.result.itemId != null ? int.tryParse(widget.result.itemId.toString()) : null,
+          );
+        }),
+      ],
     );
   }
 
