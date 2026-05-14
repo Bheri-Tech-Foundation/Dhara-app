@@ -1312,102 +1312,98 @@ class _BookChunkItemLightweightWidgetState extends State<BookChunkItemLightweigh
   void _handleShowChunkMisc() {
     if (!_hasChunkMisc) return;
     final miscItems = widget.chunk.chunkMisc!;
+    final colors = effectiveThemeColors;
+    final accent = _borderColor;
 
-    showModalBottomSheet(
+    showDialog(
       context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      enableDrag: true,
-      isDismissible: true,
-      builder: (context) => DraggableScrollableSheet(
-        initialChildSize: 0.55,
-        minChildSize: 0.3,
-        maxChildSize: 0.9,
-        builder: (context, scrollController) {
-          return Container(
+      barrierColor: Colors.black54,
+      builder: (context) {
+        return Center(
+          child: Container(
+            width: MediaQuery.of(context).size.width * 0.88,
+            constraints: BoxConstraints(
+              maxHeight: MediaQuery.of(context).size.height * 0.7,
+              maxWidth: 520,
+            ),
             decoration: BoxDecoration(
-              color: effectiveThemeColors.surface,
-              borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+              color: colors.surface,
+              borderRadius: BorderRadius.circular(20),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.15),
-                  blurRadius: 20,
-                  offset: const Offset(0, -4),
+                  color: Colors.black.withOpacity(0.2),
+                  blurRadius: 24,
+                  offset: const Offset(0, 8),
                 ),
               ],
             ),
-            child: Column(
-              children: [
-                // Drag handle
-                Container(
-                  margin: const EdgeInsets.only(top: 10, bottom: 6),
-                  width: 40,
-                  height: 4,
-                  decoration: BoxDecoration(
-                    color: effectiveThemeColors.onSurface.withOpacity(0.2),
-                    borderRadius: BorderRadius.circular(2),
-                  ),
-                ),
-                // Header
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(20, 8, 12, 12),
-                  child: Row(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(8),
-                        decoration: BoxDecoration(
-                          color: _borderColor.withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        child: Icon(
-                          Icons.info_outline,
-                          color: _borderColor,
-                          size: 20,
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Text(
-                          'Additional Info',
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.w700,
-                            color: effectiveThemeColors.onSurface,
+            child: Material(
+              color: Colors.transparent,
+              borderRadius: BorderRadius.circular(20),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // Header
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(20, 16, 12, 12),
+                    child: Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color: accent.withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: Icon(
+                            Icons.info_outline,
+                            color: accent,
+                            size: 20,
                           ),
                         ),
-                      ),
-                      IconButton(
-                        onPressed: () => Navigator.of(context).pop(),
-                        icon: Icon(
-                          Icons.close,
-                          color: effectiveThemeColors.onSurface.withOpacity(0.5),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Text(
+                            'Additional Info',
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.w700,
+                              color: colors.onSurface,
+                            ),
+                          ),
                         ),
-                      ),
-                    ],
+                        IconButton(
+                          onPressed: () => Navigator.of(context).pop(),
+                          icon: Icon(
+                            Icons.close,
+                            color: colors.onSurface.withOpacity(0.5),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
-                ),
-                Divider(
-                  height: 1,
-                  color: effectiveThemeColors.onSurface.withOpacity(0.08),
-                ),
-                // Misc items list
-                Expanded(
-                  child: ListView.separated(
-                    controller: scrollController,
-                    padding: const EdgeInsets.all(16),
-                    itemCount: miscItems.length,
-                    separatorBuilder: (_, __) => const SizedBox(height: 12),
-                    itemBuilder: (context, index) {
-                      final item = miscItems[index];
-                      return _buildChunkMiscItem(item, index);
-                    },
+                  Divider(
+                    height: 1,
+                    color: colors.onSurface.withOpacity(0.08),
                   ),
-                ),
-              ],
+                  // Misc items list (flexible so it shrinks for few items)
+                  Flexible(
+                    child: ListView.separated(
+                      shrinkWrap: true,
+                      padding: const EdgeInsets.all(16),
+                      itemCount: miscItems.length,
+                      separatorBuilder: (_, __) => const SizedBox(height: 12),
+                      itemBuilder: (context, index) {
+                        final item = miscItems[index];
+                        return _buildChunkMiscItem(item, index);
+                      },
+                    ),
+                  ),
+                ],
+              ),
             ),
-          );
-        },
-      ),
+          ),
+        );
+      },
     );
   }
 
