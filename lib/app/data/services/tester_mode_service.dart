@@ -28,7 +28,8 @@ class TesterModeService {
   
   // ===== INITIALIZATION =====
   
-  /// Initialize tester mode service (web only)
+  /// Initialize tester mode service (web only).
+  /// Auto-enables when the app is served from the /samiksha path.
   Future<void> initialize() async {
     if (!kIsWeb) {
       _logger.d('⏭️ TesterModeService skipped - not on web platform');
@@ -36,9 +37,28 @@ class TesterModeService {
     }
     try {
       await _loadSettings();
+
+      // Auto-enable tester mode when deployed under /samiksha
+      if (_isSamikshaDeployment() && !_isEnabled) {
+        _isEnabled = true;
+        _testerModeSubject.add(true);
+        await _saveSettings();
+        _logger.d('🧪 Tester mode auto-enabled (samiksha deployment)');
+      }
+
       _logger.d('✅ TesterModeService initialized - enabled: $_isEnabled');
     } catch (e) {
       _logger.e('❌ Error initializing TesterModeService', error: e);
+    }
+  }
+
+  /// Check if the web app is running under the /samiksha path
+  bool _isSamikshaDeployment() {
+    try {
+      final currentPath = Uri.base.path.toLowerCase();
+      return currentPath.contains('/samiksha');
+    } catch (_) {
+      return false;
     }
   }
   
