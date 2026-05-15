@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:logger/logger.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:dharak_flutter/app/data/services/tester_mode_service.dart';
 
 /// Available backend routes that testers can switch between
 enum ApiRoute {
@@ -110,11 +111,19 @@ class DeveloperModeService {
   }
 
   /// Switch the backend API route (e.g. /bheri ↔ /samiksha).
+  /// Automatically enables tester mode for Samiksha, disables for Bheri.
   /// Persisted across app restarts.
   Future<void> setApiRoute(ApiRoute route) async {
     _apiRoute = route;
     _apiUrlSubject.add(getEffectiveApiUrl());
     await _saveSettings();
+
+    // Sync tester mode with route selection
+    if (route == ApiRoute.samiksha) {
+      await TesterModeService.instance.enable();
+    } else {
+      await TesterModeService.instance.disable();
+    }
   }
   
   // ===== API URL METHODS =====

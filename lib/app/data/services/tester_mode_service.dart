@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:logger/logger.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:dharak_flutter/app/data/services/developer_mode_service.dart';
 
 /// Tester Mode Service - Manages tester mode state for voting/feedback.
 /// Only available on the web platform; always disabled on mobile.
@@ -39,11 +40,12 @@ class TesterModeService {
       await _loadSettings();
 
       // Auto-enable tester mode when deployed under /samiksha
-      if (_isSamikshaDeployment() && !_isEnabled) {
+      // or when the API route is set to Samiksha
+      if (_shouldAutoEnable() && !_isEnabled) {
         _isEnabled = true;
         _testerModeSubject.add(true);
         await _saveSettings();
-        _logger.d('🧪 Tester mode auto-enabled (samiksha deployment)');
+        _logger.d('🧪 Tester mode auto-enabled (samiksha context)');
       }
 
       _logger.d('✅ TesterModeService initialized - enabled: $_isEnabled');
@@ -52,11 +54,13 @@ class TesterModeService {
     }
   }
 
-  /// Check if the web app is running under the /samiksha path
-  bool _isSamikshaDeployment() {
+  /// Check if tester mode should auto-enable:
+  /// either the URL path contains /samiksha or the API route is set to Samiksha
+  bool _shouldAutoEnable() {
     try {
-      final currentPath = Uri.base.path.toLowerCase();
-      return currentPath.contains('/samiksha');
+      final urlHasSamiksha = Uri.base.path.toLowerCase().contains('/samiksha');
+      final routeIsSamiksha = DeveloperModeService.instance.apiRoute == ApiRoute.samiksha;
+      return urlHasSamiksha || routeIsSamiksha;
     } catch (_) {
       return false;
     }
