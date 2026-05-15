@@ -39,7 +39,7 @@ class DeveloperModeService {
   
   // ===== STATE =====
   bool _isEnabled = false;
-  bool get isEnabled => _isEnabled;
+  bool get isEnabled => _isEnabled || _apiRoute == ApiRoute.samiksha;
   
   String _customDomain = '';
   String get customDomain => _customDomain;
