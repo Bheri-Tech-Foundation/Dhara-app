@@ -513,7 +513,7 @@ class UnifiedService {
                   splits: currentResult.splits,
                   dharaChunks: dharaChunks,
                   queryId: currentResult.queryId,
-                  itemId: '__dhara_insights__$currentSessionId',
+                  itemId: itemId,
                 );
 
                 _addOrUpdateDharaInsightsResult(dharaResult);
@@ -650,18 +650,17 @@ class UnifiedService {
     _currentResults.add(currentResults);
   }
 
-  /// Add or update a Dhara Insights result (keyed by "__dhara_insights__" marker)
+  /// Add or update a Dhara Insights result (identified by hasDharaInsights + sessionId)
   void _addOrUpdateDharaInsightsResult(UnifiedSearchResult dharaResult) {
     final currentResults = List<UnifiedSearchResult>.from(_currentResults.value);
-    final dharaKey = '__dhara_insights__${dharaResult.searchSessionId}';
-
-    final existingIndex = currentResults.indexWhere(
-      (r) => r.itemId == dharaKey,
-    );
 
     final tagged = dharaResult.copyWith(
-      itemId: dharaKey,
       searchSessionId: _currentSearchSessionId,
+    );
+
+    // Find existing Dhara Insights result for this session
+    final existingIndex = currentResults.indexWhere(
+      (r) => r.hasDharaInsights && r.searchSessionId == _currentSearchSessionId,
     );
 
     if (existingIndex != -1) {
