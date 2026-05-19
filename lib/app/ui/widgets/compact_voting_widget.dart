@@ -176,9 +176,11 @@ class _CompactVotingWidgetState extends State<CompactVotingWidget> {
         onTap: _isSubmitting
             ? null
             : () {
-                // Toggle logic
-                final newVote = isSelected ? VoteValue.neutral : voteValue;
-                _submitVote(newVote);
+                if (isSelected) {
+                  _deselectVote();
+                } else {
+                  _submitVote(voteValue);
+                }
               },
         borderRadius: BorderRadius.circular(10),
         child: AnimatedContainer(
@@ -257,6 +259,20 @@ class _CompactVotingWidgetState extends State<CompactVotingWidget> {
         return const Color(0xFF6B7280); // Gray
       case VoteValue.notRelevant:
         return const Color(0xFFEF4444); // Red
+    }
+  }
+
+  void _deselectVote() {
+    setState(() {
+      _selectedVote = null;
+    });
+    // Clear cached vote state
+    if (widget.queryId != null && widget.itemId != null && widget.refId != null) {
+      _votingRepository.clearCachedVoteState(
+        queryId: widget.queryId!,
+        itemId: widget.itemId.toString(),
+        refId: widget.refId!,
+      );
     }
   }
 

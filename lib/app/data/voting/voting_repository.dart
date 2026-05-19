@@ -70,6 +70,16 @@ class VotingRepository {
     return cachedVote;
   }
 
+  /// Clear cached vote state (for deselection)
+  void clearCachedVoteState({
+    required int queryId,
+    required String itemId,
+    required String refId,
+  }) {
+    final key = _buildVoteCacheKey(queryId: queryId, itemId: itemId, refId: refId);
+    _voteStateCache.remove(key);
+  }
+
   /// Build cache key for vote state
   String _buildVoteCacheKey({
     required int queryId,
