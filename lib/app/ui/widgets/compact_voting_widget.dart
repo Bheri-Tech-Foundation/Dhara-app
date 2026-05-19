@@ -275,7 +275,7 @@ class _CompactVotingWidgetState extends State<CompactVotingWidget> {
         itemId: widget.itemId.toString(),
         queryId: widget.queryId!,
         value: widget.refId,
-        vote: '0',
+        vote: '-1',
       );
 
       await _votingRepository.submitVote(voteRequest);
