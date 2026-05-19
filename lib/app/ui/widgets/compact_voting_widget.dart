@@ -262,17 +262,46 @@ class _CompactVotingWidgetState extends State<CompactVotingWidget> {
     }
   }
 
-  void _deselectVote() {
+  Future<void> _deselectVote() async {
+    if (_isSubmitting) return;
+
     setState(() {
+      _isSubmitting = true;
       _selectedVote = null;
     });
-    // Clear cached vote state
-    if (widget.queryId != null && widget.itemId != null && widget.refId != null) {
+
+    try {
+      final voteRequest = VoteRequest(
+        itemId: widget.itemId.toString(),
+        queryId: widget.queryId!,
+        value: widget.refId,
+        vote: '0',
+      );
+
+      await _votingRepository.submitVote(voteRequest);
+
+      // Clear cached vote state after successful API call
       _votingRepository.clearCachedVoteState(
         queryId: widget.queryId!,
         itemId: widget.itemId.toString(),
         refId: widget.refId!,
       );
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Text('Failed to clear vote - please try again'),
+            backgroundColor: Colors.red,
+            duration: const Duration(seconds: 2),
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isSubmitting = false;
+        });
+      }
     }
   }
 
