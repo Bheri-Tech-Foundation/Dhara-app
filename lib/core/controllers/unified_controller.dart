@@ -128,23 +128,24 @@ class UnifiedController extends Cubit<UnifiedState> {
     if (result.hasDefinition) tools.add(ExpandableToolType.definition);
     if (result.hasVerses) tools.add(ExpandableToolType.verse);
     if (result.hasChunks) tools.add(ExpandableToolType.chunk);
-    
-    // Add Prashna AI tool to results that have chunks OR have the originalQuery
-    if (TesterModeService.instance.isEnabled && 
-        result.queryId != null &&
-        result.originalQuery != null && 
-        result.originalQuery!.isNotEmpty) {
-      tools.add(ExpandableToolType.prashna);
+
+    // Add Dhara Insights when developer mode is enabled and data exists
+    if (DeveloperModeService.instance.isEnabled && result.hasDharaInsights) {
+      tools.add(ExpandableToolType.dharaInsights);
     }
 
     // Add Graph tool when developer mode is enabled and graph data exists
     if (DeveloperModeService.instance.isEnabled && result.hasGraph) {
       tools.add(ExpandableToolType.graph);
     }
-
-    // Add Dhara Insights when developer mode is enabled and data exists
-    if (DeveloperModeService.instance.isEnabled && result.hasDharaInsights) {
-      tools.add(ExpandableToolType.dharaInsights);
+    
+    // Add Prashna AI tool only on chunk results to avoid duplicate cards
+    if (TesterModeService.instance.isEnabled && 
+        result.hasChunks &&
+        result.queryId != null &&
+        result.originalQuery != null && 
+        result.originalQuery!.isNotEmpty) {
+      tools.add(ExpandableToolType.prashna);
     }
     
     return tools;
