@@ -139,18 +139,19 @@ class UnifiedController extends Cubit<UnifiedState> {
       tools.add(ExpandableToolType.graph);
     }
     
-    // Add Prashna AI tool:
-    // - When developer mode ON: show on dhara insights result (below Dhara Insights)
-    // - When developer mode OFF: show on chunk result (below Chunks)
-    if (TesterModeService.instance.isEnabled && 
+    // Add Prashna AI tool on chunk results (tester mode only).
+    // Hidden when both developer mode (Samiksha) and tester mode are active
+    // to avoid confusing testers with too many cards.
+    final hidePrashna = DeveloperModeService.instance.isEnabled && 
+        TesterModeService.instance.isEnabled;
+
+    if (!hidePrashna &&
+        TesterModeService.instance.isEnabled && 
+        result.hasChunks &&
         result.queryId != null &&
         result.originalQuery != null && 
         result.originalQuery!.isNotEmpty) {
-      if (result.hasDharaInsights) {
-        tools.add(ExpandableToolType.prashna);
-      } else if (result.hasChunks && !DeveloperModeService.instance.isEnabled) {
-        tools.add(ExpandableToolType.prashna);
-      }
+      tools.add(ExpandableToolType.prashna);
     }
     
     return tools;
