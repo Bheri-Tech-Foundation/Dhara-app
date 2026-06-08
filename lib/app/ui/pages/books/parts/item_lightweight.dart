@@ -418,10 +418,6 @@ class _BookChunkItemLightweightWidgetState extends State<BookChunkItemLightweigh
           Row(
             mainAxisAlignment: MainAxisAlignment.end,
             children: [
-              if (_showCopyId) ...[
-                _buildCopyIdButton(),
-                const Spacer(),
-              ],
               _buildSmartActionButtons(),
             ],
           ),
@@ -430,52 +426,19 @@ class _BookChunkItemLightweightWidgetState extends State<BookChunkItemLightweigh
     );
   }
 
-  Widget _buildCopyIdButton() {
-    return Material(
-      type: MaterialType.transparency,
-      child: InkWell(
-        onTap: () {
-          final id = widget.chunk.chunkRefId.toString();
-          Clipboard.setData(ClipboardData(text: id));
-          if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text('Chunk ID copied: $id'),
-                backgroundColor: _borderColor,
-                behavior: SnackBarBehavior.floating,
-                duration: const Duration(seconds: 2),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-              ),
-            );
-          }
-        },
-        borderRadius: BorderRadius.circular(12),
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-          decoration: BoxDecoration(
-            color: _borderColor.withOpacity(0.08),
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: _borderColor.withOpacity(0.2), width: 0.5),
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(Icons.copy, size: 12, color: _borderColor),
-              const SizedBox(width: 4),
-              Text(
-                'ID: ${widget.chunk.chunkRefId}',
-                style: TextStyle(
-                  fontSize: 10,
-                  fontWeight: FontWeight.w600,
-                  color: _borderColor,
-                  fontFamily: 'monospace',
-                ),
-              ),
-            ],
-          ),
+  void _handleCopyId() {
+    final id = widget.chunk.chunkRefId.toString();
+    Clipboard.setData(ClipboardData(text: id));
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Chunk ID copied: $id'),
+          behavior: SnackBarBehavior.floating,
+          duration: const Duration(seconds: 2),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
         ),
-      ),
-    );
+      );
+    }
   }
 
   /// 🎨 Beautiful Smart Action Buttons based on source type
@@ -539,6 +502,14 @@ class _BookChunkItemLightweightWidgetState extends State<BookChunkItemLightweigh
             isEnabled: true,
           ),
         ],
+        if (_showCopyId) ...[
+          const SizedBox(width: 8),
+          _buildActionButton(
+            icon: Icons.copy,
+            onTap: () => _handleCopyId(),
+            isEnabled: true,
+          ),
+        ],
       ],
     );
   }
@@ -573,6 +544,14 @@ class _BookChunkItemLightweightWidgetState extends State<BookChunkItemLightweigh
           onTap: () => _handleShare(),
           isEnabled: true,
         ),
+        if (_showCopyId) ...[
+          const SizedBox(width: 8),
+          _buildActionButton(
+            icon: Icons.copy,
+            onTap: () => _handleCopyId(),
+            isEnabled: true,
+          ),
+        ],
       ],
     );
   }
@@ -607,6 +586,14 @@ class _BookChunkItemLightweightWidgetState extends State<BookChunkItemLightweigh
           onTap: () => _handleShare(),
           isEnabled: true,
         ),
+        if (_showCopyId) ...[
+          const SizedBox(width: 8),
+          _buildActionButton(
+            icon: Icons.copy,
+            onTap: () => _handleCopyId(),
+            isEnabled: true,
+          ),
+        ],
       ],
     );
   }
@@ -640,6 +627,14 @@ class _BookChunkItemLightweightWidgetState extends State<BookChunkItemLightweigh
             isEnabled: true,
           ),
         ],
+        if (_showCopyId) ...[
+          const SizedBox(width: 8),
+          _buildActionButton(
+            icon: Icons.copy,
+            onTap: () => _handleCopyId(),
+            isEnabled: true,
+          ),
+        ],
       ],
     );
   }
@@ -670,6 +665,14 @@ class _BookChunkItemLightweightWidgetState extends State<BookChunkItemLightweigh
           _buildActionButton(
             icon: Icons.info_outline,
             onTap: () => _handleShowChunkMisc(),
+            isEnabled: true,
+          ),
+        ],
+        if (_showCopyId) ...[
+          const SizedBox(width: 8),
+          _buildActionButton(
+            icon: Icons.copy,
+            onTap: () => _handleCopyId(),
             isEnabled: true,
           ),
         ],

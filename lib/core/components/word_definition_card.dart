@@ -279,10 +279,7 @@ class _WordDefinitionCardState extends State<WordDefinitionCard> {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        if (showCopyId)
-          _buildDefCopyIdButton(themeColors)
-        else
-          TdResGaps.h_12,
+        TdResGaps.h_12,
         
         // Source link
         if (widget.showSource && widget.definition.sourceUrl != null)
@@ -345,6 +342,17 @@ class _WordDefinitionCardState extends State<WordDefinitionCard> {
                   color: themeColors.onSurface,
                 ),
               ),
+
+            // Copy ID button
+            if (showCopyId)
+              IconButton(
+                onPressed: () => _handleCopyId(),
+                icon: Icon(
+                  Icons.copy,
+                  size: 18,
+                  color: themeColors.onSurface,
+                ),
+              ),
             
           ],
         ),
@@ -352,52 +360,15 @@ class _WordDefinitionCardState extends State<WordDefinitionCard> {
     );
   }
 
-  Widget _buildDefCopyIdButton(AppThemeColors themeColors) {
-    final color = themeColors.secondaryColor;
-    return Padding(
-      padding: const EdgeInsets.only(left: 12),
-      child: Material(
-        type: MaterialType.transparency,
-        child: InkWell(
-          onTap: () {
-            final id = widget.definition.dictRefId.toString();
-            Clipboard.setData(ClipboardData(text: id));
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text('Definition ID copied: $id'),
-                backgroundColor: color,
-                behavior: SnackBarBehavior.floating,
-                duration: const Duration(seconds: 2),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-              ),
-            );
-          },
-          borderRadius: BorderRadius.circular(12),
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-            decoration: BoxDecoration(
-              color: color.withOpacity(0.08),
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: color.withOpacity(0.2), width: 0.5),
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(Icons.copy, size: 12, color: color),
-                const SizedBox(width: 4),
-                Text(
-                  'ID: ${widget.definition.dictRefId}',
-                  style: TextStyle(
-                    fontSize: 10,
-                    fontWeight: FontWeight.w600,
-                    color: color,
-                    fontFamily: 'monospace',
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
+  void _handleCopyId() {
+    final id = widget.definition.dictRefId.toString();
+    Clipboard.setData(ClipboardData(text: id));
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Definition ID copied: $id'),
+        behavior: SnackBarBehavior.floating,
+        duration: const Duration(seconds: 2),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
       ),
     );
   }

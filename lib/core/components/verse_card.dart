@@ -434,25 +434,13 @@ class _VerseCardState extends State<VerseCard> {
             ),
           ),
         
-        // Copy ID button (always visible in dev+tester mode)
-        if (!isExpanded && _showCopyId(verse))
-          Container(
-            margin: const EdgeInsets.only(top: 8),
-            child: Row(
-              children: [
-                _buildVerseCopyIdButton(verse),
-              ],
-            ),
-          ),
-
         // Action icons line (only when expanded, right-aligned)
         if (isExpanded && (_hasAnyActionIcons(verse) || _showCopyId(verse)))
           Container(
             margin: const EdgeInsets.only(top: 8),
             child: Row(
+              mainAxisAlignment: MainAxisAlignment.end,
               children: [
-                if (_showCopyId(verse)) _buildVerseCopyIdButton(verse),
-                const Spacer(),
                 Wrap(
                   spacing: 4,
                   children: [
@@ -495,6 +483,13 @@ class _VerseCardState extends State<VerseCard> {
                         icon: Icons.info_outline,
                         onTap: () => _toggleOtherFields(),
                       ),
+
+                    // Copy ID button
+                    if (_showCopyId(verse))
+                      _buildActionButton(
+                        icon: Icons.copy,
+                        onTap: () => _handleCopyId(verse),
+                      ),
                   ],
                 ),
               ],
@@ -536,49 +531,15 @@ class _VerseCardState extends State<VerseCard> {
         TesterModeService.instance.isEnabled;
   }
 
-  Widget _buildVerseCopyIdButton(VerseRM verse) {
-    final color = themeColors.primary;
-    return Material(
-      type: MaterialType.transparency,
-      child: InkWell(
-        onTap: () {
-          final id = verse.versePk.toString();
-          Clipboard.setData(ClipboardData(text: id));
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('Verse ID copied: $id'),
-              backgroundColor: color,
-              behavior: SnackBarBehavior.floating,
-              duration: const Duration(seconds: 2),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-            ),
-          );
-        },
-        borderRadius: BorderRadius.circular(12),
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-          decoration: BoxDecoration(
-            color: color.withOpacity(0.08),
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: color.withOpacity(0.2), width: 0.5),
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(Icons.copy, size: 12, color: color),
-              const SizedBox(width: 4),
-              Text(
-                'ID: ${verse.versePk}',
-                style: TextStyle(
-                  fontSize: 10,
-                  fontWeight: FontWeight.w600,
-                  color: color,
-                  fontFamily: 'monospace',
-                ),
-              ),
-            ],
-          ),
-        ),
+  void _handleCopyId(VerseRM verse) {
+    final id = verse.versePk.toString();
+    Clipboard.setData(ClipboardData(text: id));
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Verse ID copied: $id'),
+        behavior: SnackBarBehavior.floating,
+        duration: const Duration(seconds: 2),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
       ),
     );
   }
