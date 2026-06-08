@@ -365,7 +365,8 @@ class _WordDefinitionCardState extends State<WordDefinitionCard> {
     Clipboard.setData(ClipboardData(text: id));
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text('ID copied: $id'),
+        content: Text('ID copied: $id', style: const TextStyle(color: Colors.white)),
+        backgroundColor: const Color(0xFF2E7D32),
         behavior: SnackBarBehavior.floating,
         duration: const Duration(seconds: 2),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
