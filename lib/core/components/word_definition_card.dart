@@ -1,9 +1,12 @@
+import 'package:dharak_flutter/app/data/services/developer_mode_service.dart';
+import 'package:dharak_flutter/app/data/services/tester_mode_service.dart';
 import 'package:dharak_flutter/app/types/dictionary/definition.dart';
 import 'package:dharak_flutter/app/types/dictionary/dict_word_detail.dart';
 import 'package:dharak_flutter/app/types/voting/vote_type.dart';
 import 'package:dharak_flutter/app/ui/widgets/code_wrapper.dart';
 import 'package:dharak_flutter/app/ui/widgets/compact_voting_widget.dart';
 import 'package:dharak_flutter/core/services/citation_share_service.dart';
+import 'package:flutter/services.dart';
 import 'package:dharak_flutter/res/layouts/containers.dart';
 import 'package:dharak_flutter/res/styles/decorations.dart';
 import 'package:dharak_flutter/res/styles/text_styles.dart';
@@ -269,10 +272,17 @@ class _WordDefinitionCardState extends State<WordDefinitionCard> {
       themeColors.secondaryColor,
     );
 
+    final showCopyId = DeveloperModeService.instance.isEnabled &&
+        TesterModeService.instance.isEnabled &&
+        widget.definition.dictRefId != null;
+
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        TdResGaps.h_12,
+        if (showCopyId)
+          _buildDefCopyIdButton(themeColors)
+        else
+          TdResGaps.h_12,
         
         // Source link
         if (widget.showSource && widget.definition.sourceUrl != null)
@@ -339,6 +349,56 @@ class _WordDefinitionCardState extends State<WordDefinitionCard> {
           ],
         ),
       ],
+    );
+  }
+
+  Widget _buildDefCopyIdButton(AppThemeColors themeColors) {
+    final color = themeColors.secondaryColor;
+    return Padding(
+      padding: const EdgeInsets.only(left: 12),
+      child: Material(
+        type: MaterialType.transparency,
+        child: InkWell(
+          onTap: () {
+            final id = widget.definition.dictRefId.toString();
+            Clipboard.setData(ClipboardData(text: id));
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('Definition ID copied: $id'),
+                backgroundColor: color,
+                behavior: SnackBarBehavior.floating,
+                duration: const Duration(seconds: 2),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+              ),
+            );
+          },
+          borderRadius: BorderRadius.circular(12),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+            decoration: BoxDecoration(
+              color: color.withOpacity(0.08),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: color.withOpacity(0.2), width: 0.5),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(Icons.copy, size: 12, color: color),
+                const SizedBox(width: 4),
+                Text(
+                  'ID: ${widget.definition.dictRefId}',
+                  style: TextStyle(
+                    fontSize: 10,
+                    fontWeight: FontWeight.w600,
+                    color: color,
+                    fontFamily: 'monospace',
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
     );
   }
 

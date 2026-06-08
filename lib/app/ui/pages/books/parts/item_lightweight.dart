@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../../../types/books/book_chunk.dart';
@@ -9,6 +10,7 @@ import '../../../../../res/theme/app_theme_display.dart';
 import '../../../../../res/values/dimens.dart';
 import '../../../../../core/services/books_service.dart';
 import '../../../../data/services/developer_mode_service.dart';
+import '../../../../data/services/tester_mode_service.dart';
 import '../../../../domain/books/repo.dart';
 import '../../../../domain/base/domain_result.dart';
 import '../../../../domain/citation/repo.dart';
@@ -79,6 +81,11 @@ class _BookChunkItemLightweightWidgetState extends State<BookChunkItemLightweigh
 
   bool get _hasChunkMisc =>
       widget.chunk.chunkMisc != null && widget.chunk.chunkMisc!.isNotEmpty;
+
+  bool get _showCopyId =>
+      DeveloperModeService.instance.isEnabled &&
+      TesterModeService.instance.isEnabled &&
+      widget.chunk.chunkRefId != null;
 
   Color get _borderColor {
     switch (widget.chunk.sourceType) {
@@ -408,16 +415,65 @@ class _BookChunkItemLightweightWidgetState extends State<BookChunkItemLightweigh
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Source button removed since it's now in the title
-          
-          // BOTTOM LINE - Action buttons (right aligned, like verse cards)
           Row(
             mainAxisAlignment: MainAxisAlignment.end,
             children: [
+              if (_showCopyId) ...[
+                _buildCopyIdButton(),
+                const Spacer(),
+              ],
               _buildSmartActionButtons(),
             ],
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildCopyIdButton() {
+    return Material(
+      type: MaterialType.transparency,
+      child: InkWell(
+        onTap: () {
+          final id = widget.chunk.chunkRefId.toString();
+          Clipboard.setData(ClipboardData(text: id));
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('Chunk ID copied: $id'),
+                backgroundColor: _borderColor,
+                behavior: SnackBarBehavior.floating,
+                duration: const Duration(seconds: 2),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+              ),
+            );
+          }
+        },
+        borderRadius: BorderRadius.circular(12),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+          decoration: BoxDecoration(
+            color: _borderColor.withOpacity(0.08),
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: _borderColor.withOpacity(0.2), width: 0.5),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(Icons.copy, size: 12, color: _borderColor),
+              const SizedBox(width: 4),
+              Text(
+                'ID: ${widget.chunk.chunkRefId}',
+                style: TextStyle(
+                  fontSize: 10,
+                  fontWeight: FontWeight.w600,
+                  color: _borderColor,
+                  fontFamily: 'monospace',
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

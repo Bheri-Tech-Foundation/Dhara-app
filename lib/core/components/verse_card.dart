@@ -1,3 +1,5 @@
+import 'package:dharak_flutter/app/data/services/developer_mode_service.dart';
+import 'package:dharak_flutter/app/data/services/tester_mode_service.dart';
 import 'package:dharak_flutter/app/types/verse/verse.dart';
 import 'package:dharak_flutter/app/types/verse/verse_other_field.dart';
 import 'package:dharak_flutter/app/types/voting/vote_type.dart';
@@ -7,6 +9,7 @@ import 'package:dharak_flutter/app/ui/widgets/verse_text.dart';
 import 'package:dharak_flutter/app/ui/pages/dashboard/controller.dart';
 import 'package:dharak_flutter/core/services/verse_service.dart';
 import 'package:dharak_flutter/core/services/citation_share_service.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_modular/flutter_modular.dart';
 import 'package:dharak_flutter/res/layouts/containers.dart';
 import 'package:dharak_flutter/res/styles/decorations.dart';
@@ -431,13 +434,25 @@ class _VerseCardState extends State<VerseCard> {
             ),
           ),
         
-        // Action icons line (only when expanded, right-aligned)
-        if (isExpanded && _hasAnyActionIcons(verse))
+        // Copy ID button (always visible in dev+tester mode)
+        if (!isExpanded && _showCopyId(verse))
           Container(
             margin: const EdgeInsets.only(top: 8),
             child: Row(
-              mainAxisAlignment: MainAxisAlignment.end,
               children: [
+                _buildVerseCopyIdButton(verse),
+              ],
+            ),
+          ),
+
+        // Action icons line (only when expanded, right-aligned)
+        if (isExpanded && (_hasAnyActionIcons(verse) || _showCopyId(verse)))
+          Container(
+            margin: const EdgeInsets.only(top: 8),
+            child: Row(
+              children: [
+                if (_showCopyId(verse)) _buildVerseCopyIdButton(verse),
+                const Spacer(),
                 Wrap(
                   spacing: 4,
                   children: [
@@ -510,6 +525,58 @@ class _VerseCardState extends State<VerseCard> {
             icon,
             size: 16,
             color: themeColors.onSurface,
+          ),
+        ),
+      ),
+    );
+  }
+
+  bool _showCopyId(VerseRM verse) {
+    return DeveloperModeService.instance.isEnabled &&
+        TesterModeService.instance.isEnabled;
+  }
+
+  Widget _buildVerseCopyIdButton(VerseRM verse) {
+    final color = themeColors.primary;
+    return Material(
+      type: MaterialType.transparency,
+      child: InkWell(
+        onTap: () {
+          final id = verse.versePk.toString();
+          Clipboard.setData(ClipboardData(text: id));
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Verse ID copied: $id'),
+              backgroundColor: color,
+              behavior: SnackBarBehavior.floating,
+              duration: const Duration(seconds: 2),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+            ),
+          );
+        },
+        borderRadius: BorderRadius.circular(12),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+          decoration: BoxDecoration(
+            color: color.withOpacity(0.08),
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: color.withOpacity(0.2), width: 0.5),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(Icons.copy, size: 12, color: color),
+              const SizedBox(width: 4),
+              Text(
+                'ID: ${verse.versePk}',
+                style: TextStyle(
+                  fontSize: 10,
+                  fontWeight: FontWeight.w600,
+                  color: color,
+                  fontFamily: 'monospace',
+                ),
+              ),
+            ],
           ),
         ),
       ),
