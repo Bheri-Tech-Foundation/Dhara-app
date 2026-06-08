@@ -432,7 +432,7 @@ class _BookChunkItemLightweightWidgetState extends State<BookChunkItemLightweigh
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Chunk ID copied: $id'),
+          content: Text('ID copied: $id'),
           behavior: SnackBarBehavior.floating,
           duration: const Duration(seconds: 2),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
@@ -505,7 +505,7 @@ class _BookChunkItemLightweightWidgetState extends State<BookChunkItemLightweigh
         if (_showCopyId) ...[
           const SizedBox(width: 8),
           _buildActionButton(
-            icon: Icons.copy,
+            icon: Icons.content_copy,
             onTap: () => _handleCopyId(),
             isEnabled: true,
           ),
@@ -547,7 +547,7 @@ class _BookChunkItemLightweightWidgetState extends State<BookChunkItemLightweigh
         if (_showCopyId) ...[
           const SizedBox(width: 8),
           _buildActionButton(
-            icon: Icons.copy,
+            icon: Icons.content_copy,
             onTap: () => _handleCopyId(),
             isEnabled: true,
           ),
@@ -589,7 +589,7 @@ class _BookChunkItemLightweightWidgetState extends State<BookChunkItemLightweigh
         if (_showCopyId) ...[
           const SizedBox(width: 8),
           _buildActionButton(
-            icon: Icons.copy,
+            icon: Icons.content_copy,
             onTap: () => _handleCopyId(),
             isEnabled: true,
           ),
@@ -630,7 +630,7 @@ class _BookChunkItemLightweightWidgetState extends State<BookChunkItemLightweigh
         if (_showCopyId) ...[
           const SizedBox(width: 8),
           _buildActionButton(
-            icon: Icons.copy,
+            icon: Icons.content_copy,
             onTap: () => _handleCopyId(),
             isEnabled: true,
           ),
@@ -671,7 +671,7 @@ class _BookChunkItemLightweightWidgetState extends State<BookChunkItemLightweigh
         if (_showCopyId) ...[
           const SizedBox(width: 8),
           _buildActionButton(
-            icon: Icons.copy,
+            icon: Icons.content_copy,
             onTap: () => _handleCopyId(),
             isEnabled: true,
           ),

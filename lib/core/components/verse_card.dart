@@ -484,10 +484,10 @@ class _VerseCardState extends State<VerseCard> {
                         onTap: () => _toggleOtherFields(),
                       ),
 
-                    // Copy ID button
+                    // Copy ID button (dev + tester mode only)
                     if (_showCopyId(verse))
                       _buildActionButton(
-                        icon: Icons.copy,
+                        icon: Icons.content_copy,
                         onTap: () => _handleCopyId(verse),
                       ),
                   ],
@@ -536,7 +536,7 @@ class _VerseCardState extends State<VerseCard> {
     Clipboard.setData(ClipboardData(text: id));
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text('Verse ID copied: $id'),
+        content: Text('ID copied: $id'),
         behavior: SnackBarBehavior.floating,
         duration: const Duration(seconds: 2),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),

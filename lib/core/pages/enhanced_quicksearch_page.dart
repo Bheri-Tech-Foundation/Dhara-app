@@ -5233,42 +5233,14 @@ class _GraphEntityCardWidget extends StatefulWidget {
 class _GraphEntityCardWidgetState extends State<_GraphEntityCardWidget> {
   bool _summaryExpanded = false;
 
-  Widget _buildCopyIdButton(String id, Color color) {
-    return Material(
-      type: MaterialType.transparency,
-      child: InkWell(
-        onTap: () {
-          Clipboard.setData(ClipboardData(text: id));
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('Entity ID copied: $id'),
-              backgroundColor: color,
-              behavior: SnackBarBehavior.floating,
-              duration: const Duration(seconds: 2),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-            ),
-          );
-        },
-        borderRadius: BorderRadius.circular(12),
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-          decoration: BoxDecoration(
-            color: color.withOpacity(0.08),
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: color.withOpacity(0.2), width: 0.5),
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(Icons.copy, size: 10, color: color),
-              const SizedBox(width: 3),
-              Text(
-                'ID',
-                style: TextStyle(fontSize: 9, fontWeight: FontWeight.w600, color: color),
-              ),
-            ],
-          ),
-        ),
+  void _handleCopyId(String id) {
+    Clipboard.setData(ClipboardData(text: id));
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('ID copied: $id'),
+        behavior: SnackBarBehavior.floating,
+        duration: const Duration(seconds: 2),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
       ),
     );
   }
@@ -5327,8 +5299,18 @@ class _GraphEntityCardWidgetState extends State<_GraphEntityCardWidget> {
                         TesterModeService.instance.isEnabled &&
                         entity.id.isNotEmpty)
                       Padding(
-                        padding: const EdgeInsets.only(right: 6),
-                        child: _buildCopyIdButton(entity.id, primaryColor),
+                        padding: const EdgeInsets.only(right: 4),
+                        child: Material(
+                          type: MaterialType.transparency,
+                          child: InkWell(
+                            onTap: () => _handleCopyId(entity.id),
+                            customBorder: const CircleBorder(),
+                            child: Padding(
+                              padding: const EdgeInsets.all(4),
+                              child: Icon(Icons.content_copy, size: 14, color: themeColors.onSurface),
+                            ),
+                          ),
+                        ),
                       ),
                     if (entity.role.isNotEmpty)
                       Container(

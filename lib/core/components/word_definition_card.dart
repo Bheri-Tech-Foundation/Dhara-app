@@ -343,12 +343,12 @@ class _WordDefinitionCardState extends State<WordDefinitionCard> {
                 ),
               ),
 
-            // Copy ID button
+            // Copy ID button (dev + tester mode only)
             if (showCopyId)
               IconButton(
                 onPressed: () => _handleCopyId(),
                 icon: Icon(
-                  Icons.copy,
+                  Icons.content_copy,
                   size: 18,
                   color: themeColors.onSurface,
                 ),
@@ -365,7 +365,7 @@ class _WordDefinitionCardState extends State<WordDefinitionCard> {
     Clipboard.setData(ClipboardData(text: id));
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text('Definition ID copied: $id'),
+        content: Text('ID copied: $id'),
         behavior: SnackBarBehavior.floating,
         duration: const Duration(seconds: 2),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
