@@ -23,16 +23,8 @@ class PrashnaApiPointSimple {
     final queryParams = <String, String>{
       'model': model.modelParameter,
       'query': request.message,
+      'session_id': request.sessionId,
     };
-
-    // Only send session_id for follow-up messages (when we have a real backend ID).
-    // Skip it on the first message to avoid Apache mod_security blocking the
-    // 'session_id' query parameter. The backend returns its own SessionID in the
-    // SSE stream, which replaces '__new__' via ChatSession.copyWith().
-    final sid = request.sessionId;
-    if (sid.isNotEmpty && sid != '__new__') {
-      queryParams['session_id'] = sid;
-    }
 
     // Add sodh_query_id if provided (from Shodh search, for Scholar Mode)
     if (sodhQueryId != null) {

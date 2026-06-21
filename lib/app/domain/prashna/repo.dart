@@ -148,7 +148,7 @@ class PrashnaRepository {
     AiModel? aiModel,
   }) {
     final model = aiModel ?? AiModel.qwen;
-    final sessionId = 'standalone_${DateTime.now().millisecondsSinceEpoch}';
+    final sessionId = 'sa${DateTime.now().millisecondsSinceEpoch.toRadixString(36)}';
     
     return _prashnaApiRepo.sendChatMessage(
       message: query,
