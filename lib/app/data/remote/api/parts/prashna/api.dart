@@ -182,9 +182,8 @@ class PrashnaApiRepo extends ApiRequest<ErrorDto> {
     }
   }
 
-  /// Generate unique session ID
+  /// Placeholder for new sessions — backend will provide the real ID via SessionID event.
   static String generateSessionId() {
-    final timestamp = DateTime.now().millisecondsSinceEpoch;
-    return 's${timestamp.toRadixString(36)}';
+    return '__new__';
   }
 }

@@ -26,10 +26,11 @@ class PrashnaApiPointSimple {
     };
 
     // Only send session_id for follow-up messages (when we have a real backend ID).
-    // Skip it on the first message to avoid mod_security blocks — the backend
-    // returns its own SessionID in the SSE stream.
+    // Skip it on the first message to avoid Apache mod_security blocking the
+    // 'session_id' query parameter. The backend returns its own SessionID in the
+    // SSE stream, which replaces '__new__' via ChatSession.copyWith().
     final sid = request.sessionId;
-    if (sid.isNotEmpty && !sid.startsWith('s')) {
+    if (sid.isNotEmpty && sid != '__new__') {
       queryParams['session_id'] = sid;
     }
 
