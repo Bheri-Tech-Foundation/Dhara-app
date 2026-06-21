@@ -23,7 +23,7 @@ class PrashnaApiPointSimple {
     final queryParams = <String, String>{
       'model': model.modelParameter,
       'query': request.message,
-      'session_id': request.sessionId,
+      'sid': request.sessionId,
     };
 
     // Add sodh_query_id if provided (from Shodh search, for Scholar Mode)
