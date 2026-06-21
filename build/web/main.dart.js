@@ -56587,10 +56587,12 @@ $1(a){this.a.tg(a)},
 $S:22}
 A.Eq.prototype={
 IZ(a,b,c){return this.aMo(a,b,c)},
-aMo(a,b,c){var s=0,r=A.r(t.Uc),q,p=this,o,n
+aMo(a,b,c){var s=0,r=A.r(t.Uc),q,p=this,o,n,m
 var $async$IZ=A.n(function(d,e){if(d===1)return A.o(e,r)
 while(true)switch(s){case 0:o=t.N
-n=A.m(["model",b.gaUw(),"query",a.a,"session_id",a.b],o,o)
+n=A.m(["model",b.gaUw(),"query",a.a],o,o)
+m=a.b
+if(m.length!==0&&!B.c.b6(m,"s"))n.n(0,"session_id",m)
 if(c!=null)n.n(0,"sodh_query_id",B.m.k(c))
 s=3
 return A.j(p.a.pt(0,$.cY().dv()+"/prashna/ask/",A.dS(null,A.m(["Accept","*/*","requiresToken",!0],o,t.z),null,B.cZ,null),n,t.Ol),$async$IZ)

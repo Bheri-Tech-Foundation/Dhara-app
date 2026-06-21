@@ -20,12 +20,19 @@ class PrashnaApiPointSimple {
 
   /// Unified chat endpoint - Returns SSE stream for any AI model
   Future<Response<ResponseBody>> askWithModel(ChatRequestDto request, AiModel model, {int? sodhQueryId}) async {
-    final queryParams = {
+    final queryParams = <String, String>{
       'model': model.modelParameter,
       'query': request.message,
-      'session_id': request.sessionId,
     };
-    
+
+    // Only send session_id for follow-up messages (when we have a real backend ID).
+    // Skip it on the first message to avoid mod_security blocks — the backend
+    // returns its own SessionID in the SSE stream.
+    final sid = request.sessionId;
+    if (sid.isNotEmpty && !sid.startsWith('s')) {
+      queryParams['session_id'] = sid;
+    }
+
     // Add sodh_query_id if provided (from Shodh search, for Scholar Mode)
     if (sodhQueryId != null) {
       queryParams['sodh_query_id'] = sodhQueryId.toString();
