@@ -185,7 +185,6 @@ class PrashnaApiRepo extends ApiRequest<ErrorDto> {
   /// Generate unique session ID
   static String generateSessionId() {
     final timestamp = DateTime.now().millisecondsSinceEpoch;
-    final random = (timestamp % 10000).toString().padLeft(4, '0');
-    return 'session_${timestamp}_$random';
+    return 's${timestamp.toRadixString(36)}';
   }
 }

@@ -322,7 +322,7 @@ class ChatSession {
     final now = DateTime.now();
     return ChatSession(
       // Use temporary ID - backend will provide the real session ID via SessionID event
-      id: id ?? 'temp_${now.millisecondsSinceEpoch}',
+      id: id ?? 's${now.millisecondsSinceEpoch.toRadixString(36)}',
       aiModel: aiModel,
       createdAt: now,
       updatedAt: now,
