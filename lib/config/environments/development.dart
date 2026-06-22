@@ -9,7 +9,7 @@ class EnvDevelopment extends Env {
   
  
   @override
-  String get apiUrl => 'https://project.iith.ac.in/bheri';
+  String get apiUrl => 'https://api.bheri.in/bheri';
 
   
   @override

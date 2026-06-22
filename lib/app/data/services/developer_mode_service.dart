@@ -30,7 +30,7 @@ class DeveloperModeService {
   DeveloperModeService._internal();
   
   // ===== CONSTANTS =====
-  static const String _productionDomain = 'https://project.iith.ac.in';
+  static const String _productionDomain = 'https://api.bheri.in';
   static const String _prefKeyEnabled = 'dev_mode_enabled';
   static const String _prefKeyCustomDomain = 'dev_mode_custom_domain';
   static const String _prefKeyApiRoute = 'dev_mode_api_route';
@@ -119,7 +119,7 @@ class DeveloperModeService {
   // ===== API URL METHODS =====
   
   /// Get the effective API URL.
-  /// - Default: "https://project.iith.ac.in/bheri" (or /samiksha if toggled)
+  /// - Default: "https://api.bheri.in/bheri" (or /samiksha if toggled)
   /// - Developer mode: "{customDomain}/bheri" (or /samiksha if toggled)
   String getEffectiveApiUrl() {
     if (_isEnabled && _customDomain.isNotEmpty) {

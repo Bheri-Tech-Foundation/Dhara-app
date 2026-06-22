@@ -8,7 +8,7 @@ class EnvFinalRelase extends Env {
   String get title => 'Dhara';
 
   @override
-  String get apiUrl => 'https://project.iith.ac.in/bheri';
+  String get apiUrl => 'https://api.bheri.in/bheri';
 
   @override
   String get dashboardDefaultPath => '';

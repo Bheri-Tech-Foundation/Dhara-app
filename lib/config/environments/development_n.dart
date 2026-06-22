@@ -8,7 +8,7 @@ class EnvDevelopmentN extends Env {
   String get title => '(DN) Dhara';
 
   @override
-  String get apiUrl => 'https://project.iith.ac.in/bheri';
+  String get apiUrl => 'https://api.bheri.in/bheri';
 
 
   @override

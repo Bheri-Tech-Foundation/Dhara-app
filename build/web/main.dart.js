@@ -57434,7 +57434,7 @@ case 2:return A.p(null,r)}})
 return A.q($async$EI,r)},
 dv(){var s=this
 if(s.b&&s.c.length!==0)return s.c+s.d.c
-return"https://project.iith.ac.in"+s.d.c}}
+return"https://api.bheri.in"+s.d.c}}
 A.A6.prototype={
 k(a){return this.a},
 $ibD:1}
@@ -143634,7 +143634,7 @@ r($,"bYP","ak4",()=>B.Uy)
 s($,"c18","akd",()=>new A.a2N())
 s($,"bTB","buk",()=>new A.S())
 s($,"bVL","bvx",()=>new A.rs())
-s($,"bTA","cY",()=>new A.K7(A.dR(),B.jQ,A.dW("https://project.iith.ac.in/bheri",t.N)))
+s($,"bTA","cY",()=>new A.K7(A.dR(),B.jQ,A.dW("https://api.bheri.in/bheri",t.N)))
 s($,"bW4","ajY",()=>{var q=t.N
 return new A.aMO(A.aS(q),A.aS(q))})
 s($,"bWr","jP",()=>new A.aNs(A.dR(),A.dW(!1,t.y)))
