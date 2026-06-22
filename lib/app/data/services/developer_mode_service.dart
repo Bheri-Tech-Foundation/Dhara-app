@@ -2,6 +2,24 @@ import 'dart:async';
 import 'package:logger/logger.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
+/// Available backend domains
+enum ApiDomain {
+  apiBheri('https://api.bheri.in', 'api.bheri.in'),
+  projectIith('https://project.iith.ac.in', 'project.iith.ac.in');
+
+  final String url;
+  final String label;
+  const ApiDomain(this.url, this.label);
+
+  static ApiDomain fromUrl(String url) {
+    return ApiDomain.values.firstWhere(
+      (d) => d.url == url,
+      orElse: () => ApiDomain.apiBheri,
+    );
+  }
+}
+
 /// Available backend routes that testers can switch between
 enum ApiRoute {
   bheri('/bheri', 'Bheri (Default)'),
@@ -30,10 +48,10 @@ class DeveloperModeService {
   DeveloperModeService._internal();
   
   // ===== CONSTANTS =====
-  static const String _productionDomain = 'https://api.bheri.in';
   static const String _prefKeyEnabled = 'dev_mode_enabled';
   static const String _prefKeyCustomDomain = 'dev_mode_custom_domain';
   static const String _prefKeyApiRoute = 'dev_mode_api_route';
+  static const String _prefKeyApiDomain = 'dev_mode_api_domain';
   
   // ===== STATE =====
   bool _isEnabled = false;
@@ -42,10 +60,13 @@ class DeveloperModeService {
   String _customDomain = '';
   String get customDomain => _customDomain;
 
+  ApiDomain _apiDomain = ApiDomain.apiBheri;
+  ApiDomain get apiDomain => _apiDomain;
+
   ApiRoute _apiRoute = ApiRoute.bheri;
   ApiRoute get apiRoute => _apiRoute;
   
-  final BehaviorSubject<String> _apiUrlSubject = BehaviorSubject.seeded('$_productionDomain${ApiRoute.bheri.path}');
+  final BehaviorSubject<String> _apiUrlSubject = BehaviorSubject.seeded('${ApiDomain.apiBheri.url}${ApiRoute.bheri.path}');
   Stream<String> get apiUrlStream => _apiUrlSubject.stream;
   
   // ===== INITIALIZATION =====
@@ -65,6 +86,9 @@ class DeveloperModeService {
       _isEnabled = prefs.getBool(_prefKeyEnabled) ?? false;
       _customDomain = prefs.getString(_prefKeyCustomDomain) ?? '';
       
+      final savedDomain = prefs.getString(_prefKeyApiDomain) ?? ApiDomain.apiBheri.url;
+      _apiDomain = ApiDomain.fromUrl(savedDomain);
+
       final savedRoute = prefs.getString(_prefKeyApiRoute) ?? ApiRoute.bheri.path;
       _apiRoute = ApiRoute.fromPath(savedRoute);
       
@@ -80,6 +104,7 @@ class DeveloperModeService {
       
       await prefs.setBool(_prefKeyEnabled, _isEnabled);
       await prefs.setString(_prefKeyCustomDomain, _customDomain);
+      await prefs.setString(_prefKeyApiDomain, _apiDomain.url);
       await prefs.setString(_prefKeyApiRoute, _apiRoute.path);
     } catch (e) {
       _logger.e('Error saving developer mode settings', error: e);
@@ -104,6 +129,7 @@ class DeveloperModeService {
   Future<void> disable() async {
     _isEnabled = false;
     _customDomain = '';
+    _apiDomain = ApiDomain.apiBheri;
     _apiUrlSubject.add(getEffectiveApiUrl());
     await _saveSettings();
   }
@@ -115,17 +141,25 @@ class DeveloperModeService {
     _apiUrlSubject.add(getEffectiveApiUrl());
     await _saveSettings();
   }
+
+  /// Switch the backend domain (e.g. api.bheri.in ↔ project.iith.ac.in).
+  /// Only effective in developer mode. Persisted across app restarts.
+  Future<void> setApiDomain(ApiDomain domain) async {
+    _apiDomain = domain;
+    _apiUrlSubject.add(getEffectiveApiUrl());
+    await _saveSettings();
+  }
   
   // ===== API URL METHODS =====
   
   /// Get the effective API URL.
-  /// - Default: "https://api.bheri.in/bheri" (or /samiksha if toggled)
-  /// - Developer mode: "{customDomain}/bheri" (or /samiksha if toggled)
+  /// Priority: customDomain > selectedDomain > default (api.bheri.in)
+  /// + selected route (/bheri or /samiksha)
   String getEffectiveApiUrl() {
     if (_isEnabled && _customDomain.isNotEmpty) {
       return '$_customDomain${_apiRoute.path}';
     }
-    return '$_productionDomain${_apiRoute.path}';
+    return '${_apiDomain.url}${_apiRoute.path}';
   }
   
   // ===== UTILITY METHODS =====
@@ -134,6 +168,7 @@ class DeveloperModeService {
     return {
       'isEnabled': _isEnabled,
       'customDomain': _customDomain,
+      'apiDomain': _apiDomain.url,
       'apiRoute': _apiRoute.path,
       'effectiveApiUrl': getEffectiveApiUrl(),
     };

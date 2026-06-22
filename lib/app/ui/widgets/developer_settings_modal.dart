@@ -23,6 +23,7 @@ class _DeveloperSettingsModalState extends State<DeveloperSettingsModal> {
   final TextEditingController _customUrlController = TextEditingController();
   
   bool _isEnabled = false;
+  ApiDomain _selectedDomain = ApiDomain.apiBheri;
   ApiRoute _selectedRoute = ApiRoute.bheri;
   
   @override
@@ -44,6 +45,7 @@ class _DeveloperSettingsModalState extends State<DeveloperSettingsModal> {
     setState(() {
       _isEnabled = DeveloperModeService.instance.isEnabled;
       _customUrlController.text = DeveloperModeService.instance.customDomain;
+      _selectedDomain = DeveloperModeService.instance.apiDomain;
       _selectedRoute = DeveloperModeService.instance.apiRoute;
     });
   }
@@ -160,6 +162,61 @@ class _DeveloperSettingsModalState extends State<DeveloperSettingsModal> {
                     ),
                   ),
                   
+                  TdResGaps.v_20,
+
+                  // Backend domain selector
+                  Text(
+                    'Backend Server',
+                    style: TdResTextStyles.h4.copyWith(
+                      color: themeColors.onSurface,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  TdResGaps.v_8,
+                  Text(
+                    'Switch between api.bheri.in (new) and project.iith.ac.in (legacy).',
+                    style: TdResTextStyles.buttonSmall.copyWith(
+                      color: themeColors.onSurface?.withOpacity(0.6),
+                    ),
+                  ),
+                  TdResGaps.v_12,
+                  Row(
+                    children: ApiDomain.values.map((domain) {
+                      final isSelected = _selectedDomain == domain;
+                      return Expanded(
+                        child: Padding(
+                          padding: EdgeInsets.only(
+                            right: domain != ApiDomain.values.last ? TdResDimens.dp_8 : 0,
+                          ),
+                          child: OutlinedButton(
+                            onPressed: () => _switchDomain(domain),
+                            style: OutlinedButton.styleFrom(
+                              backgroundColor: isSelected 
+                                  ? themeColors.primary.withOpacity(0.15) 
+                                  : Colors.transparent,
+                              side: BorderSide(
+                                color: isSelected ? themeColors.primary : Colors.grey.withOpacity(0.4),
+                                width: isSelected ? 2 : 1,
+                              ),
+                              padding: const EdgeInsets.symmetric(vertical: TdResDimens.dp_14),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(TdResDimens.dp_8),
+                              ),
+                            ),
+                            child: Text(
+                              domain.label,
+                              style: TdResTextStyles.h6.copyWith(
+                                fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                                color: isSelected ? themeColors.primary : themeColors.onSurface,
+                                fontFamily: 'monospace',
+                              ),
+                            ),
+                          ),
+                        ),
+                      );
+                    }).toList(),
+                  ),
+
                   TdResGaps.v_20,
 
                   // Backend route selector
@@ -372,6 +429,16 @@ class _DeveloperSettingsModalState extends State<DeveloperSettingsModal> {
     );
   }
   
+  Future<void> _switchDomain(ApiDomain domain) async {
+    await DeveloperModeService.instance.setApiDomain(domain);
+    setState(() {
+      _selectedDomain = domain;
+    });
+    if (context.mounted) {
+      _showRestartDialog();
+    }
+  }
+
   Future<void> _switchRoute(ApiRoute route) async {
     await DeveloperModeService.instance.setApiRoute(route);
     setState(() {
@@ -411,6 +478,7 @@ class _DeveloperSettingsModalState extends State<DeveloperSettingsModal> {
     await DeveloperModeService.instance.disable();
     setState(() {
       _isEnabled = false;
+      _selectedDomain = ApiDomain.apiBheri;
     });
     
     // Show dialog to restart app
