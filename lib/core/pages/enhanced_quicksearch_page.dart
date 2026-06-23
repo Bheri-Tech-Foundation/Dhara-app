@@ -712,11 +712,50 @@ class _EnhancedQuickSearchPageState extends State<EnhancedQuickSearchPage>
             ),
           ),
           
+          // Domain selector for Graph mode (shown before search bar)
+          if (_currentSearchMode == QuickSearchMode.graph) ...[
+            const SizedBox(height: 24),
+            _buildGraphDomainChips(themeColors),
+          ],
+
           const SizedBox(height: 40),
           
           // Centered Search Bar (Prashna style)
           _buildCenteredSearchBar(themeColors),
         ],
+      ),
+    );
+  }
+
+  Widget _buildGraphDomainChips(AppThemeColors themeColors) {
+    const graphColor = Color(0xFF00897B);
+    return SizedBox(
+      height: 40,
+      child: ListView.separated(
+        scrollDirection: Axis.horizontal,
+        shrinkWrap: true,
+        itemCount: kgDomains.length,
+        separatorBuilder: (_, __) => const SizedBox(width: 8),
+        itemBuilder: (context, index) {
+          final domain = kgDomains[index];
+          final isSelected = _selectedKgDomain == domain;
+          return ChoiceChip(
+            label: Text(kgDomainLabels[domain] ?? domain),
+            selected: isSelected,
+            onSelected: (_) => setState(() { _selectedKgDomain = domain; }),
+            selectedColor: graphColor.withOpacity(0.2),
+            labelStyle: TextStyle(
+              fontSize: 12,
+              fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+              color: isSelected ? graphColor : themeColors.onSurface.withOpacity(0.7),
+            ),
+            side: BorderSide(
+              color: isSelected ? graphColor : themeColors.onSurface.withOpacity(0.2),
+            ),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+            visualDensity: VisualDensity.compact,
+          );
+        },
       ),
     );
   }
@@ -1977,11 +2016,50 @@ class _EnhancedQuickSearchContentState extends State<_EnhancedQuickSearchContent
             ),
           ),
           
+          // Domain selector for Graph mode
+          if (widget.currentSearchMode == QuickSearchMode.graph) ...[
+            const SizedBox(height: 24),
+            _buildGraphDomainChipsChild(themeColors),
+          ],
+
           const SizedBox(height: 40),
           
           // Centered Search Bar
           _buildCenteredSearchBar(themeColors),
         ],
+      ),
+    );
+  }
+
+  Widget _buildGraphDomainChipsChild(AppThemeColors themeColors) {
+    const graphColor = Color(0xFF00897B);
+    return SizedBox(
+      height: 40,
+      child: ListView.separated(
+        scrollDirection: Axis.horizontal,
+        shrinkWrap: true,
+        itemCount: kgDomains.length,
+        separatorBuilder: (_, __) => const SizedBox(width: 8),
+        itemBuilder: (context, index) {
+          final domain = kgDomains[index];
+          final isSelected = widget.selectedKgDomain == domain;
+          return ChoiceChip(
+            label: Text(kgDomainLabels[domain] ?? domain),
+            selected: isSelected,
+            onSelected: (_) => widget.onKgDomainChanged?.call(domain),
+            selectedColor: graphColor.withOpacity(0.2),
+            labelStyle: TextStyle(
+              fontSize: 12,
+              fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+              color: isSelected ? graphColor : themeColors.onSurface.withOpacity(0.7),
+            ),
+            side: BorderSide(
+              color: isSelected ? graphColor : themeColors.onSurface.withOpacity(0.2),
+            ),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+            visualDensity: VisualDensity.compact,
+          );
+        },
       ),
     );
   }
