@@ -193,6 +193,12 @@ class _EnhancedQuickSearchPageState extends State<EnhancedQuickSearchPage>
   bool _graphLoading = false;
   String? _graphError;
 
+  // Semantic KG Retrieval state
+  KgRetrievalResult? _kgResult;
+  bool _kgLoading = false;
+  String? _kgError;
+  String _selectedKgDomain = 'epic';
+
   // Dhara Insights search state (managed locally since it's developer-mode only)
   List<DharaInsightChunkRM> _dharaInsightsResults = [];
   bool _dharaInsightsLoading = false;
@@ -320,6 +326,7 @@ class _EnhancedQuickSearchPageState extends State<EnhancedQuickSearchPage>
         break;
       case QuickSearchMode.graph:
         GraphSearchService.instance.clearResults();
+        GraphSearchService.instance.clearKgResults();
         break;
       case QuickSearchMode.dharaInsights:
         DharaInsightsService.instance.clearResults();
@@ -542,18 +549,18 @@ class _EnhancedQuickSearchPageState extends State<EnhancedQuickSearchPage>
 
   Future<void> _performGraphSearch(String query) async {
     setState(() {
-      _graphLoading = true;
-      _graphError = null;
-      _graphResult = null;
+      _kgLoading = true;
+      _kgError = null;
+      _kgResult = null;
     });
 
-    final result = await GraphSearchService.instance.searchGraph(query);
+    final result = await GraphSearchService.instance.searchSemanticKg(query, domain: _selectedKgDomain);
 
     if (mounted) {
       setState(() {
-        _graphLoading = false;
-        _graphResult = result;
-        _graphError = result == null ? 'Could not get results from the knowledge graph' : null;
+        _kgLoading = false;
+        _kgResult = result;
+        _kgError = result == null ? 'Could not get results from the knowledge graph' : null;
       });
     }
   }
@@ -601,6 +608,13 @@ class _EnhancedQuickSearchPageState extends State<EnhancedQuickSearchPage>
           graphResult: _graphResult,
           graphLoading: _graphLoading,
           graphError: _graphError,
+          kgResult: _kgResult,
+          kgLoading: _kgLoading,
+          kgError: _kgError,
+          selectedKgDomain: _selectedKgDomain,
+          onKgDomainChanged: (domain) {
+            setState(() { _selectedKgDomain = domain; });
+          },
           dharaInsightsResults: _dharaInsightsResults,
           dharaInsightsLoading: _dharaInsightsLoading,
           dharaInsightsError: _dharaInsightsError,
@@ -1530,6 +1544,11 @@ class _EnhancedQuickSearchContent extends StatefulWidget {
   final GraphSearchResult? graphResult;
   final bool graphLoading;
   final String? graphError;
+  final KgRetrievalResult? kgResult;
+  final bool kgLoading;
+  final String? kgError;
+  final String selectedKgDomain;
+  final ValueChanged<String>? onKgDomainChanged;
   final List<DharaInsightChunkRM> dharaInsightsResults;
   final bool dharaInsightsLoading;
   final String? dharaInsightsError;
@@ -1547,6 +1566,11 @@ class _EnhancedQuickSearchContent extends StatefulWidget {
     this.graphResult,
     this.graphLoading = false,
     this.graphError,
+    this.kgResult,
+    this.kgLoading = false,
+    this.kgError,
+    this.selectedKgDomain = 'epic',
+    this.onKgDomainChanged,
     this.dharaInsightsResults = const [],
     this.dharaInsightsLoading = false,
     this.dharaInsightsError,
@@ -1564,6 +1588,10 @@ class _EnhancedQuickSearchContentState extends State<_EnhancedQuickSearchContent
   GraphSearchResult? get _graphResultFromParent => widget.graphResult;
   bool get _graphLoadingFromParent => widget.graphLoading;
   String? get _graphErrorFromParent => widget.graphError;
+
+  KgRetrievalResult? get _kgResultFromParent => widget.kgResult;
+  bool get _kgLoadingFromParent => widget.kgLoading;
+  String? get _kgErrorFromParent => widget.kgError;
 
   List<DharaInsightChunkRM> get _dharaInsightsResultsFromParent => widget.dharaInsightsResults;
   bool get _dharaInsightsLoadingFromParent => widget.dharaInsightsLoading;
@@ -1779,6 +1807,7 @@ class _EnhancedQuickSearchContentState extends State<_EnhancedQuickSearchContent
         break;
       case QuickSearchMode.graph:
         GraphSearchService.instance.clearResults();
+        GraphSearchService.instance.clearKgResults();
         break;
       case QuickSearchMode.dharaInsights:
         DharaInsightsService.instance.clearResults();
@@ -1829,7 +1858,7 @@ class _EnhancedQuickSearchContentState extends State<_EnhancedQuickSearchContent
           final state = BlocProvider.of<QuickSearchController>(context, listen: false).state;
           return state.bookResults.isNotEmpty;
         case QuickSearchMode.graph:
-          return _graphResultFromParent != null || _graphLoadingFromParent;
+          return _kgResultFromParent != null || _kgLoadingFromParent;
         case QuickSearchMode.dharaInsights:
           return _dharaInsightsResultsFromParent.isNotEmpty || _dharaInsightsLoadingFromParent;
       }
@@ -1887,7 +1916,7 @@ class _EnhancedQuickSearchContentState extends State<_EnhancedQuickSearchContent
           final hasResults = quickSearchController.state.bookResults.isNotEmpty;
           return hasResults;
         case QuickSearchMode.graph:
-          return _graphResultFromParent != null || _graphLoadingFromParent;
+          return _kgResultFromParent != null || _kgLoadingFromParent;
         case QuickSearchMode.dharaInsights:
           return _dharaInsightsResultsFromParent.isNotEmpty || _dharaInsightsLoadingFromParent;
       }
@@ -4128,12 +4157,54 @@ class _EnhancedQuickSearchContentState extends State<_EnhancedQuickSearchContent
     final themeColors = Theme.of(context).extension<AppThemeColors>()!;
     const graphColor = Color(0xFF00897B);
 
-    if (_graphLoadingFromParent) {
+    return Column(
+      children: [
+        _buildKgDomainSelector(themeColors, graphColor),
+        const SizedBox(height: 8),
+        Expanded(child: _buildKgResultsBody(themeColors, graphColor)),
+      ],
+    );
+  }
+
+  Widget _buildKgDomainSelector(AppThemeColors themeColors, Color graphColor) {
+    return Container(
+      height: 40,
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: ListView.separated(
+        scrollDirection: Axis.horizontal,
+        itemCount: kgDomains.length,
+        separatorBuilder: (_, __) => const SizedBox(width: 8),
+        itemBuilder: (context, index) {
+          final domain = kgDomains[index];
+          final isSelected = widget.selectedKgDomain == domain;
+          return ChoiceChip(
+            label: Text(kgDomainLabels[domain] ?? domain),
+            selected: isSelected,
+            onSelected: (_) => widget.onKgDomainChanged?.call(domain),
+            selectedColor: graphColor.withOpacity(0.2),
+            labelStyle: TextStyle(
+              fontSize: 12,
+              fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+              color: isSelected ? graphColor : themeColors.onSurface.withOpacity(0.7),
+            ),
+            side: BorderSide(
+              color: isSelected ? graphColor : themeColors.onSurface.withOpacity(0.2),
+            ),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+            visualDensity: VisualDensity.compact,
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildKgResultsBody(AppThemeColors themeColors, Color graphColor) {
+    if (_kgLoadingFromParent) {
       return _buildLoadingState('Querying knowledge graph...');
     }
 
-    if (_graphErrorFromParent != null) {
-      return _buildErrorState(_graphErrorFromParent!, () {
+    if (_kgErrorFromParent != null) {
+      return _buildErrorState(_kgErrorFromParent!, () {
         final query = widget.searchController.text.trim();
         if (query.isNotEmpty) {
           widget.onPerformSearch();
@@ -4141,7 +4212,7 @@ class _EnhancedQuickSearchContentState extends State<_EnhancedQuickSearchContent
       });
     }
 
-    final result = _graphResultFromParent;
+    final result = _kgResultFromParent;
     if (result == null) {
       return _buildCouldntLoadState('graph results', () {
         final query = widget.searchController.text.trim();
@@ -4163,36 +4234,409 @@ class _EnhancedQuickSearchContentState extends State<_EnhancedQuickSearchContent
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildGraphAnswerBanner(result, themeColors, graphColor),
+          _buildKgAnswerBanner(result, themeColors, graphColor),
           const SizedBox(height: 16),
-          if (result.entities.isNotEmpty)
-            ...result.entities.map(
-              (entity) => Padding(
-                padding: const EdgeInsets.only(bottom: 12),
-                child: _buildGraphEntityCard(entity, themeColors, graphColor),
+
+          if (result.interpretation != null &&
+              result.interpretation!.isNotEmpty &&
+              result.interpretation != result.answer) ...[
+            _buildKgInterpretationCard(result, themeColors, graphColor),
+            const SizedBox(height: 16),
+          ],
+
+          if (result.graphResults.isNotEmpty) ...[
+            Text(
+              'Graph Relations (${result.graphResults.length})',
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+                color: themeColors.onSurface.withOpacity(0.8),
               ),
             ),
-          if (result.entities.isEmpty)
-            Center(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(vertical: 32),
-                child: Column(
-                  children: [
-                    Icon(Icons.search_off, size: 48, color: themeColors.onSurface.withOpacity(0.3)),
-                    const SizedBox(height: 12),
-                    Text(
-                      'No entities found for this query',
-                      style: TextStyle(color: themeColors.onSurface.withOpacity(0.5), fontSize: 14),
-                    ),
-                  ],
+            const SizedBox(height: 8),
+            ...result.graphResults.map((rel) => Padding(
+              padding: const EdgeInsets.only(bottom: 8),
+              child: _buildKgRelationCard(rel, themeColors, graphColor),
+            )),
+            const SizedBox(height: 16),
+          ],
+
+          if (result.sources.isNotEmpty)
+            _buildKgSourcesPanel(result, themeColors, graphColor),
+
+          const SizedBox(height: 8),
+
+          if (result.cypherQueries.isNotEmpty)
+            _buildKgTechnicalPanel(result, themeColors, graphColor),
+
+          const SizedBox(height: 4),
+
+          _buildKgRawResponsePanel(result, themeColors, graphColor),
+
+          const SizedBox(height: 24),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildKgAnswerBanner(KgRetrievalResult result, AppThemeColors themeColors, Color graphColor) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: graphColor.withOpacity(0.08),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: graphColor.withOpacity(0.2)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(Icons.help_outline, size: 16, color: graphColor),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  result.query,
+                  style: TextStyle(
+                    fontSize: 13,
+                    color: themeColors.onSurface.withOpacity(0.6),
+                    fontStyle: FontStyle.italic,
+                  ),
                 ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          if (result.answer.isNotEmpty)
+            SelectableText(
+              result.answer,
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+                color: themeColors.onSurface,
+                height: 1.5,
               ),
             ),
           const SizedBox(height: 8),
-          _buildGraphTechnicalPanel(result, themeColors, graphColor),
-          const SizedBox(height: 4),
-          _buildGraphRawResponsePanel(result, themeColors, graphColor),
-          const SizedBox(height: 24),
+          Wrap(
+            spacing: 8,
+            runSpacing: 4,
+            children: [
+              _buildKgBadge('${result.graphResults.length} relations', graphColor),
+              _buildKgBadge('via ${result.strategyUsed}', themeColors.onSurface.withOpacity(0.5)),
+              _buildKgBadge('${(result.confidence * 100).toStringAsFixed(0)}% confidence', themeColors.onSurface.withOpacity(0.5)),
+              if (result.isInterpretationPending)
+                _buildKgBadge('Interpretation pending...', Colors.orange),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildKgBadge(String text, Color color) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.15),
+        borderRadius: BorderRadius.circular(6),
+      ),
+      child: Text(
+        text,
+        style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: color),
+      ),
+    );
+  }
+
+  Widget _buildKgInterpretationCard(KgRetrievalResult result, AppThemeColors themeColors, Color graphColor) {
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: themeColors.surface,
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: graphColor.withOpacity(0.15)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(Icons.auto_awesome, size: 16, color: graphColor),
+              const SizedBox(width: 8),
+              Text(
+                'LLM Interpretation',
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                  color: graphColor,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          SelectableText(
+            result.interpretation!,
+            style: TextStyle(
+              fontSize: 13,
+              color: themeColors.onSurface.withOpacity(0.8),
+              height: 1.5,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildKgRelationCard(KgGraphRelation rel, AppThemeColors themeColors, Color graphColor) {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: themeColors.surface,
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: themeColors.onSurface.withOpacity(0.08)),
+        boxShadow: [
+          BoxShadow(
+            color: graphColor.withOpacity(0.04),
+            blurRadius: 6,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  rel.source,
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w700,
+                    color: themeColors.onSurface,
+                  ),
+                ),
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                decoration: BoxDecoration(
+                  color: graphColor.withOpacity(0.12),
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                child: Text(
+                  rel.relation.replaceAll('_', ' '),
+                  style: TextStyle(
+                    fontSize: 10,
+                    fontWeight: FontWeight.w700,
+                    color: graphColor,
+                    letterSpacing: 0.3,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Icon(Icons.arrow_forward, size: 14, color: graphColor),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  rel.target,
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w700,
+                    color: themeColors.onSurface,
+                  ),
+                  textAlign: TextAlign.end,
+                ),
+              ),
+            ],
+          ),
+          if (rel.targetLabels.isNotEmpty) ...[
+            const SizedBox(height: 6),
+            Wrap(
+              spacing: 4,
+              children: rel.targetLabels.map((label) => Container(
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                decoration: BoxDecoration(
+                  color: _getLabelColor(label).withOpacity(0.12),
+                  borderRadius: BorderRadius.circular(4),
+                ),
+                child: Text(
+                  label,
+                  style: TextStyle(
+                    fontSize: 9,
+                    fontWeight: FontWeight.w700,
+                    color: _getLabelColor(label),
+                    letterSpacing: 0.5,
+                  ),
+                ),
+              )).toList(),
+            ),
+          ],
+          if (rel.evidence.isNotEmpty) ...[
+            const SizedBox(height: 8),
+            Text(
+              rel.evidence,
+              style: TextStyle(
+                fontSize: 12,
+                color: themeColors.onSurface.withOpacity(0.6),
+                fontStyle: FontStyle.italic,
+                height: 1.4,
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildKgSourcesPanel(KgRetrievalResult result, AppThemeColors themeColors, Color graphColor) {
+    return Theme(
+      data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
+      child: ExpansionTile(
+        tilePadding: const EdgeInsets.symmetric(horizontal: 12),
+        childrenPadding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
+        leading: Icon(Icons.source, size: 18, color: themeColors.onSurface.withOpacity(0.5)),
+        title: Text(
+          'Sources (${result.sources.length})',
+          style: TextStyle(
+            fontSize: 13,
+            fontWeight: FontWeight.w500,
+            color: themeColors.onSurface.withOpacity(0.6),
+          ),
+        ),
+        children: result.sources.map((source) => Container(
+          width: double.infinity,
+          margin: const EdgeInsets.only(bottom: 8),
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: themeColors.onSurface.withOpacity(0.04),
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(color: themeColors.onSurface.withOpacity(0.08)),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              if (source.evidence.isNotEmpty)
+                Text(
+                  source.evidence,
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: themeColors.onSurface.withOpacity(0.7),
+                  ),
+                ),
+              if (source.evidence.isNotEmpty) const SizedBox(height: 6),
+              SelectableText(
+                source.text,
+                style: TextStyle(
+                  fontSize: 11,
+                  color: themeColors.onSurface.withOpacity(0.6),
+                  height: 1.5,
+                ),
+                maxLines: 8,
+              ),
+            ],
+          ),
+        )).toList(),
+      ),
+    );
+  }
+
+  Widget _buildKgTechnicalPanel(KgRetrievalResult result, AppThemeColors themeColors, Color graphColor) {
+    return Theme(
+      data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
+      child: ExpansionTile(
+        tilePadding: const EdgeInsets.symmetric(horizontal: 12),
+        childrenPadding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
+        leading: Icon(Icons.code, size: 18, color: themeColors.onSurface.withOpacity(0.5)),
+        title: Text(
+          'Cypher Queries (${result.cypherQueries.length})',
+          style: TextStyle(
+            fontSize: 13,
+            fontWeight: FontWeight.w500,
+            color: themeColors.onSurface.withOpacity(0.6),
+          ),
+        ),
+        children: result.cypherQueries.map((q) => Container(
+          width: double.infinity,
+          margin: const EdgeInsets.only(bottom: 8),
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: const Color(0xFF1E1E1E),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: SelectableText(
+            q,
+            style: const TextStyle(
+              fontFamily: 'monospace',
+              fontSize: 11,
+              color: Color(0xFFD4D4D4),
+              height: 1.5,
+            ),
+          ),
+        )).toList(),
+      ),
+    );
+  }
+
+  Widget _buildKgRawResponsePanel(KgRetrievalResult result, AppThemeColors themeColors, Color graphColor) {
+    return Theme(
+      data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
+      child: ExpansionTile(
+        tilePadding: const EdgeInsets.symmetric(horizontal: 12),
+        childrenPadding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
+        leading: Icon(Icons.data_object, size: 18, color: themeColors.onSurface.withOpacity(0.5)),
+        title: Text(
+          'Raw Response',
+          style: TextStyle(
+            fontSize: 13,
+            fontWeight: FontWeight.w500,
+            color: themeColors.onSurface.withOpacity(0.6),
+          ),
+        ),
+        trailing: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            IconButton(
+              icon: Icon(Icons.copy, size: 16, color: themeColors.onSurface.withOpacity(0.4)),
+              tooltip: 'Copy raw JSON',
+              onPressed: () {
+                Clipboard.setData(ClipboardData(text: result.rawJsonPretty));
+                if (mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: const Text('Raw JSON copied to clipboard'),
+                      backgroundColor: graphColor,
+                      duration: const Duration(seconds: 1),
+                    ),
+                  );
+                }
+              },
+            ),
+            Icon(Icons.expand_more, size: 20, color: themeColors.onSurface.withOpacity(0.4)),
+          ],
+        ),
+        children: [
+          Container(
+            width: double.infinity,
+            constraints: const BoxConstraints(maxHeight: 400),
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: const Color(0xFF1E1E1E),
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: themeColors.onSurface.withOpacity(0.08)),
+            ),
+            child: SingleChildScrollView(
+              child: SelectableText(
+                result.rawJsonPretty,
+                style: const TextStyle(
+                  fontFamily: 'monospace',
+                  fontSize: 11,
+                  color: Color(0xFFD4D4D4),
+                  height: 1.5,
+                ),
+              ),
+            ),
+          ),
         ],
       ),
     );

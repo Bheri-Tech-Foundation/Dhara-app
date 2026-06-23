@@ -67,6 +67,11 @@ class UnifiedSearchResult {
   final bool graphLoading;
   final String? graphError;
 
+  // Semantic KG Retrieval fields — developer mode only
+  final KgRetrievalResult? kgResult;
+  final bool kgLoading;
+  final String? kgError;
+
   // Dhara Insights fields — developer mode only
   final List<DharaInsightChunkRM>? dharaChunks;
 
@@ -85,6 +90,9 @@ class UnifiedSearchResult {
     this.graphResult,
     this.graphLoading = false,
     this.graphError,
+    this.kgResult,
+    this.kgLoading = false,
+    this.kgError,
     this.dharaChunks,
   });
 
@@ -103,6 +111,9 @@ class UnifiedSearchResult {
     GraphSearchResult? graphResult,
     bool? graphLoading,
     String? graphError,
+    KgRetrievalResult? kgResult,
+    bool? kgLoading,
+    String? kgError,
     List<DharaInsightChunkRM>? dharaChunks,
   }) {
     return UnifiedSearchResult(
@@ -120,6 +131,9 @@ class UnifiedSearchResult {
       graphResult: graphResult ?? this.graphResult,
       graphLoading: graphLoading ?? this.graphLoading,
       graphError: graphError ?? this.graphError,
+      kgResult: kgResult ?? this.kgResult,
+      kgLoading: kgLoading ?? this.kgLoading,
+      kgError: kgError ?? this.kgError,
       dharaChunks: dharaChunks ?? this.dharaChunks,
     );
   }
@@ -131,6 +145,7 @@ class UnifiedSearchResult {
   bool get hasVerses => verses != null && verses!.isNotEmpty;
   bool get hasChunks => chunks != null && chunks!.isNotEmpty;
   bool get hasGraph => graphResult != null || graphLoading || graphError != null;
+  bool get hasKgResult => kgResult != null || kgLoading || kgError != null;
   bool get hasDharaInsights => dharaChunks != null && dharaChunks!.isNotEmpty;
-  bool get hasAnyResults => hasDefinition || hasVerses || hasChunks || hasGraph || hasDharaInsights;
+  bool get hasAnyResults => hasDefinition || hasVerses || hasChunks || hasGraph || hasKgResult || hasDharaInsights;
 }

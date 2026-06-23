@@ -190,15 +190,164 @@ class GraphSearchService {
     }
   }
 
+  // =========================================================================
+  // Semantic KG Retrieval (POST /api/semantic_retrieval_kg/)
+  // =========================================================================
+
+  final BehaviorSubject<KgRetrievalResult?> _kgResultSubject =
+      BehaviorSubject.seeded(null);
+  Stream<KgRetrievalResult?> get kgResultStream => _kgResultSubject.stream;
+  KgRetrievalResult? get currentKgResult => _kgResultSubject.valueOrNull;
+
+  final BehaviorSubject<bool> _kgLoadingSubject = BehaviorSubject.seeded(false);
+  Stream<bool> get isKgLoadingStream => _kgLoadingSubject.stream;
+  bool get isKgLoading => _kgLoadingSubject.value;
+
+  final BehaviorSubject<String?> _kgErrorSubject = BehaviorSubject.seeded(null);
+  Stream<String?> get kgErrorStream => _kgErrorSubject.stream;
+
+  Future<KgRetrievalResult?> searchSemanticKg(String query, {String domain = 'epic'}) async {
+    if (query.trim().isEmpty) return null;
+
+    _kgLoadingSubject.add(true);
+    _kgErrorSubject.add(null);
+    _kgResultSubject.add(null);
+
+    try {
+      final baseUrl = DeveloperModeService.instance.getEffectiveApiUrl();
+
+      final response = await _client.post(
+        '$baseUrl/api/semantic_retrieval_kg/',
+        data: {
+          'query': query.trim(),
+          'domain': domain,
+        },
+        options: Options(
+          headers: {
+            'accept': 'application/json',
+            'Content-Type': 'application/json',
+          },
+          validateStatus: (status) => status != null && status < 500,
+        ),
+      );
+
+      if (response.statusCode == 200 && response.data != null) {
+        final data = response.data is Map<String, dynamic>
+            ? response.data as Map<String, dynamic>
+            : <String, dynamic>{};
+
+        var result = KgRetrievalResult.fromJson(data);
+        _kgResultSubject.add(result);
+        _kgLoadingSubject.add(false);
+
+        if (result.isInterpretationPending && result.interpretationId != null) {
+          _pollKgInterpretation(result.interpretationId!);
+        }
+
+        return result;
+      } else if (response.statusCode == 503) {
+        _kgErrorSubject.add('GraphRetriever not available. Please try again later.');
+        _kgLoadingSubject.add(false);
+        return null;
+      } else {
+        _kgErrorSubject.add('KG query failed (${response.statusCode})');
+        _kgLoadingSubject.add(false);
+        return null;
+      }
+    } on DioException catch (e) {
+      String errorMsg;
+      if (e.type == DioExceptionType.connectionTimeout ||
+          e.type == DioExceptionType.receiveTimeout) {
+        errorMsg = 'Request timed out. The knowledge graph query may take longer for complex questions.';
+      } else if (e.type == DioExceptionType.connectionError) {
+        errorMsg = 'Could not connect to the server. Check your network and custom domain.';
+      } else {
+        errorMsg = 'Network error: ${e.message ?? 'Unknown error'}';
+      }
+      _kgErrorSubject.add(errorMsg);
+      _kgLoadingSubject.add(false);
+      return null;
+    } catch (e) {
+      _logger.e('Semantic KG search error', error: e);
+      _kgErrorSubject.add('An unexpected error occurred');
+      _kgLoadingSubject.add(false);
+      return null;
+    }
+  }
+
+  Future<String?> pollInterpretation(String interpretationId) async {
+    try {
+      final baseUrl = DeveloperModeService.instance.getEffectiveApiUrl();
+      final url = '$baseUrl/api/semantic_retrieval_kg/interpretation/$interpretationId/';
+
+      const maxAttempts = 15;
+      const pollInterval = Duration(seconds: 3);
+
+      for (int attempt = 0; attempt < maxAttempts; attempt++) {
+        final response = await _client.get(
+          url,
+          options: Options(
+            headers: {'accept': 'application/json'},
+            validateStatus: (status) => status != null && status < 500,
+          ),
+        );
+
+        if (response.statusCode == 200 && response.data != null) {
+          final data = response.data is Map<String, dynamic>
+              ? response.data as Map<String, dynamic>
+              : <String, dynamic>{};
+
+          final status = data['status'] as String? ?? '';
+
+          if (status == 'ready') {
+            return data['interpretation'] as String?;
+          } else if (status == 'failed') {
+            return null;
+          }
+        } else if (response.statusCode == 404) {
+          return null;
+        }
+
+        await Future.delayed(pollInterval);
+      }
+
+      return null;
+    } catch (e) {
+      _logger.e('KG interpretation poll error', error: e);
+      return null;
+    }
+  }
+
+  Future<void> _pollKgInterpretation(String interpretationId) async {
+    await Future.delayed(const Duration(seconds: 4));
+
+    final interpretation = await pollInterpretation(interpretationId);
+    if (interpretation != null) {
+      final current = _kgResultSubject.valueOrNull;
+      if (current != null && current.interpretationId == interpretationId) {
+        _kgResultSubject.add(current.copyWithInterpretation(interpretation));
+      }
+    }
+  }
+
   void clearResults() {
     _resultSubject.add(null);
     _errorSubject.add(null);
     _loadingSubject.add(false);
   }
 
+  void clearKgResults() {
+    _kgResultSubject.add(null);
+    _kgErrorSubject.add(null);
+    _kgLoadingSubject.add(false);
+  }
+
   void dispose() {
     _resultSubject.close();
     _loadingSubject.close();
     _errorSubject.close();
+    _kgResultSubject.close();
+    _kgLoadingSubject.close();
+    _kgErrorSubject.close();
   }
 }

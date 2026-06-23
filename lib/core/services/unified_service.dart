@@ -8,6 +8,7 @@ import 'package:dharak_flutter/app/types/dictionary/word_definitions.dart';
 import 'package:dharak_flutter/app/types/unified/unified_response.dart';
 import 'package:dharak_flutter/app/types/verse/verse.dart';
 import 'package:dharak_flutter/core/cache/smart_search_cache.dart';
+import 'package:dharak_flutter/core/models/graph_search_result.dart';
 import 'package:dharak_flutter/core/services/graph_search_service.dart';
 import 'package:dharak_flutter/core/services/verse_service.dart';
 import 'package:dio/dio.dart';
@@ -328,6 +329,32 @@ class UnifiedService {
                     // Fire and forget — poll the result endpoint asynchronously
                     _pollGraphResult(resultKey, query, currentSessionId, currentResult, itemId);
                   }
+                }
+                continue;
+              }
+
+              // Handle kg_retrieval — inline semantic KG results (developer mode only)
+              if (type == 'kg_retrieval') {
+                if (DeveloperModeService.instance.isEnabled && data is Map<String, dynamic>) {
+                  try {
+                    final kgResult = KgRetrievalResult.fromJson(data);
+                    final kgUnifiedResult = UnifiedSearchResult(
+                      query: query,
+                      originalQuery: query,
+                      timestamp: DateTime.now(),
+                      searchSessionId: currentSessionId,
+                      splits: currentResult.splits,
+                      queryId: currentResult.queryId,
+                      itemId: itemId,
+                      kgResult: kgResult,
+                      kgLoading: false,
+                    );
+                    _addOrUpdateKgResult(kgUnifiedResult);
+
+                    if (kgResult.isInterpretationPending && kgResult.interpretationId != null) {
+                      _pollKgInterpretation(kgResult.interpretationId!, query, currentSessionId, currentResult, itemId, kgResult);
+                    }
+                  } catch (_) {}
                 }
                 continue;
               }
@@ -670,6 +697,60 @@ class UnifiedService {
     }
 
     _currentResults.add(currentResults);
+  }
+
+  /// Add or update a KG retrieval result (keyed by "__kg__" marker)
+  void _addOrUpdateKgResult(UnifiedSearchResult kgResult) {
+    final currentResults = List<UnifiedSearchResult>.from(_currentResults.value);
+    final kgKey = '__kg__${kgResult.searchSessionId}';
+
+    final existingIndex = currentResults.indexWhere(
+      (r) => r.itemId == kgKey,
+    );
+
+    final tagged = kgResult.copyWith(
+      itemId: kgKey,
+      searchSessionId: _currentSearchSessionId,
+    );
+
+    if (existingIndex != -1) {
+      currentResults[existingIndex] = tagged;
+    } else {
+      currentResults.add(tagged);
+    }
+
+    _currentResults.add(currentResults);
+  }
+
+  /// Poll KG interpretation endpoint and update the result when ready
+  Future<void> _pollKgInterpretation(
+    String interpretationId,
+    String query,
+    int sessionId,
+    UnifiedSearchResult currentResult,
+    String? itemId,
+    KgRetrievalResult originalKgResult,
+  ) async {
+    await Future.delayed(const Duration(seconds: 4));
+
+    try {
+      final interpretation = await GraphSearchService.instance.pollInterpretation(interpretationId);
+      if (interpretation != null) {
+        final updatedKgResult = originalKgResult.copyWithInterpretation(interpretation);
+        final kgUnifiedResult = UnifiedSearchResult(
+          query: query,
+          originalQuery: query,
+          timestamp: DateTime.now(),
+          searchSessionId: sessionId,
+          splits: currentResult.splits,
+          queryId: currentResult.queryId,
+          itemId: '__kg__$sessionId',
+          kgResult: updatedKgResult,
+          kgLoading: false,
+        );
+        _addOrUpdateKgResult(kgUnifiedResult);
+      }
+    } catch (_) {}
   }
 
   /// Poll the nl_to_cypher_result endpoint until completed

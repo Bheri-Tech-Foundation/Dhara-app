@@ -39,7 +39,7 @@ import 'package:expandable/expandable.dart';
 import 'package:flutter/material.dart';
 import 'package:markdown_widget/config/all.dart';
 
-enum ExpandableToolType { definition, verse, chunk, prashna, graph, dharaInsights }
+enum ExpandableToolType { definition, verse, chunk, prashna, graph, dharaInsights, kgRetrieval }
 
 extension ExpandableToolTypeExtension on ExpandableToolType {
   String get label {
@@ -56,6 +56,8 @@ extension ExpandableToolTypeExtension on ExpandableToolType {
         return 'Graph';
       case ExpandableToolType.dharaInsights:
         return 'Dhara Insights';
+      case ExpandableToolType.kgRetrieval:
+        return 'Knowledge Graph';
     }
   }
 }
@@ -164,6 +166,8 @@ class _ToolCardState extends State<ToolCard> {
         return const Color(0xFF00897B);
       case ExpandableToolType.dharaInsights:
         return const Color(0xFF6A1B9A);
+      case ExpandableToolType.kgRetrieval:
+        return const Color(0xFF00695C);
     }
   }
 
@@ -182,6 +186,8 @@ class _ToolCardState extends State<ToolCard> {
         return Icons.hub_outlined;
       case ExpandableToolType.dharaInsights:
         return Icons.auto_awesome;
+      case ExpandableToolType.kgRetrieval:
+        return Icons.account_tree_outlined;
     }
   }
 
@@ -622,6 +628,8 @@ class _ToolCardState extends State<ToolCard> {
         return _buildGraphToolContent();
       case ExpandableToolType.dharaInsights:
         return _buildDharaInsightsContent();
+      case ExpandableToolType.kgRetrieval:
+        return _buildKgRetrievalContent();
     }
   }
 
@@ -990,6 +998,65 @@ class _ToolCardState extends State<ToolCard> {
     }
 
     return _GraphToolResultContent(
+      result: result,
+      themeColors: widget.themeColors,
+    );
+  }
+
+  Widget _buildKgRetrievalContent() {
+    if (widget.result.kgLoading) {
+      return Padding(
+        padding: const EdgeInsets.all(16),
+        child: Row(
+          children: [
+            SizedBox(
+              width: 16,
+              height: 16,
+              child: CircularProgressIndicator(
+                strokeWidth: 2,
+                color: widget.themeColors.onSurface.withOpacity(0.4),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Text(
+              'Querying knowledge graph...',
+              style: TextStyle(
+                fontSize: 13,
+                color: widget.themeColors.onSurface.withOpacity(0.6),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    if (widget.result.kgError != null) {
+      return Padding(
+        padding: const EdgeInsets.all(16),
+        child: Row(
+          children: [
+            const Icon(Icons.error_outline, size: 16, color: Colors.red),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                widget.result.kgError!,
+                style: TextStyle(fontSize: 13, color: Colors.red.shade400),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    final result = widget.result.kgResult;
+    if (result == null) {
+      return const Padding(
+        padding: EdgeInsets.all(16),
+        child: Text('No knowledge graph data available'),
+      );
+    }
+
+    return _KgRetrievalResultContent(
       result: result,
       themeColors: widget.themeColors,
     );
@@ -1958,6 +2025,214 @@ class _GraphEntityItemState extends State<_GraphEntityItem> {
                 ],
               ),
             ),
+        ],
+      ),
+    );
+  }
+}
+
+class _KgRetrievalResultContent extends StatelessWidget {
+  final KgRetrievalResult result;
+  final AppThemeColors themeColors;
+
+  const _KgRetrievalResultContent({
+    required this.result,
+    required this.themeColors,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    const kgColor = Color(0xFF00695C);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Answer banner
+        if (result.answer.isNotEmpty)
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(14),
+            decoration: BoxDecoration(
+              color: kgColor.withOpacity(0.06),
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(8)),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                SelectableText(
+                  result.answer,
+                  style: TextStyle(
+                    fontSize: 13,
+                    color: themeColors.onSurface.withOpacity(0.85),
+                    height: 1.5,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 4,
+                  children: [
+                    _badge('${result.graphResults.length} relations', kgColor),
+                    _badge('via ${result.strategyUsed}', themeColors.onSurface.withOpacity(0.5)),
+                    _badge('${(result.confidence * 100).toStringAsFixed(0)}%', themeColors.onSurface.withOpacity(0.5)),
+                  ],
+                ),
+              ],
+            ),
+          ),
+
+        // Graph relations
+        if (result.graphResults.isNotEmpty)
+          ...result.graphResults.take(10).map((rel) => _KgRelationItem(
+            relation: rel,
+            themeColors: themeColors,
+          )),
+
+        if (result.graphResults.length > 10)
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+            child: Text(
+              '+ ${result.graphResults.length - 10} more relations',
+              style: TextStyle(
+                fontSize: 12,
+                color: themeColors.onSurface.withOpacity(0.5),
+                fontStyle: FontStyle.italic,
+              ),
+            ),
+          ),
+
+        // Sources (collapsed)
+        if (result.sources.isNotEmpty)
+          Theme(
+            data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
+            child: ExpansionTile(
+              tilePadding: const EdgeInsets.symmetric(horizontal: 14),
+              childrenPadding: const EdgeInsets.fromLTRB(14, 0, 14, 8),
+              title: Text(
+                'Sources (${result.sources.length})',
+                style: TextStyle(
+                  fontSize: 12,
+                  color: themeColors.onSurface.withOpacity(0.5),
+                ),
+              ),
+              children: result.sources.take(3).map((source) => Container(
+                width: double.infinity,
+                margin: const EdgeInsets.only(bottom: 6),
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: themeColors.onSurface.withOpacity(0.03),
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                child: SelectableText(
+                  source.evidence.isNotEmpty ? source.evidence : source.textPreview,
+                  style: TextStyle(
+                    fontSize: 11,
+                    color: themeColors.onSurface.withOpacity(0.6),
+                    height: 1.4,
+                  ),
+                  maxLines: 4,
+                ),
+              )).toList(),
+            ),
+          ),
+      ],
+    );
+  }
+
+  Widget _badge(String text, Color color) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.15),
+        borderRadius: BorderRadius.circular(6),
+      ),
+      child: Text(
+        text,
+        style: TextStyle(fontSize: 10, fontWeight: FontWeight.w600, color: color),
+      ),
+    );
+  }
+}
+
+class _KgRelationItem extends StatelessWidget {
+  final KgGraphRelation relation;
+  final AppThemeColors themeColors;
+
+  const _KgRelationItem({
+    required this.relation,
+    required this.themeColors,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    const kgColor = Color(0xFF00695C);
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+      decoration: BoxDecoration(
+        border: Border(
+          bottom: BorderSide(color: themeColors.onSurface.withOpacity(0.06)),
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Flexible(
+                child: Text(
+                  relation.source,
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                    color: themeColors.onSurface,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 6),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                decoration: BoxDecoration(
+                  color: kgColor.withOpacity(0.12),
+                  borderRadius: BorderRadius.circular(4),
+                ),
+                child: Text(
+                  relation.relation.replaceAll('_', ' '),
+                  style: const TextStyle(
+                    fontSize: 9,
+                    fontWeight: FontWeight.w700,
+                    color: kgColor,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 6),
+              Icon(Icons.arrow_forward, size: 12, color: kgColor),
+              const SizedBox(width: 6),
+              Flexible(
+                child: Text(
+                  relation.target,
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                    color: themeColors.onSurface,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          if (relation.evidence.isNotEmpty) ...[
+            const SizedBox(height: 4),
+            Text(
+              relation.evidence,
+              style: TextStyle(
+                fontSize: 11,
+                color: themeColors.onSurface.withOpacity(0.5),
+                fontStyle: FontStyle.italic,
+              ),
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ],
         ],
       ),
     );

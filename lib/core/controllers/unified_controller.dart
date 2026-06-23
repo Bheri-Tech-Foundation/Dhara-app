@@ -138,6 +138,11 @@ class UnifiedController extends Cubit<UnifiedState> {
     if (DeveloperModeService.instance.isEnabled && result.hasGraph) {
       tools.add(ExpandableToolType.graph);
     }
+
+    // Add KG Retrieval tool when developer mode is enabled and KG data exists
+    if (DeveloperModeService.instance.isEnabled && result.hasKgResult) {
+      tools.add(ExpandableToolType.kgRetrieval);
+    }
     
     // Add Prashna AI tool on chunk results (tester mode only).
     // Hidden when both developer mode (Samiksha) and tester mode are active

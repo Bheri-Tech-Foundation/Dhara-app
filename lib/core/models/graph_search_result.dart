@@ -225,3 +225,197 @@ class GraphSubgraph {
     );
   }
 }
+
+// ============================================================================
+// Semantic KG Retrieval Models (POST /api/semantic_retrieval_kg/)
+// ============================================================================
+
+const List<String> kgDomains = [
+  'epic',
+  'purana',
+  'mahabharata',
+  'bhagavadgita',
+  'ayurveda',
+  'dharmashastra',
+  'natyashastra',
+  'agni_purana',
+];
+
+const Map<String, String> kgDomainLabels = {
+  'epic': 'Epic',
+  'purana': 'Purana',
+  'mahabharata': 'Mahabharata',
+  'bhagavadgita': 'Bhagavad Gita',
+  'ayurveda': 'Ayurveda',
+  'dharmashastra': 'Dharmashastra',
+  'natyashastra': 'Natyashastra',
+  'agni_purana': 'Agni Purana',
+};
+
+class KgRetrievalResult {
+  final String query;
+  final String answer;
+  final String? interpretation;
+  final String? interpretationId;
+  final String interpretationStatus;
+  final String strategyUsed;
+  final double confidence;
+  final List<KgGraphRelation> graphResults;
+  final List<dynamic> chunkResults;
+  final List<KgSource> sources;
+  final List<String> cypherQueries;
+  final String status;
+  final String? error;
+  final Map<String, dynamic> rawJson;
+
+  KgRetrievalResult({
+    required this.query,
+    required this.answer,
+    this.interpretation,
+    this.interpretationId,
+    this.interpretationStatus = 'pending',
+    this.strategyUsed = 'unknown',
+    this.confidence = 0.0,
+    this.graphResults = const [],
+    this.chunkResults = const [],
+    this.sources = const [],
+    this.cypherQueries = const [],
+    required this.status,
+    this.error,
+    required this.rawJson,
+  });
+
+  bool get isSuccess => status == 'success' && error == null;
+  bool get isInterpretationReady => interpretationStatus == 'ready';
+  bool get isInterpretationPending => interpretationStatus == 'pending';
+
+  String get rawJsonPretty {
+    try {
+      return const JsonEncoder.withIndent('  ').convert(rawJson);
+    } catch (_) {
+      return rawJson.toString();
+    }
+  }
+
+  KgRetrievalResult copyWithInterpretation(String newInterpretation) {
+    return KgRetrievalResult(
+      query: query,
+      answer: answer,
+      interpretation: newInterpretation,
+      interpretationId: interpretationId,
+      interpretationStatus: 'ready',
+      strategyUsed: strategyUsed,
+      confidence: confidence,
+      graphResults: graphResults,
+      chunkResults: chunkResults,
+      sources: sources,
+      cypherQueries: cypherQueries,
+      status: status,
+      error: error,
+      rawJson: rawJson,
+    );
+  }
+
+  factory KgRetrievalResult.fromJson(Map<String, dynamic> json) {
+    final graphResultsList = (json['graph_results'] as List<dynamic>? ?? [])
+        .whereType<Map<String, dynamic>>()
+        .map((r) => KgGraphRelation.fromJson(r))
+        .toList();
+
+    final sourcesList = (json['sources'] as List<dynamic>? ?? [])
+        .whereType<Map<String, dynamic>>()
+        .map((s) => KgSource.fromJson(s))
+        .toList();
+
+    final cypherList = (json['cypher_queries'] as List<dynamic>? ?? [])
+        .map((e) => e.toString())
+        .toList();
+
+    return KgRetrievalResult(
+      query: json['query'] as String? ?? '',
+      answer: json['answer'] as String? ?? '',
+      interpretation: json['interpretation'] as String?,
+      interpretationId: json['interpretation_id'] as String?,
+      interpretationStatus: json['interpretation_status'] as String? ?? 'pending',
+      strategyUsed: json['strategy_used'] as String? ?? 'unknown',
+      confidence: (json['confidence'] as num?)?.toDouble() ?? 0.0,
+      graphResults: graphResultsList,
+      chunkResults: json['chunk_results'] as List<dynamic>? ?? [],
+      sources: sourcesList,
+      cypherQueries: cypherList,
+      status: json['status'] as String? ?? 'unknown',
+      error: json['error'] as String?,
+      rawJson: json,
+    );
+  }
+}
+
+class KgGraphRelation {
+  final String source;
+  final String relation;
+  final String target;
+  final String targetId;
+  final List<String> targetLabels;
+  final String evidence;
+  final String chunkId;
+  final double? sourceConfidence;
+
+  KgGraphRelation({
+    required this.source,
+    required this.relation,
+    required this.target,
+    this.targetId = '',
+    this.targetLabels = const [],
+    this.evidence = '',
+    this.chunkId = '',
+    this.sourceConfidence,
+  });
+
+  String get primaryLabel => targetLabels.isNotEmpty ? targetLabels.first : 'UNKNOWN';
+
+  factory KgGraphRelation.fromJson(Map<String, dynamic> json) {
+    return KgGraphRelation(
+      source: json['source'] as String? ?? '',
+      relation: json['relation'] as String? ?? 'RELATED_TO',
+      target: json['target'] as String? ?? '',
+      targetId: json['target_id'] as String? ?? '',
+      targetLabels: (json['target_labels'] as List<dynamic>?)
+              ?.map((e) => e.toString())
+              .toList() ??
+          [],
+      evidence: json['evidence'] as String? ?? '',
+      chunkId: json['chunk_id'] as String? ?? '',
+      sourceConfidence: (json['source_confidence'] as num?)?.toDouble(),
+    );
+  }
+}
+
+class KgSource {
+  final String chunkId;
+  final String text;
+  final String evidence;
+  final String type;
+
+  KgSource({
+    required this.chunkId,
+    required this.text,
+    this.evidence = '',
+    this.type = 'graph',
+  });
+
+  String get textPreview {
+    if (text.length <= 200) return text;
+    return '${text.substring(0, 200)}...';
+  }
+
+  bool get hasLongText => text.length > 200;
+
+  factory KgSource.fromJson(Map<String, dynamic> json) {
+    return KgSource(
+      chunkId: json['chunk_id'] as String? ?? '',
+      text: json['text'] as String? ?? '',
+      evidence: json['evidence'] as String? ?? '',
+      type: json['type'] as String? ?? 'graph',
+    );
+  }
+}
