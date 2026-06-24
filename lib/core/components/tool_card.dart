@@ -55,7 +55,7 @@ extension ExpandableToolTypeExtension on ExpandableToolType {
       case ExpandableToolType.graph:
         return 'Graph';
       case ExpandableToolType.dharaInsights:
-        return 'Dhara Insights';
+        return 'Insights';
       case ExpandableToolType.kgRetrieval:
         return 'Knowledge Graph';
     }
@@ -1064,7 +1064,7 @@ class _ToolCardState extends State<ToolCard> {
 
   Widget _buildDharaInsightsContent() {
     if (widget.result.dharaChunks == null || widget.result.dharaChunks!.isEmpty) {
-      return const Text('No Dhara Insights data available');
+      return const Text('No Insights data available');
     }
 
     final chunks = widget.result.dharaChunks!;
@@ -1074,7 +1074,7 @@ class _ToolCardState extends State<ToolCard> {
         Row(
           children: [
             Text(
-              'Dhara Insights',
+              'Insights',
               style: TdResTextStyles.h4.copyWith(
                 color: widget.themeColors.onSurface,
               ),

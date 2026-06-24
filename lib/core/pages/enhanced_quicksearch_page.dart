@@ -96,7 +96,7 @@ extension QuickSearchModeExtension on QuickSearchMode {
       case QuickSearchMode.graph:
         return 'Graph';
       case QuickSearchMode.dharaInsights:
-        return 'Dhara Insights';
+        return 'Insights';
     }
   }
 
@@ -1506,7 +1506,7 @@ class _EnhancedQuickSearchPageState extends State<EnhancedQuickSearchPage>
       case QuickSearchMode.graph:
         return 'Knowledge Graph';
       case QuickSearchMode.dharaInsights:
-        return 'Dhara Insights';
+        return 'Insights';
     }
   }
 
@@ -2841,7 +2841,7 @@ class _EnhancedQuickSearchContentState extends State<_EnhancedQuickSearchContent
       case QuickSearchMode.graph:
         return 'Knowledge Graph';
       case QuickSearchMode.dharaInsights:
-        return 'Dhara Insights';
+        return 'Insights';
     }
   }
 
@@ -4730,7 +4730,7 @@ class _EnhancedQuickSearchContentState extends State<_EnhancedQuickSearchContent
     const insightsColor = Color(0xFF6A1B9A);
 
     if (_dharaInsightsLoadingFromParent) {
-      return _buildLoadingState('Searching Dhara Insights...');
+      return _buildLoadingState('Searching Insights...');
     }
 
     if (_dharaInsightsErrorFromParent != null && _dharaInsightsResultsFromParent.isEmpty) {
@@ -4743,7 +4743,7 @@ class _EnhancedQuickSearchContentState extends State<_EnhancedQuickSearchContent
     }
 
     if (_dharaInsightsResultsFromParent.isEmpty) {
-      return _buildCouldntLoadState('Dhara Insights results', () {
+      return _buildCouldntLoadState('Insights results', () {
         final query = widget.searchController.text.trim();
         if (query.isNotEmpty) {
           widget.onPerformSearch();
@@ -5393,8 +5393,8 @@ class _EnhancedQuickSearchContentState extends State<_EnhancedQuickSearchContent
             const SizedBox(height: 8),
             _buildDrawerAppItem(
               icon: Icons.auto_awesome,
-              title: 'Dhara Insights',
-              subtitle: 'Dhara knowledge search (Dev)',
+              title: 'Insights',
+              subtitle: 'Insights knowledge search (Dev)',
               color: const Color(0xFF6A1B9A),
               onTap: () {
                 Navigator.of(context).pop();
