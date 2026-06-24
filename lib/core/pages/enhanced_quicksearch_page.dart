@@ -4407,18 +4407,11 @@ class _EnhancedQuickSearchContentState extends State<_EnhancedQuickSearchContent
                 height: 1.5,
               ),
             ),
-          const SizedBox(height: 8),
-          Wrap(
-            spacing: 8,
-            runSpacing: 4,
-            children: [
-              _buildKgBadge('${result.graphResults.length} relations', graphColor),
-              _buildKgBadge('via ${result.strategyUsed}', themeColors.onSurface.withOpacity(0.5)),
-              _buildKgBadge('${(result.confidence * 100).toStringAsFixed(0)}% confidence', themeColors.onSurface.withOpacity(0.5)),
-              if (result.isInterpretationPending)
-                _buildKgBadge('Interpretation pending...', Colors.orange),
-            ],
-          ),
+          if (result.isInterpretationPending)
+            Padding(
+              padding: const EdgeInsets.only(top: 8),
+              child: _buildKgBadge('Interpretation pending...', Colors.orange),
+            ),
         ],
       ),
     );

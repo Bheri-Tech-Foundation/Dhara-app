@@ -2082,16 +2082,6 @@ class _KgRetrievalResultContent extends StatelessWidget {
                     height: 1.5,
                   ),
                 ),
-                const SizedBox(height: 8),
-                Wrap(
-                  spacing: 8,
-                  runSpacing: 4,
-                  children: [
-                    _badge('${result.graphResults.length} relations', kgColor),
-                    _badge('via ${result.strategyUsed}', themeColors.onSurface.withOpacity(0.5)),
-                    _badge('${(result.confidence * 100).toStringAsFixed(0)}%', themeColors.onSurface.withOpacity(0.5)),
-                  ],
-                ),
               ],
             ),
           )
@@ -2103,28 +2093,13 @@ class _KgRetrievalResultContent extends StatelessWidget {
               color: kgColor.withOpacity(0.06),
               borderRadius: const BorderRadius.vertical(top: Radius.circular(8)),
             ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                SelectableText(
-                  result.answer,
-                  style: TextStyle(
-                    fontSize: 13,
-                    color: themeColors.onSurface.withOpacity(0.85),
-                    height: 1.5,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Wrap(
-                  spacing: 8,
-                  runSpacing: 4,
-                  children: [
-                    _badge('${result.graphResults.length} relations', kgColor),
-                    _badge('via ${result.strategyUsed}', themeColors.onSurface.withOpacity(0.5)),
-                    _badge('${(result.confidence * 100).toStringAsFixed(0)}%', themeColors.onSurface.withOpacity(0.5)),
-                  ],
-                ),
-              ],
+            child: SelectableText(
+              result.answer,
+              style: TextStyle(
+                fontSize: 13,
+                color: themeColors.onSurface.withOpacity(0.85),
+                height: 1.5,
+              ),
             ),
           ),
 
