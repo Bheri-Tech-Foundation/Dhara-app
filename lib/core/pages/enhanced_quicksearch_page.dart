@@ -246,6 +246,7 @@ class _EnhancedQuickSearchPageState extends State<EnhancedQuickSearchPage>
     _tabController.dispose();
     _searchController.dispose();
     _languageSubscription?.cancel();
+    _kgResultSubscription?.cancel();
     super.dispose();
   }
 
@@ -547,12 +548,25 @@ class _EnhancedQuickSearchPageState extends State<EnhancedQuickSearchPage>
     }
   }
 
+  StreamSubscription? _kgResultSubscription;
+
+  void _listenToKgUpdates() {
+    _kgResultSubscription?.cancel();
+    _kgResultSubscription = GraphSearchService.instance.kgResultStream.listen((result) {
+      if (mounted && result != null && _kgResult != null) {
+        setState(() { _kgResult = result; });
+      }
+    });
+  }
+
   Future<void> _performGraphSearch(String query) async {
     setState(() {
       _kgLoading = true;
       _kgError = null;
       _kgResult = null;
     });
+
+    _listenToKgUpdates();
 
     final result = await GraphSearchService.instance.searchSemanticKg(query, domain: _selectedKgDomain);
 

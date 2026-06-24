@@ -167,7 +167,7 @@ class _ToolCardState extends State<ToolCard> {
       case ExpandableToolType.dharaInsights:
         return const Color(0xFF6A1B9A);
       case ExpandableToolType.kgRetrieval:
-        return const Color(0xFF00695C);
+        return const Color(0xFF00897B);
     }
   }
 
@@ -187,7 +187,7 @@ class _ToolCardState extends State<ToolCard> {
       case ExpandableToolType.dharaInsights:
         return Icons.auto_awesome;
       case ExpandableToolType.kgRetrieval:
-        return Icons.account_tree_outlined;
+        return Icons.hub_outlined;
     }
   }
 
@@ -2076,6 +2076,48 @@ class _KgRetrievalResultContent extends StatelessWidget {
                     _badge('via ${result.strategyUsed}', themeColors.onSurface.withOpacity(0.5)),
                     _badge('${(result.confidence * 100).toStringAsFixed(0)}%', themeColors.onSurface.withOpacity(0.5)),
                   ],
+                ),
+              ],
+            ),
+          ),
+
+        // Interpretation (if available and different from answer)
+        if (result.interpretation != null &&
+            result.interpretation!.isNotEmpty &&
+            result.interpretation != result.answer)
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(14),
+            decoration: BoxDecoration(
+              border: Border(
+                bottom: BorderSide(color: themeColors.onSurface.withOpacity(0.06)),
+              ),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Icon(Icons.auto_awesome, size: 14, color: kgColor),
+                    const SizedBox(width: 6),
+                    Text(
+                      'Interpretation',
+                      style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w600,
+                        color: kgColor,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 6),
+                SelectableText(
+                  result.interpretation!,
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: themeColors.onSurface.withOpacity(0.75),
+                    height: 1.5,
+                  ),
                 ),
               ],
             ),
