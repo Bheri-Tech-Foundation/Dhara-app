@@ -4326,15 +4326,8 @@ class _EnhancedQuickSearchContentState extends State<_EnhancedQuickSearchContent
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildKgAnswerBanner(result, themeColors, graphColor),
+          _buildKgTopBanner(result, themeColors, graphColor),
           const SizedBox(height: 16),
-
-          if (result.interpretation != null &&
-              result.interpretation!.isNotEmpty &&
-              result.interpretation != result.answer) ...[
-            _buildKgInterpretationCard(result, themeColors, graphColor),
-            const SizedBox(height: 16),
-          ],
 
           if (result.graphResults.isNotEmpty) ...[
             Text(
@@ -4371,7 +4364,10 @@ class _EnhancedQuickSearchContentState extends State<_EnhancedQuickSearchContent
     );
   }
 
-  Widget _buildKgAnswerBanner(KgRetrievalResult result, AppThemeColors themeColors, Color graphColor) {
+  Widget _buildKgTopBanner(KgRetrievalResult result, AppThemeColors themeColors, Color graphColor) {
+    final hasInterpretation = result.interpretation != null && result.interpretation!.isNotEmpty;
+    final displayText = hasInterpretation ? result.interpretation! : result.answer;
+
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -4384,24 +4380,26 @@ class _EnhancedQuickSearchContentState extends State<_EnhancedQuickSearchContent
         children: [
           Row(
             children: [
-              Icon(Icons.help_outline, size: 16, color: graphColor),
+              Icon(
+                hasInterpretation ? Icons.auto_awesome : Icons.help_outline,
+                size: 16,
+                color: graphColor,
+              ),
               const SizedBox(width: 8),
-              Expanded(
-                child: Text(
-                  result.query,
-                  style: TextStyle(
-                    fontSize: 13,
-                    color: themeColors.onSurface.withOpacity(0.6),
-                    fontStyle: FontStyle.italic,
-                  ),
+              Text(
+                hasInterpretation ? 'Interpretation' : 'Answer',
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                  color: graphColor,
                 ),
               ),
             ],
           ),
           const SizedBox(height: 10),
-          if (result.answer.isNotEmpty)
+          if (displayText.isNotEmpty)
             SelectableText(
-              result.answer,
+              displayText,
               style: TextStyle(
                 fontSize: 14,
                 fontWeight: FontWeight.w500,

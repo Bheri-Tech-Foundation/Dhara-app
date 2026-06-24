@@ -2047,8 +2047,55 @@ class _KgRetrievalResultContent extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Answer banner
-        if (result.answer.isNotEmpty)
+        // Interpretation banner (primary content)
+        if (result.interpretation != null && result.interpretation!.isNotEmpty)
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(14),
+            decoration: BoxDecoration(
+              color: kgColor.withOpacity(0.06),
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(8)),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Icon(Icons.auto_awesome, size: 14, color: kgColor),
+                    const SizedBox(width: 6),
+                    Text(
+                      'Interpretation',
+                      style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w600,
+                        color: kgColor,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                SelectableText(
+                  result.interpretation!,
+                  style: TextStyle(
+                    fontSize: 13,
+                    color: themeColors.onSurface.withOpacity(0.85),
+                    height: 1.5,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 4,
+                  children: [
+                    _badge('${result.graphResults.length} relations', kgColor),
+                    _badge('via ${result.strategyUsed}', themeColors.onSurface.withOpacity(0.5)),
+                    _badge('${(result.confidence * 100).toStringAsFixed(0)}%', themeColors.onSurface.withOpacity(0.5)),
+                  ],
+                ),
+              ],
+            ),
+          )
+        else if (result.answer.isNotEmpty)
           Container(
             width: double.infinity,
             padding: const EdgeInsets.all(14),
@@ -2076,48 +2123,6 @@ class _KgRetrievalResultContent extends StatelessWidget {
                     _badge('via ${result.strategyUsed}', themeColors.onSurface.withOpacity(0.5)),
                     _badge('${(result.confidence * 100).toStringAsFixed(0)}%', themeColors.onSurface.withOpacity(0.5)),
                   ],
-                ),
-              ],
-            ),
-          ),
-
-        // Interpretation (if available and different from answer)
-        if (result.interpretation != null &&
-            result.interpretation!.isNotEmpty &&
-            result.interpretation != result.answer)
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.all(14),
-            decoration: BoxDecoration(
-              border: Border(
-                bottom: BorderSide(color: themeColors.onSurface.withOpacity(0.06)),
-              ),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Icon(Icons.auto_awesome, size: 14, color: kgColor),
-                    const SizedBox(width: 6),
-                    Text(
-                      'Interpretation',
-                      style: TextStyle(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w600,
-                        color: kgColor,
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 6),
-                SelectableText(
-                  result.interpretation!,
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: themeColors.onSurface.withOpacity(0.75),
-                    height: 1.5,
-                  ),
                 ),
               ],
             ),
