@@ -3252,18 +3252,18 @@ class _EnhancedQuickSearchContentState extends State<_EnhancedQuickSearchContent
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: Colors.orange.withOpacity(0.1),
+                color: themeColors.onSurface.withOpacity(0.05),
                 shape: BoxShape.circle,
               ),
               child: Icon(
-                Icons.cloud_off_rounded,
+                Icons.search_off_rounded,
                 size: 48,
-                color: Colors.orange.shade400,
+                color: themeColors.onSurface.withOpacity(0.3),
               ),
             ),
             const SizedBox(height: 24),
             Text(
-              'Couldn\'t load results',
+              'No Results Found',
               style: TdResTextStyles.h4.copyWith(
                 color: themeColors.onSurface,
                 fontWeight: FontWeight.w600,
@@ -3273,8 +3273,8 @@ class _EnhancedQuickSearchContentState extends State<_EnhancedQuickSearchContent
             const SizedBox(height: 8),
             Text(
               query.isNotEmpty
-                  ? 'Results for "$query" could not be loaded right now. This may be due to a connection issue or a temporary server problem.'
-                  : 'Something went wrong while loading. Please try again.',
+                  ? 'We couldn\'t find any results for "$query". Try a different search term.'
+                  : 'No results to display. Try searching for something.',
               style: TextStyle(
                 fontSize: 14,
                 color: themeColors.onSurface.withOpacity(0.7),

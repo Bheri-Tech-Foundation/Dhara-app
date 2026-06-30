@@ -615,13 +615,13 @@ class _UnifiedSearchPageState extends State<UnifiedSearchPage> {
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             Icon(
-              Icons.cloud_off_rounded,
+              Icons.search_off_rounded,
               size: 64,
-              color: Colors.orange.withOpacity(0.7),
+              color: themeColors.onSurface?.withOpacity(0.3),
             ),
             TdResGaps.v_16,
             Text(
-              'Couldn\'t load results',
+              'No Results Found',
               style: TdResTextStyles.h4.copyWith(
                 color: themeColors.onSurface,
               ),
@@ -629,7 +629,7 @@ class _UnifiedSearchPageState extends State<UnifiedSearchPage> {
             ),
             TdResGaps.v_8,
             Text(
-              'Results for "$query" could not be loaded right now. This may be due to a connection issue or a temporary server problem.',
+              'We couldn\'t find any results for "$query". Try a different search term.',
               textAlign: TextAlign.center,
               style: TdResTextStyles.h6.copyWith(
                 color: themeColors.onSurface?.withOpacity(0.7),
