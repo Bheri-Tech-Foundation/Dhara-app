@@ -629,7 +629,7 @@ class _UnifiedSearchPageState extends State<UnifiedSearchPage> {
             ),
             TdResGaps.v_8,
             Text(
-              'We couldn\'t find any results for "$query". Try a different search term.',
+              'Try searching for something else',
               textAlign: TextAlign.center,
               style: TdResTextStyles.h6.copyWith(
                 color: themeColors.onSurface?.withOpacity(0.7),

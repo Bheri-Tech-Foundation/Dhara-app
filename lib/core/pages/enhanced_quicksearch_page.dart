@@ -3272,33 +3272,13 @@ class _EnhancedQuickSearchContentState extends State<_EnhancedQuickSearchContent
             ),
             const SizedBox(height: 8),
             Text(
-              query.isNotEmpty
-                  ? 'We couldn\'t find any results for "$query". Try a different search term.'
-                  : 'No results to display. Try searching for something.',
+              'Try searching for something else',
               style: TextStyle(
                 fontSize: 14,
                 color: themeColors.onSurface.withOpacity(0.7),
                 height: 1.5,
               ),
               textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 24),
-            OutlinedButton.icon(
-              onPressed: () {
-                if (query.isNotEmpty) {
-                  Modular.get<UnifiedController>().searchUnified(query, forceRefresh: true);
-                }
-              },
-              icon: const Icon(Icons.refresh, size: 18),
-              label: const Text('Try Again'),
-              style: OutlinedButton.styleFrom(
-                foregroundColor: widget.currentSearchMode.color,
-                side: BorderSide(color: widget.currentSearchMode.color),
-                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-              ),
             ),
           ],
         ),
