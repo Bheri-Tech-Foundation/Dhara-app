@@ -158,6 +158,7 @@ class PrashnaApiRepo extends ApiRequest<ErrorDto> {
       case DioExceptionType.badCertificate:
         return 'Security certificate error. Please check your connection.';
       case DioExceptionType.unknown:
+      default:
         return 'Network error. Please check your connection and try again.';
     }
   }
