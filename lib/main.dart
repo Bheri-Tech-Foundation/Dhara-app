@@ -3,27 +3,25 @@ import 'package:dharak_flutter/app/app_widget.dart';
 import 'package:dharak_flutter/app/data/services/developer_mode_service.dart';
 import 'package:dharak_flutter/app/data/services/tester_mode_service.dart';
 import 'package:dharak_flutter/flavors.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter_modular/flutter_modular.dart';
 import 'package:url_strategy/url_strategy.dart';
 
 void main() async {
-  // runApp(const MyApp());
-
-  // F.appFlavor = Flavor.DEVELOPMENT_N;
   F.appFlavor = Flavor.FINALE_RELEASE;
   WidgetsFlutterBinding.ensureInitialized();
-  
-  // Initialize services
+
+  if (kIsWeb) {
+    SemanticsBinding.instance.ensureSemantics();
+  }
+
   await DeveloperModeService.instance.initialize();
   await TesterModeService.instance.initialize();
-  
-  // runApp(const MyApp());
-
 
   setPathUrlStrategy();
 
-  // PlatformFix.urls();
   runApp(ModularApp(module: AppModule(), child: AppWidget()));
 }
 
