@@ -103,6 +103,10 @@ class ThemedApp extends StatelessWidget {
       // routerConfig: Modular.routerConfig,
       title: 'Dhara',
 
+      builder: (context, child) {
+        return SelectionArea(child: child ?? const SizedBox.shrink());
+      },
+
       themeMode: appThemeProvider.themeMode,
 
       // localizationsDelegates: const [
