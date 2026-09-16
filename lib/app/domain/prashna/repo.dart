@@ -171,6 +171,9 @@ class PrashnaRepository {
       _logger.d('🔧 SEND MESSAGE DEBUG: Cancelling any ongoing stream');
       await _cancelCurrentStream();
       
+      // Reset source numbering so citations start from 1 for each new question
+      _resetSourceNumbering();
+      
       // Clear any lingering tool state from previous sessions
       _currentToolSubject.sink.add(null);
       
@@ -591,9 +594,15 @@ class PrashnaRepository {
     return tools;
   }
 
-  /// Global source counter and mapping (like webapp)
+  /// Per-message source counter and mapping
   static int _globalSourceCounter = 1;
   static final Map<String, int> _sourceIdToNumber = {};
+
+  /// Reset source numbering for a new message so citations start from 1
+  void _resetSourceNumbering() {
+    _globalSourceCounter = 1;
+    _sourceIdToNumber.clear();
+  }
   
   /// Extract source citations from content with webapp-style processing
   List<SourceCitation> _extractSourceCitations(String content) {
