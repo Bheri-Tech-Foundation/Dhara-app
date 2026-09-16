@@ -650,12 +650,12 @@ class _EnhancedQuickSearchPageState extends State<EnhancedQuickSearchPage>
           // Header with hamburger menu
           _buildResultsHeader(themeColors),
           
-          // Content area
+          // Content area (wrapped in SelectionArea for text selection & Ctrl+F)
           Expanded(
-            child: _buildTabContent(),
+            child: SelectionArea(child: _buildTabContent()),
           ),
           
-          // Bottom search bar (like Prashna ChatInput)
+          // Bottom search bar (NOT wrapped in SelectionArea to avoid input conflicts)
           _buildBottomSearchBar(themeColors),
         ],
       );
@@ -1882,12 +1882,12 @@ class _EnhancedQuickSearchContentState extends State<_EnhancedQuickSearchContent
       // Results state with search at bottom (like Prashna with messages)
       return Column(
         children: [
-          // Content area (AppBar now handles the header)
+          // Content area (wrapped in SelectionArea for text selection & Ctrl+F)
           Expanded(
-            child: _buildTabContent(),
+            child: SelectionArea(child: _buildTabContent()),
           ),
           
-          // Bottom search bar (like Prashna ChatInput)
+          // Bottom search bar (NOT wrapped in SelectionArea to avoid input conflicts)
           _buildBottomSearchBar(themeColors),
         ],
       );
