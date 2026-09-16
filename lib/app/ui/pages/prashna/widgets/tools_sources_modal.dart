@@ -57,8 +57,8 @@ class _ToolsAndSourcesModalState extends State<ToolsAndSourcesModal> with Ticker
       initialIndex: initialTab.clamp(0, tabCount - 1),
     );
 
-    // Auto-scroll to source if specified
-    if (widget.scrollToSource != null && widget.initialTab == 1) {
+    // Auto-scroll to source if specified (regardless of tab index)
+    if (widget.scrollToSource != null) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         _scrollToSource(widget.scrollToSource!);
       });
@@ -592,6 +592,7 @@ class _ToolsAndSourcesModalState extends State<ToolsAndSourcesModal> with Ticker
       source: source,
       sourceNumber: sourceNumber,
       themeColors: widget.themeColors,
+      autoExpand: widget.scrollToSource == sourceNumber,
     );
   }
 
@@ -673,12 +674,14 @@ class ExpandableSimpleSourceCard extends StatefulWidget {
   final SourceCitation source;
   final int sourceNumber;
   final AppThemeColors? themeColors;
+  final bool autoExpand;
 
   const ExpandableSimpleSourceCard({
     super.key,
     required this.source,
     required this.sourceNumber,
     this.themeColors,
+    this.autoExpand = false,
   });
 
   @override
@@ -707,6 +710,18 @@ class _ExpandableSimpleSourceCardState extends State<ExpandableSimpleSourceCard>
       parent: _highlightController,
       curve: Curves.easeInOut,
     );
+
+    if (widget.autoExpand) {
+      _isExpanded = true;
+      _expandController.value = 1.0;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _highlightController.forward().then((_) {
+          Future.delayed(const Duration(milliseconds: 300), () {
+            if (mounted) _highlightController.reverse();
+          });
+        });
+      });
+    }
   }
 
   @override
@@ -735,10 +750,18 @@ class _ExpandableSimpleSourceCardState extends State<ExpandableSimpleSourceCard>
                 : _getSourceTypeColor(widget.source.type).shade50,
             borderRadius: BorderRadius.circular(8),
             border: Border.all(
-              color: widget.themeColors?.isDark == true 
-                  ? _getSourceTypeColor(widget.source.type).withOpacity(0.3)
-                  : _getSourceTypeColor(widget.source.type).shade300,
-              width: 1,
+              color: _highlightAnimation.value > 0
+                  ? Color.lerp(
+                      widget.themeColors?.isDark == true 
+                          ? _getSourceTypeColor(widget.source.type).withOpacity(0.3)
+                          : _getSourceTypeColor(widget.source.type).shade300,
+                      _getSourceTypeColor(widget.source.type).shade500,
+                      _highlightAnimation.value,
+                    )!
+                  : widget.themeColors?.isDark == true 
+                      ? _getSourceTypeColor(widget.source.type).withOpacity(0.3)
+                      : _getSourceTypeColor(widget.source.type).shade300,
+              width: _highlightAnimation.value > 0 ? 2 : 1,
             ),
             boxShadow: [
               BoxShadow(

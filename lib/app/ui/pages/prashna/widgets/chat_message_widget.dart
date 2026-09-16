@@ -488,8 +488,10 @@ class _ChatMessageWidgetState extends State<ChatMessageWidget> {
 
   /// Handle source citation click - navigate to Sources tab and scroll to specific source
   void _onSourceCitationClick(int sourceNumber) {
-    // Open the modal with Sources tab selected and scroll to specific source
-    _showToolsAndSourcesModal(initialTab: 1, scrollToSource: sourceNumber);
+    // Calculate the correct tab index for Sources (depends on whether Tools tab exists)
+    int sourcesTabIndex = 0;
+    if (_hasToolCalls()) sourcesTabIndex = 1;
+    _showToolsAndSourcesModal(initialTab: sourcesTabIndex, scrollToSource: sourceNumber);
   }
 
   /// Scroll to a specific source by its number and highlight it (within Sources tab only)
