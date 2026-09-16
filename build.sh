@@ -3,14 +3,21 @@ set -e
 
 echo "Setting up Flutter..."
 
-# Install Flutter if not already installed
-if [ ! -d "$HOME/flutter" ]; then
-  echo "Installing Flutter..."
-  git clone https://github.com/flutter/flutter.git -b stable --depth 1 $HOME/flutter
+# Install Flutter pinned to specific version for build consistency
+FLUTTER_VERSION="3.29.3"
+if [ ! -d "/vercel/flutter" ]; then
+  echo "Installing Flutter $FLUTTER_VERSION..."
+  git clone https://github.com/flutter/flutter.git -b "$FLUTTER_VERSION" --depth 1 /vercel/flutter
+else
+  echo "Flutter already installed, ensuring correct version..."
+  cd /vercel/flutter
+  git fetch --depth 1 origin "$FLUTTER_VERSION"
+  git checkout "$FLUTTER_VERSION" 2>/dev/null || true
+  cd -
 fi
 
 # Add Flutter to PATH
-export PATH="$PATH:$HOME/flutter/bin"
+export PATH="$PATH:/vercel/flutter/bin:$HOME/flutter/bin"
 
 # Verify Flutter installation
 flutter doctor
