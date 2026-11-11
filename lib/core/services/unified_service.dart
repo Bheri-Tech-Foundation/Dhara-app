@@ -628,6 +628,17 @@ class UnifiedService {
     SmartSearchCache.instance.setUnifiedResult(query, cacheResult);
   }
 
+  /// Determine the result type string for deduplication
+  String _getResultType(UnifiedSearchResult result) {
+    if (result.hasDefinition) return 'definition';
+    if (result.hasVerses) return 'verse';
+    if (result.hasChunks) return 'chunk';
+    if (result.hasDharaInsights) return 'dhara';
+    if (result.hasGraph) return 'graph';
+    if (result.hasKgResult) return 'kg';
+    return 'empty';
+  }
+
   /// Add or update a search result
   void _addOrUpdateResult(UnifiedSearchResult newResult) {
     final currentResults = List<UnifiedSearchResult>.from(_currentResults.value);
@@ -637,9 +648,12 @@ class UnifiedService {
       searchSessionId: _currentSearchSessionId,
     );
     
-    // Check for duplicates based on query and current session
+    final newType = _getResultType(correctedResult);
+    
+    // Check for duplicates based on query, result type, AND current session
     final existingIndex = currentResults.indexWhere(
       (result) => result.query.toLowerCase() == correctedResult.query.toLowerCase() && 
+                  _getResultType(result) == newType &&
                   result.searchSessionId == _currentSearchSessionId
     );
 
