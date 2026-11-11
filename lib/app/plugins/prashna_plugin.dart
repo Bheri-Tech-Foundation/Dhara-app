@@ -18,7 +18,7 @@ class PrashnaPlugin implements DharaPlugin {
   PluginType get type => PluginType.prashna;
 
   @override
-  String get displayName => 'Prashna';
+  String get displayName => 'Praśna (प्रश्न)';
 
   @override
   Color get themeColor => Colors.indigo; // Your exact current color

@@ -51,7 +51,7 @@ extension ExpandableToolTypeExtension on ExpandableToolType {
       case ExpandableToolType.chunk:
         return 'Chunk';
       case ExpandableToolType.prashna:
-        return 'Prashna';
+        return 'Praśna (प्रश्न)';
       case ExpandableToolType.graph:
         return 'Graph';
       case ExpandableToolType.dharaInsights:

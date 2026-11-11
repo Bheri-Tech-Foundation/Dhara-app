@@ -1116,7 +1116,7 @@ class _SearchLandingPageState extends State<SearchLandingPage>
       case SearchType.mixed:
         icon = Icons.chat_bubble_outline; // Chat icon for AI/Prashna
         color = Colors.indigo; // Indigo color used in Prashna empty state
-        toolName = "Prashna (प्रश्न)";
+        toolName = "Praśna (प्रश्न)";
         break;
     }
     

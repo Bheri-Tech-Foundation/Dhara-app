@@ -45,7 +45,7 @@ class _OnboardingPageState extends State<OnboardingPage> {
       lottieAsset: null,
     ),
     OnboardingItem(
-      title: 'Prashna (प्रश्न)',
+      title: 'Praśna (प्रश्न)',
       subtitle: 'AI Chatbot',
       description: 'Ask questions or chat to get AI-generated answers, with supporting evidence, facts and references',
       icon: Icons.chat_bubble_outline, // Chat-specific icon

@@ -30,7 +30,7 @@ class PrashnaPage extends StatefulWidget {
   const PrashnaPage({
     super.key,
     required this.mRequestArgs,
-    this.title = 'Prashna',
+    this.title = 'Praśna (प्रश्न)',
   });
 
   @override
@@ -265,7 +265,7 @@ class PrashnaPageState extends State<PrashnaPage> {
                   ),
                   const SizedBox(width: 6),
                   Text(
-                    'Prashna',
+                    'Praśna (प्रश्न)',
                     style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w600,

@@ -53,7 +53,7 @@ class _PrashnaPageState extends State<PrashnaPage> {
               
               // Title
               Text(
-                'Prashna - AI Chat',
+                'Praśna - AI Chat',
                 style: TdResTextStyles.h1.copyWith(
                   color: themeColors.onSurface,
                   fontWeight: FontWeight.bold,

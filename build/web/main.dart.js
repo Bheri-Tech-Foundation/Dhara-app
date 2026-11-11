@@ -11009,7 +11009,7 @@ b54:function b54(a){this.a=a},
 bEV(a){switch(a.a){case 0:return"Dict"
 case 1:return"Verse"
 case 2:return"Chunk"
-case 3:return"Prashna"
+case 3:return"Pra\u015bna (\u092a\u094d\u0930\u0936\u094d\u0928)"
 case 4:return"Graph"
 case 5:return"Insights"
 case 6:return"Knowledge Graph"}},
@@ -61751,7 +61751,7 @@ $1$googleWebLoggedInCounter(a){return this.$7$currentTab$googleWebLoggedInCounte
 A.aqf.prototype={}
 A.K7.prototype={
 a1(){var s,r="/quicksearch",q="/prashna",p="/word-define",o=B.fg.rt(r),n=t.OT
-o=A.b([new A.jT(o,r,"Pram\u0101\u1e47a (\u092a\u094d\u0930\u092e\u093e\u0923)",B.hy,"","",B.hy),new A.jT(B.fg.rt(q),q,"Prashna (\u092a\u094d\u0930\u0936\u094d\u0928)",B.dk,"","",B.dk)],n)
+o=A.b([new A.jT(o,r,"Pram\u0101\u1e47a (\u092a\u094d\u0930\u092e\u093e\u0923)",B.hy,"","",B.hy),new A.jT(B.fg.rt(q),q,"Pra\u015bna (\u092a\u094d\u0930\u0936\u094d\u0928)",B.dk,"","",B.dk)],n)
 s=B.fg.rt(p)
 n=A.b([new A.jT(s,p,"WordDefine",B.hx,"","",B.hx),new A.jT(B.fg.rt("/verses"),"/verse","QuickVerse",B.fu,"","",B.fu)],n)
 s=$.ac
@@ -62252,7 +62252,7 @@ $0(){},
 $S:11}
 A.yR.prototype={
 a1(){var s=null
-return new A.acJ(A.bh6(0,1),A.b([new A.ph("Welcome to Dh\u0101r\u0101","AI Powered Search","Discover ancient wisdom through modern technology. Dh\u0101r\u0101 brings you comprehensive Indic knowledge at your fingertips.",B.eH,B.b7,"assets/img/Dhara_logo.png"),new A.ph("Pram\u0101\u1e47a (\u092a\u094d\u0930\u092e\u093e\u0923)","Classic Search boosted by AI","Ask a question or phrase to get list of relevant pages from Indic books, verses and dictionaries",B.hy,A.aT(4294929205),s),new A.ph("Prashna (\u092a\u094d\u0930\u0936\u094d\u0928)","AI Chatbot","Ask questions or chat to get AI-generated answers, with supporting evidence, facts and references",B.dk,A.aT(4286154443),s),new A.ph("Dh\u0101r\u0101 is still in Beta","Please help us improve \ud83d\ude4f","Whenever you find a bug, press the email icon to send us a message on WhatsApp or e-mail",B.oP,A.aT(4293213758),s),new A.ph("Start Your Journey","Begin Exploring Indic Knowledge","Ready to embark on your Indic learning journey? Sign in to access personalized features and save your favorite content.",B.V4,B.b7,s)],t.Ch))}}
+return new A.acJ(A.bh6(0,1),A.b([new A.ph("Welcome to Dh\u0101r\u0101","AI Powered Search","Discover ancient wisdom through modern technology. Dh\u0101r\u0101 brings you comprehensive Indic knowledge at your fingertips.",B.eH,B.b7,"assets/img/Dhara_logo.png"),new A.ph("Pram\u0101\u1e47a (\u092a\u094d\u0930\u092e\u093e\u0923)","Classic Search boosted by AI","Ask a question or phrase to get list of relevant pages from Indic books, verses and dictionaries",B.hy,A.aT(4294929205),s),new A.ph("Pra\u015bna (\u092a\u094d\u0930\u0936\u094d\u0928)","AI Chatbot","Ask questions or chat to get AI-generated answers, with supporting evidence, facts and references",B.dk,A.aT(4286154443),s),new A.ph("Dh\u0101r\u0101 is still in Beta","Please help us improve \ud83d\ude4f","Whenever you find a bug, press the email icon to send us a message on WhatsApp or e-mail",B.oP,A.aT(4293213758),s),new A.ph("Start Your Journey","Begin Exploring Indic Knowledge","Ready to embark on your Indic learning journey? Sign in to access personalized features and save your favorite content.",B.V4,B.b7,s)],t.Ch))}}
 A.acJ.prototype={
 grj(){var s=this.c
 s.toString
@@ -62579,7 +62579,7 @@ m=A.bn(m,s.a)
 r=A.S(20)
 q=s.w
 p=t.p
-r=A.b([new A.d_(0,B.aG,A.D(n,A.ae(A.b([A.aa(B.dk,q,n,16),B.bS,A.y("Prashna",n,n,n,n,n,n,n,A.a6(n,n,q,n,n,n,n,n,n,n,n,14,n,n,B.w,n,n,!0,n,n,n,n,n,n,n,n),n,n,n,n)],p),B.j,B.h,B.z,0,n),B.f,n,n,new A.Z(s.y,n,n,r,n,n,n,B.l),n,n,n,B.uz,n,n,n),n)],p)
+r=A.b([new A.d_(0,B.aG,A.D(n,A.ae(A.b([A.aa(B.dk,q,n,16),B.bS,A.y("Pra\u015bna (\u092a\u094d\u0930\u0936\u094d\u0928)",n,n,n,n,n,n,n,A.a6(n,n,q,n,n,n,n,n,n,n,n,14,n,n,B.w,n,n,!0,n,n,n,n,n,n,n,n),n,n,n,n)],p),B.j,B.h,B.z,0,n),B.f,n,n,new A.Z(s.y,n,n,r,n,n,n,B.l),n,n,n,B.uz,n,n,n),n)],p)
 if(b.gKC())B.b.C(r,A.b([B.A,A.ba(A.y(b.gaQ1(),n,n,1,B.a0,n,n,n,A.a6(n,n,o.d.e,n,n,n,n,n,n,n,n,13,n,n,n,n,n,!0,n,n,n,n,n,n,n,n),n,n,n,n),1)],p))
 s=A.ae(r,B.j,B.h,B.i,0,n)
 return A.wJ(A.b([A.e8(n,n,n,A.D(n,B.W_,B.f,n,n,new A.Z(o.d.x,n,n,A.S(8),n,n,n,B.l),n,n,n,B.b9,n,n,n),n,n,new A.aFS(o,a),n,n,n,"Start New Chat")],p),n,n,!0,m,n,1,!1,n,0,!1,n,!1,n,n,n,n,!0,n,n,n,n,n,s,n,n,n,1,n)},
@@ -62945,7 +62945,7 @@ A.YN.prototype={
 H(a){var s=this,r=null,q=s.x,p=A.bI(a,r,t.w).w,o=s.arB(a),n=A.S(12),m=A.S(12),l=t.p
 return A.bmu(q.a,A.lF(!0,A.af(A.b([o,A.D(r,A.cw(!1,n,!0,A.D(r,A.ae(A.b([A.aa(B.vD,B.q,r,18),B.A,B.adO],l),B.j,B.h,B.i,0,r),B.f,r,r,new A.Z(q.x,r,r,m,r,r,r,B.l),r,r,r,B.Tl,r,r,r),r,!0,r,r,r,r,r,r,r,r,r,s.r,r,r,r,r,r,r,r),B.f,r,r,r,r,r,B.Tz,r,r,r,r),s.ZT(),s.aqZ(),s.ZT(),A.ba(A.af(A.b([new A.ap(B.Tv,A.y("Recent Chats",r,r,r,r,r,r,r,A.a6(r,r,q.e,r,r,r,r,r,r,r,r,13,r,r,B.w,r,r,!0,r,0.5,r,r,r,r,r,r),r,r,r,r),r),A.ba(s.aqd(),1)],l),B.y,B.h,B.i,0),1)],l),B.j,B.h,B.i,0),B.a6,!0),r,r,r,p.a.a*0.85)},
 arB(a){var s=null,r=this.x,q=r.x,p=q.c_(21),o=A.S(8)
-return A.D(s,A.ae(A.b([A.D(s,A.aa(B.dk,q,s,18),B.f,s,s,new A.Z(p,s,s,o,s,s,s,B.l),s,s,s,B.bL,s,s,s),B.ag,A.ba(A.y("Prashna AI",s,s,s,s,s,s,s,A.a6(s,s,r.c,s,s,s,s,s,s,s,s,20,s,s,B.U,s,s,!0,s,-0.5,s,s,s,s,s,s),s,s,s,s),1),A.cw(!1,A.S(8),!0,A.D(s,A.aa(B.cf,r.e,s,20),B.f,s,s,s,s,s,s,B.b9,s,s,s),s,!0,s,s,s,s,s,s,s,s,s,new A.aoa(a),s,s,s,s,s,s,s)],t.p),B.j,B.h,B.i,0,s),B.f,s,s,s,s,s,s,B.uD,s,s,s)},
+return A.D(s,A.ae(A.b([A.D(s,A.aa(B.dk,q,s,18),B.f,s,s,new A.Z(p,s,s,o,s,s,s,B.l),s,s,s,B.bL,s,s,s),B.ag,A.ba(A.y("Pra\u015bna AI",s,s,s,s,s,s,s,A.a6(s,s,r.c,s,s,s,s,s,s,s,s,20,s,s,B.U,s,s,!0,s,-0.5,s,s,s,s,s,s),s,s,s,s),1),A.cw(!1,A.S(8),!0,A.D(s,A.aa(B.cf,r.e,s,20),B.f,s,s,s,s,s,s,B.b9,s,s,s),s,!0,s,s,s,s,s,s,s,s,s,new A.aoa(a),s,s,s,s,s,s,s)],t.p),B.j,B.h,B.i,0,s),B.f,s,s,s,s,s,s,B.uD,s,s,s)},
 ZT(){var s=null,r=this.x.c
 r=A.x(16,r.j()>>>16&255,r.j()>>>8&255,r.j()&255)
 return A.D(s,s,B.f,r,s,s,s,1,B.oe,s,s,s,s)},
@@ -67706,7 +67706,7 @@ if(a)m=d
 else{m=b.c
 m=A.x(51,m.j()>>>16&255,m.j()>>>8&255,m.j()&255)}m=A.a_9(m,1)
 l=A.bix("Rate relevance of each definition, verse, or book result",B.iT,b,"Pram\u0101\u1e47a (Search)")
-k=A.bix("Evaluate faithfulness, correctness, and relevance of AI answers",B.vI,b,"Prashna (AI Chat)")
+k=A.bix("Evaluate faithfulness, correctness, and relevance of AI answers",B.vI,b,"Pra\u015bna (AI Chat)")
 j=A.bix("Report missing resources and provide detailed comments",B.vW,b,"Share Feedback")
 i=a?d:b.x.M(0.08)
 if(i==null)i=A.x(20,B.a9.j()>>>16&255,B.a9.j()>>>8&255,B.a9.j()&255)

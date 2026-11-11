@@ -225,7 +225,7 @@ class _CompleteSolutionDemoState extends State<CompleteSolutionDemo>
                 icon: Icons.chat_bubble_outline,
                 color: Colors.indigo,
                 description: 'Personalized insights',
-                onTap: () => _showToolExpansion('Prashna'),
+                onTap: () => _showToolExpansion('Praśna'),
               ),
             ],
           ),
@@ -297,7 +297,7 @@ class _CompleteSolutionDemoState extends State<CompleteSolutionDemo>
               Tab(text: 'WordDefine'),
               Tab(text: 'QuickVerse'),
               Tab(text: 'Books'),
-              Tab(text: 'Prashna'),
+              Tab(text: 'Praśna'),
             ],
           ),
           
@@ -546,11 +546,11 @@ class _CompleteSolutionDemoState extends State<CompleteSolutionDemo>
         icon = Icons.menu_book;
         break;
         
-      case 'Prashna':
+      case 'Praśna':
         page = ReusablePageManager.createIndependentPrashnaPage(
           uniqueKey: 'tool_prashna',
         );
-        title = 'Prashna Tool';
+        title = 'Praśna Tool';
         color = Colors.indigo;
         icon = Icons.chat_bubble_outline;
         break;

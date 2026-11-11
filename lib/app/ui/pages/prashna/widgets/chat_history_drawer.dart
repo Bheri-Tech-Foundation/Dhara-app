@@ -68,7 +68,7 @@ class ChatHistoryDrawer extends StatelessWidget {
           TdResGaps.h_12,
           Expanded(
             child: Text(
-              'Prashna AI',
+              'Praśna AI',
               style: TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.w700,

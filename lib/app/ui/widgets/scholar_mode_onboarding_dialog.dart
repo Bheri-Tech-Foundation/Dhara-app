@@ -80,7 +80,7 @@ Future<void> showScholarModeOnboarding(BuildContext context) async {
             const SizedBox(height: 14),
             _buildInstructionItem(
               icon: Icons.chat,
-              title: 'Prashna (AI Chat)',
+              title: 'Praśna (AI Chat)',
               description: 'Evaluate faithfulness, correctness, and relevance of AI answers',
               themeColors: themeColors,
             ),

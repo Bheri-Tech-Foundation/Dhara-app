@@ -26,7 +26,7 @@ class _Tabs {
     "/verse": "QuickVerse", 
     "/quicksearch": "Pramāṇa (प्रमाण)",
     "/unified": "Unified",
-    "/prashna": "Prashna (प्रश्न)"
+    "/prashna": "Praśna (प्रश्न)"
   };
 
   // final String dashboradTopicCreate = '/dashboard/topics/create';
