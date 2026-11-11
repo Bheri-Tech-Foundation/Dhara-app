@@ -9,7 +9,7 @@ import 'package:flutter_modular/flutter_modular.dart';
 import 'package:markdown_widget/markdown_widget.dart';
 import 'dart:async';
 
-/// Widget for displaying Prashna AI response in Shodh screen (Scholar Mode only)
+/// Widget for displaying Prashna AI response in Pramāṇa screen (Scholar Mode only)
 /// Reuses existing Prashna widgets to maintain consistency
 class PrashnaToolCardContent extends StatefulWidget {
   final String query;
@@ -237,7 +237,7 @@ class _PrashnaToolCardContentState extends State<PrashnaToolCardContent> {
           if (!_isStreaming && _content.isNotEmpty && _fetchedQueryId != null) ...[
             const SizedBox(height: 16),
             PrashnaVotingWidget(
-              queryId: _fetchedQueryId!, // Use Prashna's QueryID (NOT Shodh's queryId)
+              queryId: _fetchedQueryId!, // Use Prashna's QueryID (NOT Pramāṇa's queryId)
             ),
           ],
         ],

@@ -21,7 +21,7 @@ class PrashnaApiRepo extends ApiRequest<ErrorDto> {
     required String message,
     required String sessionId,
     required AiModel aiModel,
-    int? sodhQueryId, // Optional Shodh query_id (gets passed as sodh_query_id parameter)
+    int? sodhQueryId, // Optional Pramāṇa query_id (gets passed as sodh_query_id parameter)
   }) async* {
     try {
       final request = ChatRequestDto(

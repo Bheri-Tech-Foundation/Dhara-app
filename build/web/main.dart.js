@@ -11408,7 +11408,7 @@ uw:function uw(a,b,c){this.b=a
 this.c=b
 this.d=c},
 boT(a){switch(a.a){case 0:return"Unified"}},
-boS(a){switch(a.a){case 0:return"Shodh (\u0936\u094b\u0927)"
+boS(a){switch(a.a){case 0:return"Pram\u0101\u1e47a (\u092a\u094d\u0930\u092e\u093e\u0923)"
 case 1:return"WordDefine"
 case 2:return"QuickVerse"
 case 3:return"Books"
@@ -61751,7 +61751,7 @@ $1$googleWebLoggedInCounter(a){return this.$7$currentTab$googleWebLoggedInCounte
 A.aqf.prototype={}
 A.K7.prototype={
 a1(){var s,r="/quicksearch",q="/prashna",p="/word-define",o=B.fg.rt(r),n=t.OT
-o=A.b([new A.jT(o,r,"Shodh (\u0936\u094b\u0927)",B.hy,"","",B.hy),new A.jT(B.fg.rt(q),q,"Prashna (\u092a\u094d\u0930\u0936\u094d\u0928)",B.dk,"","",B.dk)],n)
+o=A.b([new A.jT(o,r,"Pram\u0101\u1e47a (\u092a\u094d\u0930\u092e\u093e\u0923)",B.hy,"","",B.hy),new A.jT(B.fg.rt(q),q,"Prashna (\u092a\u094d\u0930\u0936\u094d\u0928)",B.dk,"","",B.dk)],n)
 s=B.fg.rt(p)
 n=A.b([new A.jT(s,p,"WordDefine",B.hx,"","",B.hx),new A.jT(B.fg.rt("/verses"),"/verse","QuickVerse",B.fu,"","",B.fu)],n)
 s=$.ac
@@ -62252,7 +62252,7 @@ $0(){},
 $S:11}
 A.yR.prototype={
 a1(){var s=null
-return new A.acJ(A.bh6(0,1),A.b([new A.ph("Welcome to Dh\u0101r\u0101","AI Powered Search","Discover ancient wisdom through modern technology. Dh\u0101r\u0101 brings you comprehensive Indic knowledge at your fingertips.",B.eH,B.b7,"assets/img/Dhara_logo.png"),new A.ph("Shodh (\u0936\u094b\u0927)","Classic Search boosted by AI","Ask a question or phrase to get list of relevant pages from Indic books, verses and dictionaries",B.hy,A.aT(4294929205),s),new A.ph("Prashna (\u092a\u094d\u0930\u0936\u094d\u0928)","AI Chatbot","Ask questions or chat to get AI-generated answers, with supporting evidence, facts and references",B.dk,A.aT(4286154443),s),new A.ph("Dh\u0101r\u0101 is still in Beta","Please help us improve \ud83d\ude4f","Whenever you find a bug, press the email icon to send us a message on WhatsApp or e-mail",B.oP,A.aT(4293213758),s),new A.ph("Start Your Journey","Begin Exploring Indic Knowledge","Ready to embark on your Indic learning journey? Sign in to access personalized features and save your favorite content.",B.V4,B.b7,s)],t.Ch))}}
+return new A.acJ(A.bh6(0,1),A.b([new A.ph("Welcome to Dh\u0101r\u0101","AI Powered Search","Discover ancient wisdom through modern technology. Dh\u0101r\u0101 brings you comprehensive Indic knowledge at your fingertips.",B.eH,B.b7,"assets/img/Dhara_logo.png"),new A.ph("Pram\u0101\u1e47a (\u092a\u094d\u0930\u092e\u093e\u0923)","Classic Search boosted by AI","Ask a question or phrase to get list of relevant pages from Indic books, verses and dictionaries",B.hy,A.aT(4294929205),s),new A.ph("Prashna (\u092a\u094d\u0930\u0936\u094d\u0928)","AI Chatbot","Ask questions or chat to get AI-generated answers, with supporting evidence, facts and references",B.dk,A.aT(4286154443),s),new A.ph("Dh\u0101r\u0101 is still in Beta","Please help us improve \ud83d\ude4f","Whenever you find a bug, press the email icon to send us a message on WhatsApp or e-mail",B.oP,A.aT(4293213758),s),new A.ph("Start Your Journey","Begin Exploring Indic Knowledge","Ready to embark on your Indic learning journey? Sign in to access personalized features and save your favorite content.",B.V4,B.b7,s)],t.Ch))}}
 A.acJ.prototype={
 grj(){var s=this.c
 s.toString
@@ -67705,7 +67705,7 @@ n=A.bc1("\u2717","Not X","Not Faithful/Incorrect/Not Relevant",b)
 if(a)m=d
 else{m=b.c
 m=A.x(51,m.j()>>>16&255,m.j()>>>8&255,m.j()&255)}m=A.a_9(m,1)
-l=A.bix("Rate relevance of each definition, verse, or book result",B.iT,b,"Shodh (Search)")
+l=A.bix("Rate relevance of each definition, verse, or book result",B.iT,b,"Pram\u0101\u1e47a (Search)")
 k=A.bix("Evaluate faithfulness, correctness, and relevance of AI answers",B.vI,b,"Prashna (AI Chat)")
 j=A.bix("Report missing resources and provide detailed comments",B.vW,b,"Share Feedback")
 i=a?d:b.x.M(0.08)
@@ -70076,7 +70076,7 @@ break
 case 5:return A.p(null,r)
 case 1:return A.o(p.at(-1),r)}})
 return A.q($async$Ac,r)},
-awX(){switch(this.a.f.a){case 0:return"Welcome to Shodh"
+awX(){switch(this.a.f.a){case 0:return"Welcome to Pram\u0101\u1e47a"
 case 1:return"Welcome to WORDefine"
 case 2:return"Welcome to QuickVerse"
 case 3:return"Welcome to Books"
@@ -70305,11 +70305,11 @@ if(s!=null){r=t.d.a(A.J(s).c.i(0,A.aH(t.b)))
 if(r==null)r=A.hO(!1,B.bb,q,B.da)
 this.c.T(t.q).f.bg(A.c1(q,q,q,q,q,B.t,q,A.y("Copied to clipboard!",q,q,q,q,q,q,q,$.hp().ad(r.a),q,q,q,q),q,B.aK,q,q,q,q,q,q,q,q,q))}},
 aq1(a){var s=null,r=A.x(21,B.aQ.j()>>>16&255,B.aQ.j()>>>8&255,B.aQ.j()&255),q=A.S(8)
-return A.D(s,A.ae(A.b([A.D(s,A.aa(B.hy,B.aQ,s,18),B.f,s,s,new A.Z(r,s,s,q,s,s,s,B.l),s,s,s,B.bL,s,s,s),B.ag,A.ba(A.y("Shodh (\u0936\u094b\u0927)",s,s,s,s,s,s,s,A.a6(s,s,a.c,s,s,s,s,s,s,s,s,20,s,s,B.U,s,s,!0,s,-0.5,s,s,s,s,s,s),s,s,s,s),1),A.cw(!1,A.S(8),!0,A.D(s,A.aa(B.cf,a.e,s,20),B.f,s,s,s,s,s,s,B.b9,s,s,s),s,!0,s,s,s,s,s,s,s,s,s,new A.b_i(this),s,s,s,s,s,s,s)],t.p),B.j,B.h,B.i,0,s),B.f,s,s,s,s,s,s,B.uD,s,s,s)},
+return A.D(s,A.ae(A.b([A.D(s,A.aa(B.hy,B.aQ,s,18),B.f,s,s,new A.Z(r,s,s,q,s,s,s,B.l),s,s,s,B.bL,s,s,s),B.ag,A.ba(A.y("Pram\u0101\u1e47a (\u092a\u094d\u0930\u092e\u093e\u0923)",s,s,s,s,s,s,s,A.a6(s,s,a.c,s,s,s,s,s,s,s,s,20,s,s,B.U,s,s,!0,s,-0.5,s,s,s,s,s,s),s,s,s,s),1),A.cw(!1,A.S(8),!0,A.D(s,A.aa(B.cf,a.e,s,20),B.f,s,s,s,s,s,s,B.b9,s,s,s),s,!0,s,s,s,s,s,s,s,s,s,new A.b_i(this),s,s,s,s,s,s,s)],t.p),B.j,B.h,B.i,0,s),B.f,s,s,s,s,s,s,B.uD,s,s,s)},
 ZV(a){var s=null,r=a.c
 r=A.x(16,r.j()>>>16&255,r.j()>>>8&255,r.j()&255)
 return A.D(s,s,B.f,r,s,s,s,1,B.oe,s,s,s,s)},
-aqJ(a){var s=this,r=null,q=t.p,p=A.b([new A.ap(B.df,A.y("Search Types",r,r,r,r,r,r,r,A.a6(r,r,a.e,r,r,r,r,r,r,r,r,13,r,r,B.w,r,r,!0,r,0.5,r,r,r,r,r,r),r,r,r,r),r),s.vw(B.aQ,B.hy,new A.b_x(s),"Search across all sources",a,"Shodh (\u0936\u094b\u0927)"),B.Q,s.vw(B.bb,B.hx,new A.b_y(s),"Dictionary definitions & meanings",a,"WordDefine"),B.Q,s.vw(B.fh,B.fu,new A.b_z(s),"Verse search with translations",a,"QuickVerse"),B.Q,s.vw(B.a9,B.iR,new A.b_A(s),"Search through book contents",a,"Books")],q),o=$.cP()
+aqJ(a){var s=this,r=null,q=t.p,p=A.b([new A.ap(B.df,A.y("Search Types",r,r,r,r,r,r,r,A.a6(r,r,a.e,r,r,r,r,r,r,r,r,13,r,r,B.w,r,r,!0,r,0.5,r,r,r,r,r,r),r,r,r,r),r),s.vw(B.aQ,B.hy,new A.b_x(s),"Search across all sources",a,"Pram\u0101\u1e47a (\u092a\u094d\u0930\u092e\u093e\u0923)"),B.Q,s.vw(B.bb,B.hx,new A.b_y(s),"Dictionary definitions & meanings",a,"WordDefine"),B.Q,s.vw(B.fh,B.fu,new A.b_z(s),"Verse search with translations",a,"QuickVerse"),B.Q,s.vw(B.a9,B.iR,new A.b_A(s),"Search through book contents",a,"Books")],q),o=$.cP()
 if(o.b||o.e===B.ck)B.b.C(p,A.b([B.Q,s.vw(B.b3,B.w4,new A.b_B(s),"Knowledge graph queries (Dev)",a,"Graph"),B.Q,s.vw(B.hf,B.eH,new A.b_C(s),"Insights knowledge search (Dev)",a,"Insights")],q))
 return new A.ap(B.uF,A.af(p,B.y,B.h,B.i,0),r)},
 vw(a,b,c,d,e,f){var s=null,r=A.S(10),q=A.S(10),p=e.c,o=A.x(8,p.j()>>>16&255,p.j()>>>8&255,p.j()&255),n=A.x(32,a.j()>>>16&255,a.j()>>>8&255,a.j()&255),m=A.S(6),l=e.e,k=t.p

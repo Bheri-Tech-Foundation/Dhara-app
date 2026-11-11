@@ -140,7 +140,7 @@ class PrashnaRepository {
 
   // ===== CHAT FUNCTIONALITY =====
 
-  /// Send a standalone query (for Scholar Mode on Shodh)
+  /// Send a standalone query (for Scholar Mode on Pramāṇa)
   /// Returns a stream of SSE events without managing chat sessions
   Stream<SseEventResult> sendStandaloneQuery({
     required String query,

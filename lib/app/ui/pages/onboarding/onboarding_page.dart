@@ -37,7 +37,7 @@ class _OnboardingPageState extends State<OnboardingPage> {
       logoAsset: "assets/img/Dhara_logo.png", // Add Dhārā logo for first page
     ),
     OnboardingItem(
-      title: 'Shodh (शोध)',
+      title: 'Pramāṇa (प्रमाण)',
       subtitle: 'Classic Search boosted by AI',
       description: 'Ask a question or phrase to get list of relevant pages from Indic books, verses and dictionaries',
       icon: Icons.electric_bolt, // More relevant search icon

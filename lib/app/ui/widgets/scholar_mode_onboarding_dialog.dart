@@ -73,7 +73,7 @@ Future<void> showScholarModeOnboarding(BuildContext context) async {
             // Instructions
             _buildInstructionItem(
               icon: Icons.search,
-              title: 'Shodh (Search)',
+              title: 'Pramāṇa (Search)',
               description: 'Rate relevance of each definition, verse, or book result',
               themeColors: themeColors,
             ),

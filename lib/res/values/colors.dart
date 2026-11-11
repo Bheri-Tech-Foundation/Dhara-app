@@ -42,7 +42,7 @@ class TdResColors {
 
   // Dhara brand colors
   static const Color colorDharaBlue = Color(0xFF1565C0);
-  static const Color colorDutchOrange = Color(0xFFFF6B35); // Dutch orange for Shodh
+  static const Color colorDutchOrange = Color(0xFFFF6B35); // Dutch orange for Pramāṇa
   
   static const Color colorInput = Color(0xFFA2431D);
   static const Color colorSuccess = Color(0xFF039241);

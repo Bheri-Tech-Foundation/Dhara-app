@@ -773,7 +773,7 @@ class _SearchLandingPageState extends State<SearchLandingPage>
       children: [
         // QuickSearch Section - Database Results
         if (quickSearchResults.isNotEmpty) ...[
-          _buildSectionHeader("Shodh (शोध)", Icons.electric_bolt, Colors.blue),
+          _buildSectionHeader("Pramāṇa (प्रमाण)", Icons.electric_bolt, Colors.blue),
           const SizedBox(height: TdResDimens.dp_4),
           Text(
             "Direct results from our database",

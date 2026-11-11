@@ -26,7 +26,7 @@ class PrashnaApiPointSimple {
       'sid': request.sessionId,
     };
 
-    // Add sodh_query_id if provided (from Shodh search, for Scholar Mode)
+    // Add sodh_query_id if provided (from Pramāṇa search, for Scholar Mode)
     if (sodhQueryId != null) {
       queryParams['sodh_query_id'] = sodhQueryId.toString();
     }

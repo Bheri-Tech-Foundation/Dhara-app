@@ -549,7 +549,7 @@ class _UnifiedSearchPageState extends State<UnifiedSearchPage> {
             ),
             TdResGaps.v_24,
             Text(
-              'Welcome to Shodh',
+              'Welcome to Pramāṇa',
               style: TdResTextStyles.h2.copyWith(
                 color: themeColors.onSurface,
                 fontWeight: FontWeight.w600,

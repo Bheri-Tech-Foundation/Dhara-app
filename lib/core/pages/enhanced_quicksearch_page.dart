@@ -77,7 +77,7 @@ extension QuickSearchTabExtension on QuickSearchTab {
   Color get color {
     switch (this) {
       case QuickSearchTab.unified:
-        return const Color(0xFFFF6B35); // Dutch orange for Shodh
+        return const Color(0xFFFF6B35); // Dutch orange for Pramāṇa
     }
   }
 }
@@ -86,7 +86,7 @@ extension QuickSearchModeExtension on QuickSearchMode {
   String get label {
     switch (this) {
       case QuickSearchMode.unified:
-        return 'Shodh (शोध)';
+        return 'Pramāṇa (प्रमाण)';
       case QuickSearchMode.dictionary:
         return 'WordDefine';
       case QuickSearchMode.verse:
@@ -1496,7 +1496,7 @@ class _EnhancedQuickSearchPageState extends State<EnhancedQuickSearchPage>
   String _getWelcomeTitle() {
     switch (_currentSearchMode) {
       case QuickSearchMode.unified:
-        return 'Welcome to Shodh';
+        return 'Welcome to Pramāṇa';
       case QuickSearchMode.dictionary:
         return 'Welcome to WordDefine';
       case QuickSearchMode.verse:
@@ -1687,7 +1687,7 @@ class _EnhancedQuickSearchContentState extends State<_EnhancedQuickSearchContent
       ),
       title: Row(
         children: [
-          // Shodh logo/badge - flexible
+          // Pramāṇa logo/badge - flexible
           Flexible(
             flex: 0,
             child: Container(
@@ -2831,7 +2831,7 @@ class _EnhancedQuickSearchContentState extends State<_EnhancedQuickSearchContent
   String _getWelcomeTitle() {
     switch (widget.currentSearchMode) {
       case QuickSearchMode.unified:
-        return 'Welcome to Shodh';
+        return 'Welcome to Pramāṇa';
       case QuickSearchMode.dictionary:
         return 'Welcome to WORDefine';
       case QuickSearchMode.verse:
@@ -5243,7 +5243,7 @@ class _EnhancedQuickSearchContentState extends State<_EnhancedQuickSearchContent
           const SizedBox(width: 12),
           Expanded(
             child: Text(
-              'Shodh (शोध)',
+              'Pramāṇa (प्रमाण)',
               style: TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.w700,
@@ -5298,10 +5298,10 @@ class _EnhancedQuickSearchContentState extends State<_EnhancedQuickSearchContent
             ),
           ),
           
-          // Shodh App
+          // Pramāṇa App
           _buildDrawerAppItem(
             icon: Icons.electric_bolt,
-            title: 'Shodh (शोध)',
+            title: 'Pramāṇa (प्रमाण)',
             subtitle: 'Search across all sources',
             color: const Color(0xFFFF6B35), // Orange
             onTap: () {

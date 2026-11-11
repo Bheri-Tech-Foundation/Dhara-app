@@ -372,13 +372,13 @@ class _PrashnaVotingWidgetState extends State<PrashnaVotingWidget> {
       if (isSelected) {
         switch (voteValue) {
           case PrashnaVoteValue.excellent:
-            return const Color(0xFF10B981); // Green (same as Shodh)
+            return const Color(0xFF10B981); // Green (same as Pramāṇa)
           case PrashnaVoteValue.good:
-            return const Color(0xFF3B82F6); // Blue (same as Shodh)
+            return const Color(0xFF3B82F6); // Blue (same as Pramāṇa)
           case PrashnaVoteValue.neutral:
-            return const Color(0xFF6B7280); // Gray (same as Shodh)
+            return const Color(0xFF6B7280); // Gray (same as Pramāṇa)
           case PrashnaVoteValue.poor:
-            return const Color(0xFFEF4444); // Red (same as Shodh)
+            return const Color(0xFFEF4444); // Red (same as Pramāṇa)
         }
       }
       return themeColors.onSurface.withOpacity(0.2);

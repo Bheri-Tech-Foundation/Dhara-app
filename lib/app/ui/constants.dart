@@ -24,7 +24,7 @@ class _Tabs {
   final TABS_LABEL = const <String, String>{
     "/word-define": "WordDefine",
     "/verse": "QuickVerse", 
-    "/quicksearch": "Shodh (शोध)",
+    "/quicksearch": "Pramāṇa (प्रमाण)",
     "/unified": "Unified",
     "/prashna": "Prashna (प्रश्न)"
   };
